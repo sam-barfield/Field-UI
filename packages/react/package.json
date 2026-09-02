@@ -1,5 +1,5 @@
 {
-  "name": "@field/react",
+  "name": "@sam.barfield/field-react",
   "version": "0.1.0",
   "description": "Smart, precision-crafted React component library for the Field Design System",
   "main": "dist/index.js",
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@field/tokens": "*",
+    "@sam.barfield/field-tokens": "^0.1.0",
     "lucide-react": "^0.475.0"
   },
   "peerDependencies": {
@@ -35,5 +35,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.6.3"
+  },
+  "publishConfig": {
+    "@sam.barfield:registry": "https://gitlab.com/api/v4/projects/17/packages/npm/"
   }
 }

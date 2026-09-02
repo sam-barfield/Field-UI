@@ -1,0 +1,12 @@
+publish_packages:
+  image: node:20
+  stage: deploy
+  only:
+    - tags
+  script:
+    - npm ci
+    - npm run build
+    - echo "@sam.barfield:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - cd packages/tokens && npm publish
+    - cd ../react && npm publish

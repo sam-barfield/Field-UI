@@ -1,5 +1,5 @@
 // Re-export tokens
-export * from '@field/tokens';
+export * from '@sam.barfield/field-tokens';
 
 // Theme Provider & hooks
 export * from './theme';

@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=@field/showcase",
-    "build": "npm run build --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "build": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm --prefix apps/showcase run build",
+    "typecheck": "npm --prefix packages/tokens run typecheck && npm --prefix packages/react run typecheck && npm --prefix apps/showcase run typecheck"
   },
   "keywords": [
     "design-system",

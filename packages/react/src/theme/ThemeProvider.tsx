@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { FieldTheme, darkTheme, lightTheme, themeToCssVariables } from '@field/tokens';
+import { FieldTheme, darkTheme, lightTheme, themeToCssVariables } from '@sam.barfield/field-tokens';
 import { ThemeContextValue, ThemeProviderProps } from './types';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -24,7 +24,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   };
 
   const updateThemeSemantics = (updater: (prev: FieldTheme) => FieldTheme) => {
-    setTheme(prev => updater(prev));
+    setTheme((prev: FieldTheme) => updater(prev));
   };
 
   // Inject CSS variables directly into document head or root
@@ -35,7 +35,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const root = document.documentElement;
 
     Object.entries(cssVars).forEach(([key, val]) => {
-      root.style.setProperty(key, val);
+      root.style.setProperty(key, val as string);
     });
 
     root.setAttribute('data-field-theme', theme.id);

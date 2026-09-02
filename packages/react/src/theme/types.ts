@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldTheme } from '@field/tokens';
+import { FieldTheme } from '@sam.barfield/field-tokens';
 
 export interface ThemeContextValue {
   theme: FieldTheme;

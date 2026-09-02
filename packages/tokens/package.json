@@ -1,0 +1,15 @@
+{
+  "name": "@field/tokens",
+  "version": "0.1.0",
+  "description": "Minimal, inheritable, multi-platform design tokens for Field Design System",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

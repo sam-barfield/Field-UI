@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Field Design System Component Manifest",
+  "version": "0.1.0",
+  "components": {
+    "Button": {
+      "description": "Interactive action button with tactile elevation and loading state",
+      "props": {
+        "variant": { "type": "string", "enum": ["primary", "secondary", "outline", "ghost", "danger"], "default": "secondary" },
+        "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md" },
+        "isLoading": { "type": "boolean", "default": false },
+        "isFullWidth": { "type": "boolean", "default": false },
+        "leftIcon": { "type": "ReactNode" },
+        "rightIcon": { "type": "ReactNode" }
+      }
+    },
+    "IconButton": {
+      "description": "Square aspect-ratio icon button",
+      "props": {
+        "icon": { "type": "ReactNode", "required": true },
+        "aria-label": { "type": "string", "required": true },
+        "variant": { "type": "string", "enum": ["primary", "secondary", "outline", "ghost", "danger"], "default": "secondary" },
+        "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md" }
+      }
+    },
+    "TextInput": {
+      "description": "Accessible single-line text input with label, helper, and error states",
+      "props": {
+        "label": { "type": "string" },
+        "helperText": { "type": "string" },
+        "error": { "type": "string" },
+        "leftAdornment": { "type": "ReactNode" },
+        "rightAdornment": { "type": "ReactNode" }
+      }
+    },
+    "Select": {
+      "description": "Accessible custom dropdown selector",
+      "props": {
+        "label": { "type": "string" },
+        "options": { "type": "Array<{ value: string, label: string, disabled?: boolean }>", "required": true },
+        "value": { "type": "string" },
+        "onChange": { "type": "(value: string) => void" },
+        "placeholder": { "type": "string" }
+      }
+    },
+    "Switch": {
+      "description": "Accessible binary toggle switch",
+      "props": {
+        "checked": { "type": "boolean", "required": true },
+        "onChange": { "type": "(checked: boolean) => void", "required": true },
+        "label": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "Card": {
+      "description": "Surface container with micro-border and ambient occlusion shadow",
+      "props": {
+        "variant": { "type": "string", "enum": ["default", "interactive"], "default": "default" }
+      }
+    },
+    "StatCard": {
+      "description": "Metric KPI card with delta indicator and tabular typography",
+      "props": {
+        "label": { "type": "string", "required": true },
+        "value": { "type": "string | number", "required": true },
+        "delta": { "type": "{ value: string, trend: 'up' | 'down' | 'neutral' }" },
+        "subtitle": { "type": "string" }
+      }
+    },
+    "Modal": {
+      "description": "Accessible dialog overlay with backdrop blur and escape dismissal",
+      "props": {
+        "isOpen": { "type": "boolean", "required": true },
+        "onClose": { "type": "() => void", "required": true },
+        "title": { "type": "ReactNode" },
+        "description": { "type": "ReactNode" },
+        "footer": { "type": "ReactNode" },
+        "size": { "type": "string", "enum": ["sm", "md", "lg", "full"], "default": "md" }
+      }
+    },
+    "Badge": {
+      "description": "Compact metadata pill badge",
+      "props": {
+        "variant": { "type": "string", "enum": ["default", "accent", "success", "warning", "danger", "info"], "default": "default" },
+        "dot": { "type": "boolean", "default": false }
+      }
+    },
+    "Tabs": {
+      "description": "Accessible navigation tabs",
+      "props": {
+        "items": { "type": "Array<{ id: string, label: ReactNode, icon?: ReactNode, disabled?: boolean }>", "required": true },
+        "activeId": { "type": "string" },
+        "onChange": { "type": "(id: string) => void" }
+      }
+    }
+  }
+}

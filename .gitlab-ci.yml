@@ -8,9 +8,7 @@ publish_packages:
   script:
     - npm ci
     - npm run build
-    - echo "@sam.barfield:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > ~/.npmrc
-    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> ~/.npmrc
-    - cp ~/.npmrc packages/tokens/.npmrc
-    - cp ~/.npmrc packages/react/.npmrc
-    - cd packages/tokens && npm publish
-    - cd ../react && npm publish
+    - echo "@sam.barfield:registry=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - npm publish --workspace=@sam.barfield/field-tokens --verbose
+    - npm publish --workspace=@sam.barfield/field-react --verbose

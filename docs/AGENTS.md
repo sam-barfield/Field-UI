@@ -43,6 +43,20 @@ import {
   Checkbox,
   RadioGroup,
   Slider,
+  DatePicker,
+  DateRangePicker,
+  
+  // Navigation & Shell
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarItem,
+  SidebarDropdown,
+  SidebarSubItem,
+  SidebarFooter,
+  Tabs,
+  Breadcrumb,
   
   // Layout & Structure
   Box,
@@ -52,7 +66,7 @@ import {
   Container,
   Divider,
   
-  // Data Display
+  // Data Display & Terminals
   Card,
   CardHeader,
   CardContent,
@@ -62,8 +76,18 @@ import {
   Avatar,
   AvatarGroup,
   Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHead,
   Accordion,
   Tooltip,
+  Terminal,
+  TerminalHeader,
+  TerminalBody,
+  TerminalLine,
+  TerminalPrompt,
   
   // Feedback & Overlays
   Modal,
@@ -74,7 +98,6 @@ import {
   Progress,
   Spinner,
   Skeleton,
-  Breadcrumb,
   
   // Typography
   Heading,
@@ -181,3 +204,62 @@ import {
   </Text>
 </Modal>
 ```
+
+### Recipe D: Date & Range Selection with Done/Close
+```tsx
+<Stack gap="16px">
+  <DatePicker
+    label="Release Date"
+    value={selectedDate}
+    onChange={setSelectedDate}
+    showDoneButton={true}
+    showCloseButton={true}
+  />
+  <DateRangePicker
+    label="Audit Window"
+    value={dateRange}
+    onChange={setDateRange}
+    showDoneButton={true}
+  />
+</Stack>
+```
+
+### Recipe E: Cloud Shell Terminal
+```tsx
+<Terminal>
+  <TerminalHeader
+    title="cluster-telemetry: us-east-1"
+    onClear={handleClear}
+    onCopyAll={handleCopy}
+  />
+  <TerminalBody>
+    {logs.map((log, i) => (
+      <TerminalLine
+        key={i}
+        level={log.level}
+        timestamp={log.timestamp}
+        message={log.message}
+      />
+    ))}
+  </TerminalBody>
+  <TerminalPrompt onSubmit={handleCommand} />
+</Terminal>
+```
+
+### Recipe F: Application Navigation Sidebar with Dropdowns
+```tsx
+<Sidebar isCollapsed={collapsed} onToggleCollapse={() => setCollapsed(!collapsed)} density="compact">
+  <SidebarHeader logo={<Shield size={20} />} title="Field Cloud" />
+  <SidebarContent>
+    <SidebarGroup title="Platform">
+      <SidebarItem icon={<Server size={18} />} label="Overview" active />
+      <SidebarDropdown icon={<Cloud size={18} />} label="Infrastructure">
+        <SidebarSubItem label="Kubernetes Clusters" description="Multi-region fleet" />
+        <SidebarSubItem label="Edge DNS" description="Global Anycast routing" />
+      </SidebarDropdown>
+    </SidebarGroup>
+  </SidebarContent>
+  <SidebarFooter user={{ name: 'Operator Alex', role: 'SecOps' }} />
+</Sidebar>
+```
+

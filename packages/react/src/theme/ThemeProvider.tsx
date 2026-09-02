@@ -15,11 +15,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Sync mode changes with corresponding semantics
   const toggleMode = () => {
-    const nextMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(nextMode);
-    if (nextMode === 'light' && theme.mode === 'dark') {
+    const nextMode = theme.mode === 'dark' ? 'light' : 'dark';
+    if (nextMode === 'light') {
       setTheme(lightTheme);
-    } else if (nextMode === 'dark' && theme.mode === 'light') {
+    } else {
       setTheme(darkTheme);
     }
   };
@@ -50,14 +49,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       mode: theme.mode,
       setTheme,
       setMode: (m: 'dark' | 'light') => {
-        setMode(m);
-        if (m === 'light') setTheme(lightTheme);
-        else setTheme(darkTheme);
+        if (m === theme.mode) return;
+        setTheme(m === 'light' ? lightTheme : darkTheme);
       },
       toggleMode,
       updateThemeSemantics,
     }),
-    [theme, mode]
+    [theme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

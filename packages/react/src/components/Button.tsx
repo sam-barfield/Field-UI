@@ -57,7 +57,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading && <Loader2 className="field-spinner" size={size === 'sm' ? 14 : size === 'lg' ? 18 : 16} />}
         {!isLoading && leftIcon && <span className="field-btn-icon-left">{leftIcon}</span>}
-        <span>{children}</span>
+        <span className="field-btn-label">{children}</span>
         {!isLoading && rightIcon && <span className="field-btn-icon-right">{rightIcon}</span>}
       </button>
     );

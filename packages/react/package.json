@@ -3,10 +3,22 @@
   "version": "0.1.0",
   "description": "Smart, precision-crafted React component library for the Field Design System",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles/field.css",
+    "./styles/field.css": "./dist/styles/field.css",
+    "./styles/*": "./dist/styles/*"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs = require('fs'); fs.mkdirSync('dist/styles', { recursive: true }); fs.copyFileSync('src/styles/field.css', 'dist/styles/field.css');\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -23,6 +23,22 @@
         "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md" }
       }
     },
+    "ButtonGroup": {
+      "description": "Cluster container uniting adjacent related button controls",
+      "props": {
+        "children": { "type": "ReactNode", "required": true },
+        "attached": { "type": "boolean", "default": true }
+      }
+    },
+    "SegmentedControl": {
+      "description": "Tactile multi-option switcher with smooth pill selection",
+      "props": {
+        "options": { "type": "Array<{ value: string, label: ReactNode, icon?: ReactNode, disabled?: boolean }>", "required": true },
+        "value": { "type": "string", "required": true },
+        "onChange": { "type": "(val: string) => void", "required": true },
+        "size": { "type": "string", "enum": ["sm", "md"], "default": "md" }
+      }
+    },
     "TextInput": {
       "description": "Accessible single-line text input with label, helper, and error states",
       "props": {
@@ -31,6 +47,15 @@
         "error": { "type": "string" },
         "leftAdornment": { "type": "ReactNode" },
         "rightAdornment": { "type": "ReactNode" }
+      }
+    },
+    "TextArea": {
+      "description": "Multi-line expandable text input for logs, commands, and descriptions",
+      "props": {
+        "label": { "type": "string" },
+        "helperText": { "type": "string" },
+        "error": { "type": "string" },
+        "rows": { "type": "number", "default": 3 }
       }
     },
     "Select": {
@@ -50,6 +75,134 @@
         "onChange": { "type": "(checked: boolean) => void", "required": true },
         "label": { "type": "string" },
         "description": { "type": "string" }
+      }
+    },
+    "Checkbox": {
+      "description": "Accessible boolean selection checkbox with high-precision check icon",
+      "props": {
+        "checked": { "type": "boolean", "required": true },
+        "onChange": { "type": "(checked: boolean) => void", "required": true },
+        "label": { "type": "ReactNode" },
+        "disabled": { "type": "boolean", "default": false }
+      }
+    },
+    "RadioGroup": {
+      "description": "Exclusive option radio group with title and secondary description support",
+      "props": {
+        "label": { "type": "string" },
+        "options": { "type": "Array<{ value: string, label: string, description?: string, disabled?: boolean }>", "required": true },
+        "value": { "type": "string", "required": true },
+        "onChange": { "type": "(val: string) => void", "required": true }
+      }
+    },
+    "Slider": {
+      "description": "Numeric range slider supporting continuous values, multi-level threshold zones, persistent divider notches, and optional luminous glow",
+      "props": {
+        "value": { "type": "number", "required": true },
+        "onChange": { "type": "(val: number) => void", "required": true },
+        "min": { "type": "number", "default": 0 },
+        "max": { "type": "number", "default": 100 },
+        "step": { "type": "number", "default": 1 },
+        "label": { "type": "string" },
+        "showValue": { "type": "boolean", "default": true },
+        "valueSuffix": { "type": "string", "default": "" },
+        "zones": { "type": "Array<{ from?: number, to: number, color?: 'success' | 'warning' | 'danger' | 'accent' | string, label?: string }>" },
+        "showMarks": { "type": "boolean", "default": false },
+        "glow": { "type": "boolean", "default": false },
+        "disabled": { "type": "boolean", "default": false }
+      }
+    },
+    "DatePicker": {
+      "description": "Portal-backed calendar date selector with formatted display, clear button, and optional Done/Close confirmation actions",
+      "props": {
+        "value": { "type": "Date | null" },
+        "onChange": { "type": "(date: Date | null) => void" },
+        "label": { "type": "string" },
+        "placeholder": { "type": "string", "default": "Select date..." },
+        "minDate": { "type": "Date" },
+        "maxDate": { "type": "Date" },
+        "clearable": { "type": "boolean", "default": true },
+        "showDoneButton": { "type": "boolean", "default": false },
+        "showCloseButton": { "type": "boolean", "default": false },
+        "doneButtonLabel": { "type": "string", "default": "Done" },
+        "onDone": { "type": "() => void" },
+        "disabled": { "type": "boolean", "default": false }
+      }
+    },
+    "DateRangePicker": {
+      "description": "Portal-backed date range selector with connected span highlighting, quick range presets, and optional Done/Close confirmation",
+      "props": {
+        "value": { "type": "{ start: Date | null, end: Date | null }" },
+        "onChange": { "type": "(range: { start: Date | null, end: Date | null }) => void" },
+        "label": { "type": "string" },
+        "placeholder": { "type": "string", "default": "Select date range..." },
+        "showDoneButton": { "type": "boolean", "default": false },
+        "showCloseButton": { "type": "boolean", "default": false },
+        "doneButtonLabel": { "type": "string", "default": "Done" },
+        "onDone": { "type": "() => void" },
+        "disabled": { "type": "boolean", "default": false }
+      }
+    },
+    "Sidebar": {
+      "description": "Collapsible application navigation sidebar with density control (default | compact), logo, navigation groups, multi-level dropdowns, and footer",
+      "props": {
+        "isCollapsed": { "type": "boolean", "default": false },
+        "onToggleCollapse": { "type": "() => void" },
+        "density": { "type": "string", "enum": ["default", "compact"], "default": "default" },
+        "width": { "type": "string", "default": "260px" },
+        "collapsedWidth": { "type": "string", "default": "68px" }
+      }
+    },
+    "SidebarDropdown": {
+      "description": "Hierarchical dropdown navigation group with Cloudflare-style 1px vertical hierarchy line, chevron rotation, and subtitle descriptions",
+      "props": {
+        "label": { "type": "string", "required": true },
+        "icon": { "type": "ReactNode", "required": true },
+        "defaultOpen": { "type": "boolean", "default": false },
+        "badge": { "type": "ReactNode" },
+        "children": { "type": "ReactNode", "required": true }
+      }
+    },
+    "SidebarSubItem": {
+      "description": "Child navigation destination inside a SidebarDropdown with optional subtitle",
+      "props": {
+        "label": { "type": "string", "required": true },
+        "description": { "type": "string" },
+        "active": { "type": "boolean", "default": false },
+        "onClick": { "type": "() => void" }
+      }
+    },
+    "Terminal": {
+      "description": "Deep carbon sunken container with monospace typography, traffic light dots, real-time log pinning, and interactive command line",
+      "props": {
+        "children": { "type": "ReactNode", "required": true },
+        "className": { "type": "string" }
+      }
+    },
+    "TerminalHeader": {
+      "description": "Terminal titlebar with traffic light indicators, session title, log level filters, copy logs button, and action controls",
+      "props": {
+        "title": { "type": "string", "default": "terminal session" },
+        "onClear": { "type": "() => void" },
+        "onCopyAll": { "type": "() => void" },
+        "filter": { "type": "string" },
+        "onFilterChange": { "type": "(filter: string) => void" }
+      }
+    },
+    "TerminalLine": {
+      "description": "Individual formatted terminal output entry with level badge (INFO, WARN, ERROR, SUCCESS, CMD) and timestamp",
+      "props": {
+        "level": { "type": "string", "enum": ["INFO", "WARN", "ERROR", "SUCCESS", "CMD"], "default": "INFO" },
+        "timestamp": { "type": "string" },
+        "message": { "type": "string", "required": true }
+      }
+    },
+    "TerminalPrompt": {
+      "description": "Interactive CLI input line with command history cycling (Up/Down arrow) and execution handler",
+      "props": {
+        "promptPrefix": { "type": "string", "default": "user@field:~$" },
+        "onSubmit": { "type": "(command: string) => void", "required": true },
+        "placeholder": { "type": "string", "default": "type a command..." }
       }
     },
     "Card": {
@@ -78,19 +231,89 @@
         "size": { "type": "string", "enum": ["sm", "md", "lg", "full"], "default": "md" }
       }
     },
+    "Drawer": {
+      "description": "Slide-in panel from the right edge with backdrop overlay and escape dismissal",
+      "props": {
+        "isOpen": { "type": "boolean", "required": true },
+        "onClose": { "type": "() => void", "required": true },
+        "title": { "type": "ReactNode" },
+        "children": { "type": "ReactNode", "required": true },
+        "footer": { "type": "ReactNode" },
+        "width": { "type": "string", "default": "420px" }
+      }
+    },
     "Badge": {
-      "description": "Compact metadata pill badge",
+      "description": "Compact metadata pill badge with optional status dot",
       "props": {
         "variant": { "type": "string", "enum": ["default", "accent", "success", "warning", "danger", "info"], "default": "default" },
         "dot": { "type": "boolean", "default": false }
       }
     },
     "Tabs": {
-      "description": "Accessible navigation tabs",
+      "description": "Accessible underline navigation tab bar with smooth touch scrolling rail on mobile",
       "props": {
         "items": { "type": "Array<{ id: string, label: ReactNode, icon?: ReactNode, disabled?: boolean }>", "required": true },
         "activeId": { "type": "string" },
         "onChange": { "type": "(id: string) => void" }
+      }
+    },
+    "Table": {
+      "description": "Data table container with responsive overflow wrapper",
+      "props": {
+        "children": { "type": "ReactNode", "required": true }
+      }
+    },
+    "Accordion": {
+      "description": "Multi-section collapsible accordion with smooth expansion easing",
+      "props": {
+        "items": { "type": "Array<{ id: string, title: ReactNode, content: ReactNode, disabled?: boolean }>", "required": true },
+        "allowMultiple": { "type": "boolean", "default": false }
+      }
+    },
+    "Tooltip": {
+      "description": "Portal-backed unclipped floating tooltip anchored to any child element",
+      "props": {
+        "content": { "type": "ReactNode", "required": true },
+        "children": { "type": "ReactElement", "required": true },
+        "position": { "type": "string", "enum": ["top", "bottom", "left", "right"], "default": "top" }
+      }
+    },
+    "Alert": {
+      "description": "Contextual banner notification with semantic icons and dismissal",
+      "props": {
+        "variant": { "type": "string", "enum": ["info", "success", "warning", "danger"], "default": "info" },
+        "title": { "type": "string" },
+        "children": { "type": "ReactNode", "required": true },
+        "onClose": { "type": "() => void" }
+      }
+    },
+    "Breadcrumb": {
+      "description": "Hierarchical trail navigation with automatic flex wrapping on small screens",
+      "props": {
+        "items": { "type": "Array<{ label: ReactNode, href?: string, onClick?: () => void }>", "required": true },
+        "separator": { "type": "ReactNode" }
+      }
+    },
+    "Heading": {
+      "description": "Typography heading element spanning levels 1 through 6",
+      "props": {
+        "level": { "type": "number", "enum": [1, 2, 3, 4, 5, 6], "default": 2 },
+        "children": { "type": "ReactNode", "required": true }
+      }
+    },
+    "Text": {
+      "description": "Typography body text with size, tone, and weight configurations",
+      "props": {
+        "size": { "type": "string", "enum": ["xs", "sm", "md", "lg"], "default": "md" },
+        "tone": { "type": "string", "enum": ["primary", "secondary", "tertiary", "danger", "success"], "default": "primary" },
+        "weight": { "type": "string", "enum": ["normal", "medium", "semibold", "bold"], "default": "normal" },
+        "children": { "type": "ReactNode", "required": true }
+      }
+    },
+    "Kbd": {
+      "description": "Hardware keyboard shortcut keycap indicator",
+      "props": {
+        "children": { "type": "ReactNode", "required": true }
       }
     }
   }

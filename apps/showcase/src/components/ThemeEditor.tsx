@@ -17,18 +17,18 @@ import {
 import { Copy, Download, Sparkles, Sliders, Code2, Palette } from 'lucide-react';
 
 export const ThemeEditor: React.FC = () => {
-  const { theme, setTheme, updateThemeSemantics, setMode } = useTheme();
+  const { theme, setTheme, updateThemeSemantics } = useTheme();
   const { showToast } = useToast();
   const [exportFormat, setExportFormat] = useState<'css' | 'dtcg' | 'ts'>('css');
 
-  // Accent swatches with primary, hover, and active states
+  // Accent swatches with primary, hover, active, and contrast states
   const accentSwatches = [
-    { label: 'Field Cobalt', value: '#2563EB', hover: '#3B82F6', active: '#1D4ED8' },
-    { label: 'Tactical Amber', value: '#D97706', hover: '#F59E0B', active: '#B45309' },
-    { label: 'Cyber Emerald', value: '#10B981', hover: '#34D399', active: '#059669' },
-    { label: 'Deep Violet', value: '#7C3AED', hover: '#8B5CF6', active: '#6D28D9' },
-    { label: 'Signal Crimson', value: '#DC2626', hover: '#EF4444', active: '#B91C1C' },
-    { label: 'Aerospace Cyan', value: '#0891B2', hover: '#06B6D4', active: '#0E7490' },
+    { label: 'Field Cobalt', value: '#2563EB', hover: '#3B82F6', active: '#1D4ED8', contrast: '#FFFFFF' },
+    { label: 'Tactical Amber', value: '#D97706', hover: '#F59E0B', active: '#B45309', contrast: '#000000' },
+    { label: 'Cyber Emerald', value: '#10B981', hover: '#34D399', active: '#059669', contrast: '#022C22' },
+    { label: 'Deep Violet', value: '#7C3AED', hover: '#8B5CF6', active: '#6D28D9', contrast: '#FFFFFF' },
+    { label: 'Signal Crimson', value: '#DC2626', hover: '#EF4444', active: '#B91C1C', contrast: '#FFFFFF' },
+    { label: 'Aerospace Cyan', value: '#0891B2', hover: '#06B6D4', active: '#0E7490', contrast: '#04242F' },
   ];
 
   // Neutral undertone presets
@@ -39,9 +39,11 @@ export const ThemeEditor: React.FC = () => {
     { label: 'Graphite Warm', base: '#0D0D0D', raised: '#161616', overlay: '#242424' },
   ];
 
-  const handleAccentChange = (primary: string, hover?: string, active?: string) => {
+  const handleAccentChange = (primary: string, hover?: string, active?: string, contrast?: string) => {
     const hoverColor = hover || primary;
     const activeColor = active || hover || primary;
+    const isLightAccent = primary.toLowerCase() === '#d97706' || primary.toLowerCase() === '#f59e0b' || primary.toLowerCase() === '#10b981' || primary.toLowerCase() === '#0891b2';
+    const contrastColor = contrast || (isLightAccent ? '#000000' : '#FFFFFF');
     updateThemeSemantics(prev => ({
       ...prev,
       semantics: {
@@ -51,6 +53,7 @@ export const ThemeEditor: React.FC = () => {
           primary,
           hover: hoverColor,
           active: activeColor,
+          contrast: contrastColor,
           subtle: `${primary}24`,
           subtleHover: `${primary}38`,
         },
@@ -156,10 +159,7 @@ export const ThemeEditor: React.FC = () => {
                   <button
                     key={preset.id}
                     type="button"
-                    onClick={() => {
-                      setTheme(preset);
-                      setMode(preset.mode);
-                    }}
+                    onClick={() => setTheme(preset)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -222,7 +222,7 @@ export const ThemeEditor: React.FC = () => {
                   <button
                     key={swatch.value}
                     type="button"
-                    onClick={() => handleAccentChange(swatch.value, swatch.hover, swatch.active)}
+                    onClick={() => handleAccentChange(swatch.value, swatch.hover, swatch.active, swatch.contrast)}
                     style={{
                       display: 'flex',
                       flexDirection: 'column',

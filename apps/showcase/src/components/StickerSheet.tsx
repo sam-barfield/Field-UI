@@ -300,7 +300,7 @@ export const StickerSheet: React.FC = () => {
         </Grid>
 
         {/* Badges, Avatars, and Data Table */}
-        <Grid columns="minmax(300px, 1fr) 2fr" gap="20px">
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="20px">
           <Card>
             <CardHeader>
               <Heading level={4}>Badges & Identity</Heading>

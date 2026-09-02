@@ -11,3 +11,6 @@ export * from './Accordion';
 export * from './Feedback';
 export * from './Primitives';
 export * from './Typography';
+export * from './Sidebar';
+export * from './Terminal';
+export * from './DatePicker';

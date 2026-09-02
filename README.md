@@ -23,8 +23,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Package / Directory | Purpose |
 |:---|:---|
 | [`packages/tokens`](./packages/tokens) | Minimal, 3-tier design token engine (primitives, dark/light semantics, presets, W3C DTCG JSON, and CSS compiler) |
-| [`packages/react`](./packages/react) | First-class React + TypeScript client library (`@field/react`) with 25+ accessible components |
-| [`apps/showcase`](./apps/showcase) | Interactive application featuring the **Living Sticker Sheet**, **Theme Editor**, **Real-World Demos**, and **Docs** |
+| [`packages/react`](./packages/react) | First-class React + TypeScript client library (`@field/react`) with 35+ accessible components |
+| [`apps/showcase`](./apps/showcase) | Interactive application featuring the **Component Catalog**, **Living Sticker Sheet**, **Theme Editor**, **Real-World Demos & Cloud Terminal**, and **Documentation** |
 | [`docs/DESIGN_PHILOSOPHY.md`](./docs/DESIGN_PHILOSOPHY.md) | Design rationale, tactical aesthetics, token inheritance model, and accessibility standards |
 | [`docs/AGENTS.md`](./docs/AGENTS.md) | Dedicated LLM & AI coding assistant guide with import contracts, recipes, and anti-hallucination rules |
 | [`docs/COMPONENT_MANIFEST.json`](./docs/COMPONENT_MANIFEST.json) | Machine-readable component catalog with props, types, and descriptions for agent structured tool calling |

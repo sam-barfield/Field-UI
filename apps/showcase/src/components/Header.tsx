@@ -16,11 +16,12 @@ import {
   Sliders,
   LayoutDashboard,
   Bot,
+  Component,
 } from 'lucide-react';
 
 export interface HeaderProps {
-  activeTab: 'stickersheet' | 'theme-editor' | 'demos' | 'docs';
-  onTabChange: (tab: 'stickersheet' | 'theme-editor' | 'demos' | 'docs') => void;
+  activeTab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'docs';
+  onTabChange: (tab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'docs') => void;
   viewport: 'desktop' | 'tablet' | 'mobile';
   onViewportChange: (vp: 'desktop' | 'tablet' | 'mobile') => void;
 }
@@ -96,6 +97,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Center Main Nav Tabs */}
         <div style={{ display: 'flex', gap: '4px' }}>
+          <Button
+            size="sm"
+            variant={activeTab === 'catalog' ? 'primary' : 'ghost'}
+            leftIcon={<Component size={14} />}
+            onClick={() => onTabChange('catalog')}
+          >
+            Component Catalog
+          </Button>
           <Button
             size="sm"
             variant={activeTab === 'stickersheet' ? 'primary' : 'ghost'}

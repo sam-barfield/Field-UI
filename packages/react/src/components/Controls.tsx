@@ -182,7 +182,14 @@ export function RadioGroup<T extends string = string>({
   );
 }
 
-/* --- SLIDER --- */
+/* --- SLIDER & LEVEL ZONES --- */
+export interface SliderZone {
+  from?: number;
+  to: number;
+  color?: 'success' | 'warning' | 'danger' | 'accent' | string;
+  label?: string;
+}
+
 export interface SliderProps {
   label?: string;
   value: number;
@@ -190,11 +197,26 @@ export interface SliderProps {
   max?: number;
   step?: number;
   onChange: (val: number) => void;
+  zones?: SliderZone[];
+  showMarks?: boolean;
+  glow?: boolean;
   disabled?: boolean;
   showValue?: boolean;
   valueSuffix?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
+
+const resolveColor = (c?: string): string => {
+  if (!c) return 'var(--field-accent-primary)';
+  switch (c) {
+    case 'success': return 'var(--field-status-success-base, #10B981)';
+    case 'warning': return 'var(--field-status-warning-base, #F59E0B)';
+    case 'danger': return 'var(--field-status-danger-base, #EF4444)';
+    case 'accent': return 'var(--field-accent-primary)';
+    default: return c;
+  }
+};
 
 export const Slider: React.FC<SliderProps> = ({
   label,
@@ -203,34 +225,178 @@ export const Slider: React.FC<SliderProps> = ({
   max = 100,
   step = 1,
   onChange,
+  zones,
+  showMarks = false,
+  glow = false,
   disabled = false,
   showValue = true,
   valueSuffix = '',
   className = '',
+  style,
 }) => {
+  const rangeSpan = Math.max(1, max - min);
+  const clampedValue = Math.min(max, Math.max(min, value));
+  const valuePercent = ((clampedValue - min) / rangeSpan) * 100;
+
+  // Resolve zones with explicit start and end boundaries
+  const resolvedZones = React.useMemo(() => {
+    if (!zones || zones.length === 0) return null;
+    let currentFrom = min;
+    return zones.map((z) => {
+      const from = z.from !== undefined ? z.from : currentFrom;
+      const to = Math.min(max, z.to);
+      currentFrom = to;
+      return {
+        from,
+        to,
+        color: resolveColor(z.color),
+        label: z.label,
+      };
+    });
+  }, [zones, min, max]);
+
+  // Find active zone for current slider value
+  const activeZone = React.useMemo(() => {
+    if (!resolvedZones) return null;
+    return (
+      resolvedZones.find((z) => clampedValue >= z.from && clampedValue <= z.to) ||
+      resolvedZones[resolvedZones.length - 1]
+    );
+  }, [resolvedZones, clampedValue]);
+
+  const activeColor = activeZone ? activeZone.color : 'var(--field-accent-primary)';
+
   return (
-    <div className={`field-form-item ${className}`}>
+    <div
+      className={`field-slider-container ${disabled ? 'disabled' : ''} ${className}`}
+      style={style}
+    >
       {(label || showValue) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {label && <span className="field-label">{label}</span>}
+        <div className="field-slider-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {label && <span className="field-label" style={{ margin: 0 }}>{label}</span>}
+            {activeZone?.label && (
+              <span
+                className="field-slider-zone-badge"
+                style={{
+                  color: activeColor,
+                  backgroundColor: `color-mix(in srgb, ${activeColor} 14%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${activeColor} 30%, transparent)`,
+                }}
+              >
+                {activeZone.label}
+              </span>
+            )}
+          </div>
           {showValue && (
-            <span className="field-text-sm field-text-secondary" style={{ fontFamily: 'var(--field-font-mono)' }}>
-              {value}
+            <span
+              className="field-slider-value"
+              style={{
+                color: activeZone ? activeColor : 'var(--field-text-primary)',
+              }}
+            >
+              {clampedValue}
               {valueSuffix}
             </span>
           )}
         </div>
       )}
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        disabled={disabled}
-        onChange={e => onChange(Number(e.target.value))}
-        className="field-slider"
-      />
+
+      <div className="field-slider-track-wrapper">
+        {/* Background track (shows colored zone levels if defined) */}
+        <div className="field-slider-track-bg">
+          {resolvedZones ? (
+            resolvedZones.map((zone, idx) => {
+              const left = ((zone.from - min) / rangeSpan) * 100;
+              const width = ((zone.to - zone.from) / rangeSpan) * 100;
+              return (
+                <div
+                  key={idx}
+                  className="field-slider-zone-segment"
+                  style={{
+                    left: `${left}%`,
+                    width: `${width}%`,
+                    backgroundColor: `color-mix(in srgb, ${zone.color} 22%, var(--field-surface-active))`,
+                  }}
+                  title={zone.label ? `${zone.label}: ${zone.from} - ${zone.to}` : undefined}
+                />
+              );
+            })
+          ) : (
+            <div className="field-slider-default-track" />
+          )}
+        </div>
+
+        {/* Dynamic filled track */}
+        <div
+          className="field-slider-track-fill"
+          style={{
+            width: `${valuePercent}%`,
+            backgroundColor: activeColor,
+            boxShadow: glow ? `0 0 8px color-mix(in srgb, ${activeColor} 50%, transparent)` : 'none',
+          }}
+        />
+
+        {/* Threshold boundary divider lines layer (sits above track fill so reached lines remain visible) */}
+        {resolvedZones && resolvedZones.length > 1 && (
+          <div className="field-slider-threshold-lines">
+            {resolvedZones.slice(0, -1).map((zone, idx) => {
+              const linePercent = ((zone.to - min) / rangeSpan) * 100;
+              const isReached = clampedValue >= zone.to;
+              return (
+                <div
+                  key={idx}
+                  className={`field-slider-threshold-line ${isReached ? 'reached' : 'unreached'}`}
+                  style={{
+                    left: `${linePercent}%`,
+                    backgroundColor: isReached
+                      ? 'var(--field-surface-base, #0D1117)'
+                      : `color-mix(in srgb, ${zone.color} 75%, transparent)`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Native range input layered on top for full accessibility */}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={clampedValue}
+          disabled={disabled}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="field-slider-input"
+          style={{
+            '--thumb-color': activeColor,
+            '--thumb-glow': glow ? `0 0 10px ${activeColor}` : 'none',
+          } as React.CSSProperties}
+          aria-label={label || 'Slider control'}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={clampedValue}
+        />
+      </div>
+
+      {/* Marks / Level labels beneath track */}
+      {showMarks && resolvedZones && (
+        <div className="field-slider-marks">
+          {resolvedZones.map((zone, idx) => {
+            const markPercent = ((zone.to - min) / rangeSpan) * 100;
+            return (
+              <span
+                key={idx}
+                className="field-slider-mark"
+                style={{ left: `${markPercent}%` }}
+              >
+                {zone.to}{valueSuffix}
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

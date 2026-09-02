@@ -239,8 +239,12 @@ export function ExampleWidget() {
   "components": [
     "Button", "IconButton", "ButtonGroup", "SegmentedControl",
     "TextInput", "TextArea", "Select", "Switch", "Checkbox", "RadioGroup", "Slider",
+    "DatePicker", "DateRangePicker",
+    "Sidebar", "SidebarHeader", "SidebarContent", "SidebarGroup", "SidebarItem", "SidebarDropdown", "SidebarSubItem", "SidebarFooter",
+    "Terminal", "TerminalHeader", "TerminalBody", "TerminalLine", "TerminalPrompt",
     "Card", "StatCard", "Badge", "Avatar", "AvatarGroup", "Modal", "Drawer",
-    "Tabs", "Table", "Accordion", "Tooltip", "Alert", "Toast", "Progress", "Spinner", "Skeleton"
+    "Tabs", "Table", "Accordion", "Tooltip", "Alert", "Toast", "Progress", "Spinner", "Skeleton",
+    "Breadcrumb", "Heading", "Text", "Kbd", "Code", "Box", "Flex", "Stack", "Grid", "Divider"
   ],
   "accessibility": "WAI-ARIA 1.2 AA compliant",
   "tokenSpecification": "W3C DTCG Format"

@@ -32,25 +32,26 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   return (
-    <div className={`field-tabs-list ${className}`} role="tablist">
-      {items.map(item => {
-        const isActive = item.id === activeId;
-        return (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            disabled={item.disabled}
-            onClick={() => handleSelect(item.id)}
-            className={`field-tab-trigger ${isActive ? 'active' : ''}`}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          >
-            {item.icon && <span>{item.icon}</span>}
-            <span>{item.label}</span>
-          </button>
-        );
-      })}
+    <div className={`field-tabs-container ${className}`}>
+      <div className="field-tabs-list" role="tablist">
+        {items.map(item => {
+          const isActive = item.id === activeId;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              disabled={item.disabled}
+              onClick={() => handleSelect(item.id)}
+              className={`field-tab-trigger ${isActive ? 'active' : ''}`}
+            >
+              {item.icon && <span>{item.icon}</span>}
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

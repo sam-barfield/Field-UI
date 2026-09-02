@@ -5,9 +5,10 @@ import { StickerSheet } from './components/StickerSheet';
 import { ThemeEditor } from './components/ThemeEditor';
 import { RealWorldDemos } from './components/RealWorldDemos';
 import { DocsViewer } from './components/DocsViewer';
+import { ComponentCatalog } from './components/ComponentCatalog';
 
 export function AppContent() {
-  const [activeTab, setActiveTab] = useState<'stickersheet' | 'theme-editor' | 'demos' | 'docs'>('stickersheet');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'docs'>('catalog');
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const getViewportWidth = () => {
@@ -63,6 +64,7 @@ export function AppContent() {
             overflow: 'hidden',
           }}
         >
+          {activeTab === 'catalog' && <ComponentCatalog />}
           {activeTab === 'stickersheet' && <StickerSheet />}
           {activeTab === 'theme-editor' && <ThemeEditor />}
           {activeTab === 'demos' && <RealWorldDemos />}

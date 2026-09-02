@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 /* --- ACCORDION --- */
@@ -105,42 +106,112 @@ export interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactElement;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  className?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
   position = 'top',
+  className = '',
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
-  const getPositionStyles = (): React.CSSProperties => {
+  const updateCoords = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    let top = 0;
+    let left = 0;
+
     switch (position) {
       case 'top':
-        return { bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)' };
+        top = rect.top - 8;
+        left = rect.left + rect.width / 2;
+        break;
       case 'bottom':
-        return { top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)' };
+        top = rect.bottom + 8;
+        left = rect.left + rect.width / 2;
+        break;
       case 'left':
-        return { right: 'calc(100% + 6px)', top: '50%', transform: 'translateY(-50%)' };
+        top = rect.top + rect.height / 2;
+        left = rect.left - 8;
+        break;
       case 'right':
-        return { left: 'calc(100% + 6px)', top: '50%', transform: 'translateY(-50%)' };
+        top = rect.top + rect.height / 2;
+        left = rect.right + 8;
+        break;
+    }
+    setCoords({ top, left });
+  };
+
+  const handleMouseEnter = () => {
+    updateCoords();
+    setIsVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsVisible(false);
+  };
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const handleScrollOrResize = () => {
+      updateCoords();
+    };
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [isVisible]);
+
+  const getTransform = () => {
+    switch (position) {
+      case 'top':
+        return 'translate(-50%, -100%)';
+      case 'bottom':
+        return 'translate(-50%, 0)';
+      case 'left':
+        return 'translate(-100%, -50%)';
+      case 'right':
+        return 'translate(0, -50%)';
     }
   };
 
   return (
-    <div
-      style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
-      onFocus={() => setIsVisible(true)}
-      onBlur={() => setIsVisible(false)}
-    >
-      {children}
-      {isVisible && (
-        <div className="field-tooltip" role="tooltip" style={getPositionStyles()}>
-          {content}
-        </div>
-      )}
-    </div>
+    <>
+      <div
+        ref={triggerRef}
+        style={{ display: 'inline-flex' }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleMouseEnter}
+        onBlur={handleMouseLeave}
+      >
+        {children}
+      </div>
+      {isVisible &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className={`field-tooltip ${className}`}
+            role="tooltip"
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              left: coords.left,
+              transform: getTransform(),
+              zIndex: 99999,
+              pointerEvents: 'none',
+            }}
+          >
+            {content}
+          </div>,
+          document.body
+        )}
+    </>
   );
 };

@@ -14,3 +14,11 @@ export * from './Typography';
 export * from './Sidebar';
 export * from './Terminal';
 export * from './DatePicker';
+export * from './DropdownMenu';
+export * from './CommandPalette';
+export * from './Popover';
+export * from './ContextMenu';
+export * from './DataDisplay';
+export * from './CodeBlock';
+export * from './Metrics';
+

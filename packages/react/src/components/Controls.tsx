@@ -1,5 +1,6 @@
-import React from 'react';
-import { Check } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Check, ChevronUp, ChevronDown, X } from 'lucide-react';
+
 
 /* --- SWITCH --- */
 export interface SwitchProps {
@@ -117,21 +118,14 @@ export function RadioGroup<T extends string = string>({
   return (
     <div className={`field-form-item ${className}`} role="radiogroup" aria-label={label}>
       {label && <span className="field-label">{label}</span>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="field-radio-group">
         {options.map(opt => {
           const isSelected = opt.value === value;
           const isDisabled = disabled || opt.disabled;
           return (
             <label
               key={opt.value}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '8px',
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                opacity: isDisabled ? 0.5 : 1,
-                userSelect: 'none',
-              }}
+              className={`field-radio-item ${isDisabled ? 'disabled' : ''}`}
             >
               <button
                 type="button"
@@ -139,37 +133,16 @@ export function RadioGroup<T extends string = string>({
                 aria-checked={isSelected}
                 disabled={isDisabled}
                 onClick={() => !isDisabled && onChange(opt.value)}
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  border: `1.5px solid ${isSelected ? 'var(--field-accent-primary)' : 'var(--field-border-default)'}`,
-                  background: 'var(--field-surface-sunken)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: '2px',
-                  padding: 0,
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                }}
+                className={`field-radio-button ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}`}
               >
-                {isSelected && (
-                  <span
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--field-accent-primary)',
-                    }}
-                  />
-                )}
+                {isSelected && <span className="field-radio-dot" />}
               </button>
-              <div>
-                <span className="field-text field-text-sm" style={{ fontWeight: isSelected ? 500 : 400 }}>
+              <div className="field-radio-content">
+                <span className="field-radio-label">
                   {opt.label}
                 </span>
                 {opt.description && (
-                  <span className="field-helper-text" style={{ display: 'block' }}>
+                  <span className="field-radio-desc">
                     {opt.description}
                   </span>
                 )}
@@ -400,3 +373,271 @@ export const Slider: React.FC<SliderProps> = ({
     </div>
   );
 };
+
+/* --- NUMBER INPUT / STEPPER --- */
+export interface NumberInputProps {
+  value?: number;
+  defaultValue?: number;
+  onChange?: (val: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  label?: string;
+  helperText?: string;
+  error?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+export const NumberInput: React.FC<NumberInputProps> = ({
+  value: controlledValue,
+  defaultValue = 0,
+  onChange,
+  min = -Infinity,
+  max = Infinity,
+  step = 1,
+  unit,
+  label,
+  helperText,
+  error,
+  disabled = false,
+  className = '',
+}) => {
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const isControlled = controlledValue !== undefined;
+  const currentVal = isControlled ? controlledValue : internalValue;
+
+  const clamp = (val: number) => Math.min(Math.max(val, min), max);
+
+  const updateValue = (next: number) => {
+    const clamped = clamp(next);
+    if (!isControlled) setInternalValue(clamped);
+    onChange?.(clamped);
+  };
+
+  const handleStepUp = () => {
+    if (!disabled) updateValue(currentVal + step);
+  };
+
+  const handleStepDown = () => {
+    if (!disabled) updateValue(currentVal - step);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (disabled) return;
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handleStepUp();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      handleStepDown();
+    }
+  };
+
+  return (
+    <div className={`field-form-item ${className}`}>
+      {label && <label className="field-label">{label}</label>}
+      <div className={`field-number-input-wrapper ${error ? 'error' : ''}`}>
+        <input
+          type="number"
+          className="field-number-input"
+          value={isNaN(currentVal) ? '' : currentVal}
+          min={min !== -Infinity ? min : undefined}
+          max={max !== Infinity ? max : undefined}
+          step={step}
+          disabled={disabled}
+          onChange={e => {
+            const parsed = parseFloat(e.target.value);
+            updateValue(isNaN(parsed) ? 0 : parsed);
+          }}
+          onKeyDown={handleKeyDown}
+        />
+        {unit && <span className="field-number-input-unit">{unit}</span>}
+        <div className="field-number-input-stepper">
+          <button
+            type="button"
+            className="field-number-stepper-btn"
+            disabled={disabled || currentVal >= max}
+            onClick={handleStepUp}
+            aria-label="Increase value"
+          >
+            <ChevronUp size={12} />
+          </button>
+          <button
+            type="button"
+            className="field-number-stepper-btn"
+            disabled={disabled || currentVal <= min}
+            onClick={handleStepDown}
+            aria-label="Decrease value"
+          >
+            <ChevronDown size={12} />
+          </button>
+        </div>
+      </div>
+      {error ? (
+        <span className="field-error-text">{error}</span>
+      ) : helperText ? (
+        <span className="field-helper-text">{helperText}</span>
+      ) : null}
+    </div>
+  );
+};
+
+/* --- COMBOBOX / MULTI-SELECT --- */
+export interface ComboboxOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+export interface ComboboxProps {
+  options: ComboboxOption[];
+  value?: string[];
+  defaultValue?: string[];
+  onChange?: (val: string[]) => void;
+  placeholder?: string;
+  label?: string;
+  helperText?: string;
+  error?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+export const Combobox: React.FC<ComboboxProps> = ({
+  options,
+  value: controlledValue,
+  defaultValue = [],
+  onChange,
+  placeholder = 'Select options...',
+  label,
+  helperText,
+  error,
+  disabled = false,
+  className = '',
+}) => {
+  const [internalValue, setInternalValue] = useState<string[]>(defaultValue);
+  const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isControlled = controlledValue !== undefined;
+  const currentValues = isControlled ? controlledValue : internalValue;
+
+  const updateValues = (next: string[]) => {
+    if (!isControlled) setInternalValue(next);
+    onChange?.(next);
+  };
+
+  const handleToggleOption = (val: string) => {
+    if (currentValues.includes(val)) {
+      updateValues(currentValues.filter(v => v !== val));
+    } else {
+      updateValues([...currentValues, val]);
+    }
+    inputRef.current?.focus();
+  };
+
+  const handleRemoveChip = (val: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateValues(currentValues.filter(v => v !== val));
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [isOpen]);
+
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={containerRef} className={`field-form-item ${className}`}>
+      {label && <label className="field-label">{label}</label>}
+      <div
+        className={`field-combobox-container ${error ? 'error' : ''}`}
+        onClick={() => {
+          if (!disabled) {
+            setIsOpen(true);
+            inputRef.current?.focus();
+          }
+        }}
+      >
+        {currentValues.map(val => {
+          const opt = options.find(o => o.value === val);
+          return (
+            <span key={val} className="field-tag-chip">
+              <span>{opt ? opt.label : val}</span>
+              {!disabled && (
+                <button
+                  type="button"
+                  className="field-tag-chip-remove"
+                  onClick={e => handleRemoveChip(val, e)}
+                  aria-label={`Remove ${opt ? opt.label : val}`}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </span>
+          );
+        })}
+        <input
+          ref={inputRef}
+          type="text"
+          className="field-combobox-input"
+          value={search}
+          disabled={disabled}
+          placeholder={currentValues.length === 0 ? placeholder : ''}
+          onChange={e => {
+            setSearch(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+        />
+      </div>
+
+      {isOpen && (
+        <div style={{ position: 'relative' }}>
+          <ul className="field-select-dropdown" role="listbox">
+            {filteredOptions.length === 0 ? (
+              <li style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--field-text-tertiary)' }}>
+                No options found
+              </li>
+            ) : (
+              filteredOptions.map(opt => {
+                const isSelected = currentValues.includes(opt.value);
+                return (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={isSelected}
+                    className={`field-select-option ${isSelected ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
+                    onClick={() => !opt.disabled && handleToggleOption(opt.value)}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <Check size={14} color="var(--field-accent-primary)" />}
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        </div>
+      )}
+
+      {error ? (
+        <span className="field-error-text">{error}</span>
+      ) : helperText ? (
+        <span className="field-helper-text">{helperText}</span>
+      ) : null}
+    </div>
+  );
+};
+

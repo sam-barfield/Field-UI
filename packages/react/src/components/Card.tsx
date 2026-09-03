@@ -49,6 +49,7 @@ export interface StatCardProps {
   };
   icon?: React.ReactNode;
   subtitle?: string;
+  chart?: React.ReactNode;
   className?: string;
 }
 
@@ -58,39 +59,27 @@ export const StatCard: React.FC<StatCardProps> = ({
   delta,
   icon,
   subtitle,
+  chart,
   className = '',
 }) => {
   return (
     <div className={`field-stat-card ${className}`}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="field-stat-card-header">
         <span className="field-stat-label">{label}</span>
-        {icon && <span style={{ color: 'var(--field-text-tertiary)' }}>{icon}</span>}
+        {icon && <span className="field-stat-card-icon">{icon}</span>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
+      <div className="field-stat-card-body">
         <span className="field-stat-value">{value}</span>
         {delta && (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              gap: '2px',
-              color:
-                delta.trend === 'up'
-                  ? 'var(--field-status-success-text)'
-                  : delta.trend === 'down'
-                  ? 'var(--field-status-danger-text)'
-                  : 'var(--field-text-secondary)',
-            }}
-          >
+          <span className={`field-stat-card-delta trend-${delta.trend}`}>
             {delta.trend === 'up' && <ArrowUpRight size={14} />}
             {delta.trend === 'down' && <ArrowDownRight size={14} />}
             {delta.value}
           </span>
         )}
       </div>
-      {subtitle && <p className="field-text-xs field-text-tertiary" style={{ marginTop: '6px' }}>{subtitle}</p>}
+      {subtitle && <p className="field-stat-card-subtitle">{subtitle}</p>}
+      {chart && <div className="field-stat-card-chart">{chart}</div>}
     </div>
   );
 };

@@ -871,7 +871,10 @@ export const StickerSheet: React.FC = () => {
             </CardHeader>
             <CardContent style={{ padding: 0 }}>
               <div style={{ height: '320px', display: 'flex', overflow: 'hidden' }}>
-                <Sidebar collapsed={sidebarDemoCollapsed}>
+                <Sidebar
+                  collapsed={sidebarDemoCollapsed}
+                  onCollapseChange={setSidebarDemoCollapsed}
+                >
                   <SidebarHeader
                     title="Field Control"
                     subtitle="Cluster v0.2.1"
@@ -903,7 +906,10 @@ export const StickerSheet: React.FC = () => {
                     Connected to workspace mesh. Demonstrates <code>Sidebar</code>, <code>SidebarHeader</code>, <code>SidebarGroup</code>, <code>SidebarItem</code>, <code>SidebarDropdown</code>, <code>SidebarSubItem</code>, and <code>SidebarFooter</code>.
                   </Text>
                   <div style={{ marginTop: '16px' }}>
-                    <SidebarTrigger />
+                    <SidebarTrigger
+                      isCollapsed={sidebarDemoCollapsed}
+                      onToggle={() => setSidebarDemoCollapsed(c => !c)}
+                    />
                   </div>
                 </div>
               </div>

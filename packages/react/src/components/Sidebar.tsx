@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { PanelLeftClose, PanelLeft, ChevronDown } from 'lucide-react';
 import { Tooltip } from './Accordion';
 
-interface SidebarContextValue {
+export interface SidebarContextValue {
   isCollapsed: boolean;
   toggleCollapsed: () => void;
   setCollapsed: (collapsed: boolean) => void;
@@ -14,9 +14,49 @@ const SidebarContext = createContext<SidebarContextValue | undefined>(undefined)
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error('useSidebar must be used within a <Sidebar>');
+    return {
+      isCollapsed: false,
+      toggleCollapsed: () => {},
+      setCollapsed: () => {},
+      density: 'default' as const,
+    };
   }
   return context;
+};
+
+/* --- SIDEBAR PROVIDER --- */
+export interface SidebarProviderProps {
+  children: React.ReactNode;
+  defaultCollapsed?: boolean;
+  collapsed?: boolean;
+  onCollapseChange?: (collapsed: boolean) => void;
+  density?: 'default' | 'compact';
+}
+
+export const SidebarProvider: React.FC<SidebarProviderProps> = ({
+  children,
+  defaultCollapsed = false,
+  collapsed: controlledCollapsed,
+  onCollapseChange,
+  density = 'default',
+}) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+
+  const setCollapsed = (nextCollapsed: boolean) => {
+    if (controlledCollapsed === undefined) setInternalCollapsed(nextCollapsed);
+    onCollapseChange?.(nextCollapsed);
+  };
+
+  const toggleCollapsed = () => {
+    setCollapsed(!isCollapsed);
+  };
+
+  return (
+    <SidebarContext.Provider value={{ isCollapsed, toggleCollapsed, setCollapsed, density }}>
+      {children}
+    </SidebarContext.Provider>
+  );
 };
 
 /* --- SIDEBAR ROOT --- */
@@ -37,17 +77,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed: controlledCollapsed,
   defaultCollapsed = false,
   onCollapseChange,
-  density = 'default',
+  density: propDensity,
   width = 260,
   collapsedWidth = 64,
   className = '',
   style,
 }) => {
+  const outerContext = useContext(SidebarContext);
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
-  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+
+  const isCollapsed =
+    controlledCollapsed !== undefined
+      ? controlledCollapsed
+      : outerContext
+        ? outerContext.isCollapsed
+        : internalCollapsed;
+
+  const density = propDensity || outerContext?.density || 'default';
 
   const setCollapsed = (nextCollapsed: boolean) => {
-    if (controlledCollapsed === undefined) setInternalCollapsed(nextCollapsed);
+    if (outerContext) {
+      outerContext.setCollapsed(nextCollapsed);
+    } else {
+      if (controlledCollapsed === undefined) setInternalCollapsed(nextCollapsed);
+    }
     onCollapseChange?.(nextCollapsed);
   };
 
@@ -57,20 +110,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const currentWidth = isCollapsed ? collapsedWidth : width;
 
+  const asideContent = (
+    <aside
+      className={`field-sidebar ${isCollapsed ? 'field-sidebar-collapsed' : ''} ${density === 'compact' ? 'field-sidebar-compact' : ''} ${className}`}
+      style={{
+        width: typeof currentWidth === 'number' ? `${currentWidth}px` : currentWidth,
+        minWidth: typeof currentWidth === 'number' ? `${currentWidth}px` : currentWidth,
+        ...style,
+      }}
+      data-collapsed={isCollapsed}
+      data-density={density}
+    >
+      {children}
+    </aside>
+  );
+
+  if (outerContext) {
+    return asideContent;
+  }
+
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggleCollapsed, setCollapsed, density }}>
-      <aside
-        className={`field-sidebar ${isCollapsed ? 'field-sidebar-collapsed' : ''} ${density === 'compact' ? 'field-sidebar-compact' : ''} ${className}`}
-        style={{
-          width: typeof currentWidth === 'number' ? `${currentWidth}px` : currentWidth,
-          minWidth: typeof currentWidth === 'number' ? `${currentWidth}px` : currentWidth,
-          ...style,
-        }}
-        data-collapsed={isCollapsed}
-        data-density={density}
-      >
-        {children}
-      </aside>
+      {asideContent}
     </SidebarContext.Provider>
   );
 };
@@ -433,22 +494,28 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 
 /* --- STANDALONE SIDEBAR TRIGGER --- */
 export interface SidebarTriggerProps {
+  isCollapsed?: boolean;
+  onToggle?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export const SidebarTrigger: React.FC<SidebarTriggerProps> = ({
+  isCollapsed: controlledIsCollapsed,
+  onToggle,
   className = '',
   style,
 }) => {
-  const { isCollapsed, toggleCollapsed } = useSidebar();
+  const context = useSidebar();
+  const isCollapsed = controlledIsCollapsed !== undefined ? controlledIsCollapsed : context.isCollapsed;
+  const handleToggle = onToggle || context.toggleCollapsed;
 
   return (
     <button
       type="button"
       className={`field-sidebar-trigger ${className}`}
       style={style}
-      onClick={toggleCollapsed}
+      onClick={handleToggle}
       aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
     >

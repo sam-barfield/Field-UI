@@ -1,4 +1,4 @@
-import { FieldTheme } from '../types';
+import { FieldTheme, FieldThemePair } from '../types';
 import { darkTheme } from '../themes/dark';
 import { lightTheme } from '../themes/light';
 import { highContrastDarkTheme } from '../themes/high-contrast';
@@ -206,11 +206,180 @@ export const hyperVioletTheme: FieldTheme = {
   },
 };
 
+export const titaniumAmberLightTheme: FieldTheme = {
+  id: 'field-titanium-amber-light',
+  label: 'Titanium Amber Light',
+  mode: 'light',
+  semantics: {
+    name: 'Titanium Amber Light',
+    mode: 'light',
+    surfaces: {
+      base: '#FAF8F5',
+      raised: '#FFFFFF',
+      overlay: '#FFFFFF',
+      sunken: '#F3EFEA',
+      subtle: '#F6F2EC',
+      active: '#EBE5DC',
+    },
+    borders: {
+      subtle: 'rgba(120, 53, 15, 0.07)',
+      default: 'rgba(120, 53, 15, 0.15)',
+      strong: 'rgba(120, 53, 15, 0.28)',
+      focus: '#D97706',
+      highlight: 'rgba(255, 255, 255, 0.85)',
+    },
+    text: {
+      primary: '#1C1917',
+      secondary: '#57534E',
+      tertiary: '#78716C',
+      inverse: '#FAF8F5',
+      disabled: '#A8A29E',
+    },
+    accent: {
+      primary: '#D97706',
+      hover: '#B45309',
+      active: '#92400E',
+      subtle: 'rgba(217, 119, 6, 0.1)',
+      subtleHover: 'rgba(217, 119, 6, 0.18)',
+      contrast: '#FFFFFF',
+    },
+    status: {
+      success: {
+        base: '#059669',
+        surface: 'rgba(5, 150, 105, 0.08)',
+        border: 'rgba(5, 150, 105, 0.2)',
+        text: '#047857',
+      },
+      warning: {
+        base: '#D97706',
+        surface: 'rgba(217, 119, 6, 0.08)',
+        border: 'rgba(217, 119, 6, 0.2)',
+        text: '#B45309',
+      },
+      danger: {
+        base: '#DC2626',
+        surface: 'rgba(220, 38, 38, 0.08)',
+        border: 'rgba(220, 38, 38, 0.2)',
+        text: '#B91C1C',
+      },
+      info: {
+        base: '#D97706',
+        surface: 'rgba(217, 119, 6, 0.08)',
+        border: 'rgba(217, 119, 6, 0.2)',
+        text: '#B45309',
+      },
+    },
+  },
+  radiiOverrides: {
+    sm: '3px',
+    md: '5px',
+    lg: '8px',
+  },
+};
+
+export const emeraldPrecisionLightTheme: FieldTheme = {
+  id: 'field-emerald-precision-light',
+  label: 'Emerald Precision Light',
+  mode: 'light',
+  semantics: {
+    name: 'Emerald Precision Light',
+    mode: 'light',
+    surfaces: {
+      base: '#F4FBF7',
+      raised: '#FFFFFF',
+      overlay: '#FFFFFF',
+      sunken: '#E6F4ED',
+      subtle: '#EDF8F2',
+      active: '#DCF0E5',
+    },
+    borders: {
+      subtle: 'rgba(6, 78, 59, 0.07)',
+      default: 'rgba(6, 78, 59, 0.15)',
+      strong: 'rgba(6, 78, 59, 0.28)',
+      focus: '#059669',
+      highlight: 'rgba(255, 255, 255, 0.85)',
+    },
+    text: {
+      primary: '#06281E',
+      secondary: '#064E3B',
+      tertiary: '#047857',
+      inverse: '#F4FBF7',
+      disabled: '#6EE7B7',
+    },
+    accent: {
+      primary: '#059669',
+      hover: '#047857',
+      active: '#065F46',
+      subtle: 'rgba(5, 150, 105, 0.1)',
+      subtleHover: 'rgba(5, 150, 105, 0.18)',
+      contrast: '#FFFFFF',
+    },
+    status: {
+      success: {
+        base: '#059669',
+        surface: 'rgba(5, 150, 105, 0.08)',
+        border: 'rgba(5, 150, 105, 0.2)',
+        text: '#047857',
+      },
+      warning: {
+        base: '#D97706',
+        surface: 'rgba(217, 119, 6, 0.08)',
+        border: 'rgba(217, 119, 6, 0.2)',
+        text: '#B45309',
+      },
+      danger: {
+        base: '#DC2626',
+        surface: 'rgba(220, 38, 38, 0.08)',
+        border: 'rgba(220, 38, 38, 0.2)',
+        text: '#B91C1C',
+      },
+      info: {
+        base: '#0891B2',
+        surface: 'rgba(8, 145, 178, 0.08)',
+        border: 'rgba(8, 145, 178, 0.2)',
+        text: '#0E7490',
+      },
+    },
+  },
+};
+
+export const cobaltThemePair: FieldThemePair = {
+  id: 'cobalt',
+  label: 'Obsidian / Cobalt',
+  dark: darkTheme,
+  light: lightTheme,
+};
+
+export const titaniumAmberPair: FieldThemePair = {
+  id: 'titanium-amber',
+  label: 'Titanium Amber',
+  dark: titaniumAmberTheme,
+  light: titaniumAmberLightTheme,
+};
+
+export const emeraldPrecisionPair: FieldThemePair = {
+  id: 'emerald-precision',
+  label: 'Emerald Precision',
+  dark: emeraldPrecisionTheme,
+  light: emeraldPrecisionLightTheme,
+};
+
+export const defaultThemePair = cobaltThemePair;
+
+export const themePairs: FieldThemePair[] = [
+  cobaltThemePair,
+  titaniumAmberPair,
+  emeraldPrecisionPair,
+];
+
 export const themePresets: FieldTheme[] = [
   darkTheme,
   lightTheme,
   titaniumAmberTheme,
+  titaniumAmberLightTheme,
   emeraldPrecisionTheme,
+  emeraldPrecisionLightTheme,
   hyperVioletTheme,
   highContrastDarkTheme,
 ];
+

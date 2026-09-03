@@ -40,6 +40,7 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-accent-active': theme.semantics.accent.active,
     '--field-accent-subtle': theme.semantics.accent.subtle,
     '--field-accent-subtle-hover': theme.semantics.accent.subtleHover,
+    '--field-accent-border': theme.semantics.accent.subtleHover,
     '--field-accent-contrast': theme.semantics.accent.contrast,
 
     // Status: Success

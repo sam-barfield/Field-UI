@@ -139,3 +139,11 @@ export interface FieldTheme {
   semantics: FieldSemanticTokens;
   radiiOverrides?: Partial<FieldPrimitiveTokens['radii']>;
 }
+
+export interface FieldThemePair {
+  id: string;
+  label: string;
+  dark: FieldTheme;
+  light: FieldTheme;
+}
+

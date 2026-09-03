@@ -2,28 +2,34 @@ import React from 'react';
 
 export type BadgeVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger' | 'info';
 
+export type BadgeSize = 'sm' | 'md' | 'lg';
+
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
+  size?: BadgeSize;
   dot?: boolean;
   children: React.ReactNode;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   variant = 'default',
+  size = 'md',
   dot = false,
   children,
   className = '',
   ...props
 }) => {
+  const dotSize = size === 'sm' ? '4px' : size === 'lg' ? '8px' : '6px';
   return (
-    <span className={`field-badge field-badge-${variant} ${className}`} {...props}>
+    <span className={`field-badge field-badge-${variant} field-badge-${size} ${className}`} {...props}>
       {dot && (
         <span
           style={{
-            width: '6px',
-            height: '6px',
+            width: dotSize,
+            height: dotSize,
             borderRadius: '50%',
             backgroundColor: 'currentColor',
+            flexShrink: 0,
           }}
         />
       )}

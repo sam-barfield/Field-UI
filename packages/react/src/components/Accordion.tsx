@@ -70,7 +70,9 @@ export const Accordion: React.FC<AccordionProps> = ({
                 textAlign: 'left',
               }}
             >
-              <span>{item.title}</span>
+              <span style={{ flex: 1, minWidth: 0, display: 'block', textAlign: 'left', marginRight: '12px' }}>
+                {item.title}
+              </span>
               <ChevronDown
                 size={16}
                 style={{

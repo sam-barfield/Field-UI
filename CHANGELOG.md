@@ -4,6 +4,45 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ---
 
+## [0.2.1] - 2026-09-04
+
+### Summary of Upstream Fixes
+This release addresses feedback and bug reports identified during integration testing in `upstream_field_fixes.md`:
+
+#### 1. Badge Text Optical Vertical Centering & Sizing
+- **Problem**: Text inside `.field-badge` sat noticeably closer to the bottom border due to `line-height: 1` font metric clamping and symmetric vertical padding. Consumers also lacked a `size` prop for compact or prominent badges.
+- **Fix**: Updated `.field-badge` with optical vertical padding (`0.14rem 0.55rem 0.22rem 0.55rem`) and `line-height: 1.1`. Added `size?: 'sm' | 'md' | 'lg'` prop to `BadgeProps` with corresponding CSS classes (`.field-badge-sm`, `.field-badge-md`, `.field-badge-lg`) and proportional status dot sizing.
+
+#### 2. Breadcrumb `onClick` Support Without `href`
+- **Problem**: `Breadcrumb` items omitting `href` fell into a static branch that discarded `onClick`, breaking client-side SPA navigation unless a dummy `href="#"` was supplied. Non-current static items were also incorrectly given interactive link styling.
+- **Fix**: Enabled interactive behavior whenever `href` OR `onClick` is defined. Rendered proper `role="button"` when `href` is absent, and assigned `.field-breadcrumb-static` to non-interactive, non-current items.
+
+#### 3. Accordion Title Custom Flex Layout Support
+- **Problem**: Passing custom flex JSX titles (e.g. `<Flex justify="space-between"><span>Title</span><span>Timestamp</span></Flex>`) resulted in right-aligned metadata colliding directly against the title with zero gap because the title was wrapped in an unexpanded inline `<span>`.
+- **Fix**: Added `flex: 1`, `minWidth: 0`, and `display: block` to the accordion trigger title wrapper, allowing custom child flex containers to expand fully across the header.
+
+#### 4. DateRangePicker Backward Selection Hover Preview
+- **Problem**: In `DateRangePicker`, selecting a start date and hovering backward over past dates displayed no range highlight preview because `inHoverRange` strictly checked `hoverDate > value.start`.
+- **Fix**: Updated hover range logic to support bidirectional selection (`isBetween(item.date, hoverDate, value.start)` when `hoverDate < value.start`).
+
+#### 5. Stepper Number & Check Circles Distortion
+- **Problem**: In `<Stepper>`, `.field-step-circle` squished into oval capsules when step titles or descriptions contained longer text due to missing `flex-shrink: 0`.
+- **Fix**: Added `min-width: 28px`, `min-height: 28px`, and `flex-shrink: 0` to `.field-step-circle`, and `min-width: 0` to `.field-step-label-group`.
+
+#### 6. Collapsed Sidebar Trigger White Compositing Blip
+- **Problem**: Clicking the trigger to collapse/expand the sidebar caused a brief white/cyan flash in Chromium browsers due to user-agent `:focus-visible` styling and unaccelerated width transitions.
+- **Fix**: Added explicit `outline: none` and styled `:focus-visible` rings on `.field-sidebar-trigger`, and added `will-change: width, min-width` and `contain: layout style` to `.field-sidebar`.
+
+#### 7. Tabs Container Scrollbar Affordance
+- **Problem**: When `<Tabs>` overflowed its container (e.g. within drawers or cards), scrollbars were completely hidden with `scrollbar-width: none;` and `display: none;`, leaving no visual affordance that more tabs existed.
+- **Fix**: Replaced hidden scrollbars with subtle, thin scrollbars (`scrollbar-width: thin; height: 3px;`) with smooth scrolling and theme-aware scrollbar track/thumb styling.
+
+#### 8. Collapsed Sidebar Footer Layout & `collapsedChildren`
+- **Problem**: When `<Sidebar collapsed={true}>`, multi-element or spaced footer layouts pushed icons to opposite edges.
+- **Fix**: Centered collapsed footer content in CSS and added `collapsedChildren?: React.ReactNode` to `SidebarFooterProps` so consumers can pass a dedicated compact layout for the collapsed state.
+
+---
+
 ## [0.2.0] - 2026-09-03
 
 ### Summary of Major Evolutions

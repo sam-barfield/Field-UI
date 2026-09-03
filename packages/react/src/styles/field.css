@@ -687,14 +687,21 @@ select:focus-visible,
 .field-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--field-space-1);
-  padding: 0.2rem 0.55rem;
-  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--field-radius-full);
-  line-height: 1;
+  line-height: 1.1;
   border: 1px solid transparent;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  padding: 0.14rem 0.55rem 0.22rem 0.55rem; /* Optical balance lifts baseline */
 }
+.field-badge-sm { font-size: 0.6875rem; padding: 0.1rem 0.45rem 0.18rem 0.45rem; }
+.field-badge-md { font-size: 0.75rem;   padding: 0.14rem 0.55rem 0.22rem 0.55rem; }
+.field-badge-lg { font-size: 0.8125rem; padding: 0.18rem 0.65rem 0.26rem 0.65rem; }
+
 .field-badge-default {
   background-color: var(--field-surface-subtle);
   color: var(--field-text-secondary);
@@ -826,11 +833,21 @@ select:focus-visible,
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--field-border-subtle) transparent;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 .field-tabs-container::-webkit-scrollbar {
-  display: none;
+  height: 3px;
+  display: block;
+}
+.field-tabs-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.field-tabs-container::-webkit-scrollbar-thumb {
+  background: var(--field-border-default);
+  border-radius: var(--field-radius-full);
 }
 .field-tabs-list {
   display: inline-flex;
@@ -1052,6 +1069,8 @@ select:focus-visible,
   overflow: hidden;
   position: relative;
   user-select: none;
+  will-change: width, min-width;
+  contain: layout style;
 }
 .field-sidebar-header {
   display: flex;
@@ -1104,11 +1123,17 @@ select:focus-visible,
   cursor: pointer;
   transition: all var(--field-duration-fast) var(--field-ease-default);
   flex-shrink: 0;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .field-sidebar-trigger:hover {
   background-color: var(--field-surface-active);
   border-color: var(--field-border-default);
   color: var(--field-text-primary);
+}
+.field-sidebar-trigger:focus-visible {
+  outline: 2px solid var(--field-accent-primary);
+  outline-offset: 1px;
 }
 .field-sidebar-content {
   flex: 1;
@@ -1322,8 +1347,14 @@ select:focus-visible,
   padding: 8px 0;
 }
 .field-sidebar-collapsed .field-sidebar-footer {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 12px 0;
+  padding: 12px 8px;
+}
+.field-sidebar-collapsed .field-sidebar-footer > * {
+  justify-content: center !important;
+  text-align: center;
 }
 .field-sidebar-collapsed .field-sidebar-footer span,
 .field-sidebar-collapsed .field-sidebar-footer p,
@@ -2001,6 +2032,11 @@ select:focus-visible,
   font-size: 0.875rem;
   font-weight: 600;
 }
+.field-breadcrumb-static {
+  color: var(--field-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
 .field-breadcrumb-separator {
   color: var(--field-text-disabled);
   display: inline-flex;
@@ -2478,6 +2514,9 @@ select:focus-visible,
 .field-step-circle {
   width: 28px;
   height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  flex-shrink: 0;
   border-radius: var(--field-radius-full);
   display: flex;
   align-items: center;
@@ -2503,6 +2542,7 @@ select:focus-visible,
 .field-step-label-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .field-step-title {
   font-size: 0.8125rem;

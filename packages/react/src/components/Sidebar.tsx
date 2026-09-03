@@ -412,18 +412,21 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 /* --- SIDEBAR FOOTER --- */
 export interface SidebarFooterProps {
   children: React.ReactNode;
+  collapsedChildren?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   children,
+  collapsedChildren,
   className = '',
   style,
 }) => {
+  const { isCollapsed } = useSidebar();
   return (
     <div className={`field-sidebar-footer ${className}`} style={style}>
-      {children}
+      {isCollapsed && collapsedChildren !== undefined ? collapsedChildren : children}
     </div>
   );
 };

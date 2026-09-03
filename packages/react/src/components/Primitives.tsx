@@ -114,23 +114,25 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
           const isCurrent = item.isCurrent || isLast;
+          const isInteractive = Boolean(item.href || item.onClick) && !isCurrent;
           return (
             <li key={idx} className="field-breadcrumb-item">
-              {item.href ? (
+              {isInteractive ? (
                 <a
-                  href={item.href}
+                  href={item.href || '#'}
                   onClick={e => {
                     if (item.onClick) {
                       e.preventDefault();
                       item.onClick();
                     }
                   }}
-                  className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-link'}
+                  className="field-breadcrumb-link"
+                  role={!item.href ? 'button' : undefined}
                 >
                   {item.label}
                 </a>
               ) : (
-                <span className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-link'}>
+                <span className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-static'}>
                   {item.label}
                 </span>
               )}

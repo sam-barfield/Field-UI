@@ -243,9 +243,10 @@
       }
     },
     "Badge": {
-      "description": "Compact metadata pill badge with optional status dot",
+      "description": "Compact metadata pill badge with optional status dot and optical baseline centering",
       "props": {
         "variant": { "type": "string", "enum": ["default", "accent", "success", "warning", "danger", "info"], "default": "default" },
+        "size": { "type": "string", "enum": ["sm", "md", "lg"], "default": "md" },
         "dot": { "type": "boolean", "default": false }
       }
     },

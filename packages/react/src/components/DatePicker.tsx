@@ -593,8 +593,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 const isEnd = isSameDay(item.date, value.end);
                 const inRange = isBetween(item.date, value.start, value.end);
                 const inHoverRange =
-                  value.start && !value.end && hoverDate && hoverDate > value.start
-                    ? isBetween(item.date, value.start, hoverDate)
+                  value.start && !value.end && hoverDate
+                    ? hoverDate >= value.start
+                      ? isBetween(item.date, value.start, hoverDate)
+                      : isBetween(item.date, hoverDate, value.start)
                     : false;
 
                 return (

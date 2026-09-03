@@ -82,22 +82,9 @@ export function Select<T extends string = string>({
           disabled={disabled}
           onClick={() => !disabled && setIsOpen(prev => !prev)}
           onKeyDown={handleKeyDown}
-          className={`field-input-wrapper ${error ? 'error' : ''}`}
-          style={{
-            width: '100%',
-            height: '38px',
-            padding: '0 12px',
-            justifyContent: 'space-between',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            textAlign: 'left',
-          }}
+          className={`field-select-trigger ${error ? 'error' : ''} ${isOpen ? 'open' : ''}`}
         >
-          <span
-            style={{
-              color: selectedOption ? 'var(--field-text-primary)' : 'var(--field-text-disabled)',
-              fontSize: '0.875rem',
-            }}
-          >
+          <span style={{ color: selectedOption ? 'var(--field-text-primary)' : 'var(--field-text-disabled)' }}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <ChevronDown
@@ -114,22 +101,7 @@ export function Select<T extends string = string>({
           <ul
             role="listbox"
             tabIndex={-1}
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 4px)',
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              background: 'var(--field-surface-overlay)',
-              border: '1px solid var(--field-border-strong)',
-              borderRadius: 'var(--field-radius-md)',
-              boxShadow: 'var(--field-shadow-lg)',
-              margin: 0,
-              padding: '4px',
-              listStyle: 'none',
-              maxHeight: '220px',
-              overflowY: 'auto',
-            }}
+            className="field-select-dropdown"
           >
             {options.map(opt => {
               const isSelected = opt.value === activeValue;
@@ -138,33 +110,8 @@ export function Select<T extends string = string>({
                   key={opt.value}
                   role="option"
                   aria-selected={isSelected}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 'var(--field-radius-sm)',
-                    fontSize: '0.875rem',
-                    color: opt.disabled
-                      ? 'var(--field-text-disabled)'
-                      : isSelected
-                      ? 'var(--field-accent-hover)'
-                      : 'var(--field-text-primary)',
-                    backgroundColor: isSelected ? 'var(--field-surface-active)' : 'transparent',
-                    cursor: opt.disabled ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    transition: 'background-color 0.1s ease',
-                  }}
+                  className={`field-select-option ${isSelected ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
                   onClick={() => !opt.disabled && handleSelect(opt.value)}
-                  onMouseEnter={e => {
-                    if (!opt.disabled && !isSelected) {
-                      e.currentTarget.style.backgroundColor = 'var(--field-surface-subtle)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!opt.disabled && !isSelected) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
                 >
                   <span>{opt.label}</span>
                   {isSelected && <Check size={14} color="var(--field-accent-primary)" />}

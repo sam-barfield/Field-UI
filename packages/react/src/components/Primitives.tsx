@@ -110,11 +110,12 @@ export interface BreadcrumbProps {
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' }) => {
   return (
     <nav aria-label="Breadcrumb" className={className}>
-      <ol style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 6px', listStyle: 'none', margin: 0, padding: 0 }}>
+      <ol className="field-breadcrumb-list">
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
+          const isCurrent = item.isCurrent || isLast;
           return (
-            <li key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <li key={idx} className="field-breadcrumb-item">
               {item.href ? (
                 <a
                   href={item.href}
@@ -124,27 +125,20 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
                       item.onClick();
                     }
                   }}
-                  className="field-text-sm"
-                  style={{
-                    color: item.isCurrent || isLast ? 'var(--field-text-primary)' : 'var(--field-text-secondary)',
-                    textDecoration: 'none',
-                    fontWeight: item.isCurrent || isLast ? 600 : 400,
-                  }}
+                  className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-link'}
                 >
                   {item.label}
                 </a>
               ) : (
-                <span
-                  className="field-text-sm"
-                  style={{
-                    color: item.isCurrent || isLast ? 'var(--field-text-primary)' : 'var(--field-text-secondary)',
-                    fontWeight: item.isCurrent || isLast ? 600 : 400,
-                  }}
-                >
+                <span className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-link'}>
                   {item.label}
                 </span>
               )}
-              {!isLast && <ChevronRight size={14} style={{ color: 'var(--field-text-disabled)' }} />}
+              {!isLast && (
+                <span className="field-breadcrumb-separator">
+                  <ChevronRight size={14} />
+                </span>
+              )}
             </li>
           );
         })}

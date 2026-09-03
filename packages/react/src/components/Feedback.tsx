@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 import { IconButton } from './Button';
 
@@ -89,56 +90,27 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast, dismissToast }}>
       {children}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 2000,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          maxWidth: '380px',
-          width: '100%',
-          pointerEvents: 'none',
-        }}
-      >
-        {toasts.map(toast => (
-          <div
-            key={toast.id}
-            style={{
-              pointerEvents: 'auto',
-              backgroundColor: 'var(--field-surface-overlay)',
-              border: '1px solid var(--field-border-strong)',
-              borderRadius: 'var(--field-radius-lg)',
-              padding: '12px 16px',
-              boxShadow: 'var(--field-shadow-lg)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              animation: 'fieldScaleIn 0.2s ease',
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--field-text-primary)' }}>
-                {toast.title}
-              </div>
-              {toast.description && (
-                <div style={{ fontSize: '0.8125rem', color: 'var(--field-text-secondary)', marginTop: '2px' }}>
-                  {toast.description}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <div className="field-toast-container">
+            {toasts.map(toast => (
+              <div key={toast.id} className="field-toast-item">
+                <div className="field-toast-body">
+                  <div className="field-toast-title">{toast.title}</div>
+                  {toast.description && <div className="field-toast-desc">{toast.description}</div>}
                 </div>
-              )}
-            </div>
-            <IconButton
-              icon={<X size={14} />}
-              variant="ghost"
-              size="sm"
-              aria-label="Dismiss toast"
-              onClick={() => dismissToast(toast.id)}
-            />
-          </div>
-        ))}
-      </div>
+                <IconButton
+                  icon={<X size={14} />}
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Dismiss toast"
+                  onClick={() => dismissToast(toast.id)}
+                />
+              </div>
+            ))}
+          </div>,
+          document.body
+        )}
     </ToastContext.Provider>
   );
 };

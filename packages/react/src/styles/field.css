@@ -179,13 +179,13 @@ select:focus-visible,
 .field-btn-primary {
   background-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--field-border-highlight);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--field-border-highlight);
 }
 .field-btn-primary:hover:not(:disabled) {
   background-color: var(--field-accent-hover);
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-color: var(--field-border-highlight);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 var(--field-border-highlight);
 }
 .field-btn-primary:active:not(:disabled) {
   background-color: var(--field-accent-active);
@@ -241,20 +241,20 @@ select:focus-visible,
 
 /* Danger: Restrained deep crimson surface with crisp warning tone */
 .field-btn-danger {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #FCA5A5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--field-status-danger-surface);
+  color: var(--field-status-danger-text);
+  border: 1px solid var(--field-status-danger-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .field-btn-danger:hover:not(:disabled) {
   background-color: var(--field-status-danger-base);
   color: #FFFFFF;
   border-color: var(--field-status-danger-base);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px var(--field-status-danger-border), inset 0 1px 0 var(--field-border-highlight);
 }
 .field-btn-danger:active:not(:disabled) {
-  background-color: #B91C1C;
-  border-color: #B91C1C;
+  background-color: var(--field-status-danger-base);
+  border-color: var(--field-status-danger-base);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
@@ -455,7 +455,7 @@ select:focus-visible,
   background-color: var(--field-surface-sunken);
   cursor: pointer;
   transition: all var(--field-duration-fast) var(--field-ease-default);
-  color: #FFFFFF;
+  color: var(--field-accent-contrast, #FFFFFF);
   box-sizing: border-box;
   flex-shrink: 0;
   line-height: 1;
@@ -702,8 +702,8 @@ select:focus-visible,
 }
 .field-badge-accent {
   background-color: var(--field-accent-subtle);
-  color: var(--field-accent-hover);
-  border-color: rgba(37, 99, 235, 0.25);
+  color: var(--field-accent-hover, var(--field-accent-primary));
+  border-color: var(--field-accent-border, color-mix(in srgb, var(--field-accent-primary) 28%, transparent));
 }
 .field-badge-success {
   background-color: var(--field-status-success-surface);
@@ -982,32 +982,32 @@ select:focus-visible,
 }
 
 .field-alert-info {
-  background-color: rgba(6, 182, 212, 0.05);
-  border-color: rgba(6, 182, 212, 0.22);
+  background-color: var(--field-status-info-surface);
+  border-color: var(--field-status-info-border);
 }
 .field-alert-info .field-alert-icon {
   color: var(--field-status-info-base);
 }
 
 .field-alert-success {
-  background-color: rgba(16, 185, 129, 0.05);
-  border-color: rgba(16, 185, 129, 0.22);
+  background-color: var(--field-status-success-surface);
+  border-color: var(--field-status-success-border);
 }
 .field-alert-success .field-alert-icon {
   color: var(--field-status-success-base);
 }
 
 .field-alert-warning {
-  background-color: rgba(245, 158, 11, 0.05);
-  border-color: rgba(245, 158, 11, 0.22);
+  background-color: var(--field-status-warning-surface);
+  border-color: var(--field-status-warning-border);
 }
 .field-alert-warning .field-alert-icon {
   color: var(--field-status-warning-base);
 }
 
 .field-alert-danger {
-  background-color: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.22);
+  background-color: var(--field-status-danger-surface);
+  border-color: var(--field-status-danger-border);
 }
 .field-alert-danger .field-alert-icon {
   color: var(--field-status-danger-base);
@@ -1448,29 +1448,29 @@ select:focus-visible,
   user-select: none;
 }
 .field-terminal-badge.badge-info {
-  background-color: rgba(37, 99, 235, 0.16);
-  color: #60A5FA;
-  border: 1px solid rgba(37, 99, 235, 0.3);
+  background-color: var(--field-status-info-surface);
+  color: var(--field-status-info-text);
+  border: 1px solid var(--field-status-info-border);
 }
 .field-terminal-badge.badge-warn {
-  background-color: rgba(245, 158, 11, 0.16);
-  color: #FBBF24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: var(--field-status-warning-surface);
+  color: var(--field-status-warning-text);
+  border: 1px solid var(--field-status-warning-border);
 }
 .field-terminal-badge.badge-error {
-  background-color: rgba(239, 68, 68, 0.16);
-  color: #F87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--field-status-danger-surface);
+  color: var(--field-status-danger-text);
+  border: 1px solid var(--field-status-danger-border);
 }
 .field-terminal-badge.badge-success {
-  background-color: rgba(16, 185, 129, 0.16);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: var(--field-status-success-surface);
+  color: var(--field-status-success-text);
+  border: 1px solid var(--field-status-success-border);
 }
 .field-terminal-badge.badge-debug {
-  background-color: rgba(148, 163, 184, 0.14);
-  color: #94A3B8;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-secondary);
+  border: 1px solid var(--field-border-subtle);
 }
 
 .field-terminal-line.level-cmd {
@@ -1833,3 +1833,1012 @@ select:focus-visible,
 .field-spinner {
   animation: fieldSpin 0.75s linear infinite;
 }
+
+/* ==========================================================================
+   Refactored Components & Modernized Primitives
+   ========================================================================== */
+
+/* --- Select Dropdown & Options --- */
+.field-select-trigger {
+  width: 100%;
+  height: 38px;
+  background-color: var(--field-surface-sunken);
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  padding: 0 var(--field-space-3);
+  font-family: var(--field-font-sans);
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-select-trigger:focus-visible,
+.field-select-trigger.open {
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 2px var(--field-accent-subtle);
+}
+.field-select-trigger.error {
+  border-color: var(--field-status-danger-base);
+}
+.field-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-md);
+  box-shadow: var(--field-shadow-lg);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  animation: fieldScaleIn 0.15s ease;
+}
+.field-select-option {
+  padding: 8px 12px;
+  border-radius: var(--field-radius-sm);
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color var(--field-duration-fast) var(--field-ease-default);
+  user-select: none;
+}
+.field-select-option:hover:not(.disabled):not(.selected) {
+  background-color: var(--field-surface-subtle);
+}
+.field-select-option.selected {
+  background-color: var(--field-surface-active);
+  color: var(--field-accent-hover);
+  font-weight: 500;
+}
+.field-select-option.disabled {
+  color: var(--field-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* --- RadioGroup --- */
+.field-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-2);
+}
+.field-radio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--field-space-2);
+  cursor: pointer;
+  user-select: none;
+}
+.field-radio-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.field-radio-button {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--field-radius-full);
+  border: 1.5px solid var(--field-border-default);
+  background: var(--field-surface-sunken);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+  flex-shrink: 0;
+}
+.field-radio-button:focus-visible {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 2px;
+}
+.field-radio-button.checked {
+  border-color: var(--field-accent-primary);
+}
+.field-radio-button.disabled {
+  cursor: not-allowed;
+}
+.field-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--field-radius-full);
+  background-color: var(--field-accent-primary);
+}
+.field-radio-content {
+  display: flex;
+  flex-direction: column;
+}
+.field-radio-label {
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+  font-weight: 500;
+}
+.field-radio-desc {
+  font-size: 0.75rem;
+  color: var(--field-text-secondary);
+  margin-top: 2px;
+}
+
+/* --- Breadcrumb --- */
+.field-breadcrumb-list {
+  display: flex;
+  align-items: center;
+  gap: var(--field-space-1_5);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+.field-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-space-1_5);
+}
+.field-breadcrumb-link {
+  color: var(--field-text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  transition: color var(--field-duration-fast) var(--field-ease-default);
+}
+.field-breadcrumb-link:hover {
+  color: var(--field-text-primary);
+}
+.field-breadcrumb-current {
+  color: var(--field-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.field-breadcrumb-separator {
+  color: var(--field-text-disabled);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- StatCard --- */
+.field-stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.field-stat-card-icon {
+  color: var(--field-text-tertiary);
+}
+.field-stat-card-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--field-space-2);
+  margin-top: var(--field-space-1);
+}
+.field-stat-card-delta {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 2px;
+}
+.field-stat-card-delta.trend-up {
+  color: var(--field-status-success-text);
+}
+.field-stat-card-delta.trend-down {
+  color: var(--field-status-danger-text);
+}
+.field-stat-card-delta.trend-neutral {
+  color: var(--field-text-secondary);
+}
+.field-stat-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--field-text-tertiary);
+  margin-top: 6px;
+}
+.field-stat-card-chart {
+  margin-top: 10px;
+}
+
+/* --- Toast --- */
+.field-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-2);
+  max-width: 380px;
+  width: 100%;
+  pointer-events: none;
+}
+.field-toast-item {
+  pointer-events: auto;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-lg);
+  padding: 12px 16px;
+  box-shadow: var(--field-shadow-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: fieldScaleIn 0.2s ease;
+}
+.field-toast-body {
+  flex: 1;
+}
+.field-toast-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+}
+.field-toast-desc {
+  font-size: 0.8125rem;
+  color: var(--field-text-secondary);
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   PART IV: Missing Components & Proposed APIs
+   ========================================================================== */
+
+/* --- DropdownMenu & ActionMenu --- */
+.field-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.field-dropdown-menu {
+  position: absolute;
+  z-index: 100;
+  min-width: 200px;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-md);
+  box-shadow: var(--field-shadow-lg);
+  padding: 4px;
+  margin-top: 4px;
+  animation: fieldScaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.field-dropdown-menu.align-start {
+  left: 0;
+}
+.field-dropdown-menu.align-end {
+  right: 0;
+}
+.field-dropdown-group {
+  margin-bottom: 4px;
+}
+.field-dropdown-group:last-child {
+  margin-bottom: 0;
+}
+.field-dropdown-label {
+  padding: 6px 10px 4px 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--field-text-tertiary);
+}
+.field-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  color: var(--field-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--field-radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-dropdown-item:hover:not(:disabled) {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-primary);
+}
+.field-dropdown-item:disabled {
+  color: var(--field-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.field-dropdown-item.variant-danger {
+  color: var(--field-status-danger-text);
+}
+.field-dropdown-item.variant-danger:hover:not(:disabled) {
+  background-color: var(--field-status-danger-surface);
+  color: var(--field-status-danger-text);
+}
+.field-dropdown-divider {
+  height: 1px;
+  background-color: var(--field-border-subtle);
+  margin: 4px 0;
+}
+
+/* --- CommandPalette (⌘K Omnibar) --- */
+.field-command-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  animation: fieldFadeIn 0.15s ease;
+}
+.field-command-dialog {
+  width: 100%;
+  max-width: 640px;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-lg);
+  box-shadow: var(--field-shadow-xl), 0 0 0 1px var(--field-border-highlight);
+  overflow: hidden;
+  animation: fieldScaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.field-command-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--field-border-subtle);
+  background-color: var(--field-surface-raised);
+}
+.field-command-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--field-font-sans);
+  font-size: 1rem;
+  color: var(--field-text-primary);
+}
+.field-command-search-input::placeholder {
+  color: var(--field-text-tertiary);
+}
+.field-command-list {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+}
+.field-command-group {
+  margin-bottom: 8px;
+}
+.field-command-group-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--field-text-tertiary);
+  padding: 6px 10px 4px 10px;
+}
+.field-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--field-radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-command-item:hover,
+.field-command-item.selected {
+  background-color: var(--field-surface-active);
+  color: var(--field-text-primary);
+}
+.field-command-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.field-command-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.field-command-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--field-border-subtle);
+  background-color: var(--field-surface-sunken);
+  font-size: 0.75rem;
+  color: var(--field-text-tertiary);
+}
+
+/* --- Popover --- */
+.field-popover-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.field-popover-card {
+  position: absolute;
+  z-index: 100;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-md);
+  box-shadow: var(--field-shadow-lg);
+  padding: 16px;
+  animation: fieldScaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.field-popover-card.align-start { left: 0; }
+.field-popover-card.align-center { left: 50%; transform: translateX(-50%); }
+.field-popover-card.align-end { right: 0; }
+.field-popover-card.position-bottom { top: calc(100% + 8px); }
+.field-popover-card.position-top { bottom: calc(100% + 8px); }
+
+/* --- ContextMenu --- */
+.field-context-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 180px;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-md);
+  box-shadow: var(--field-shadow-xl);
+  padding: 4px;
+  animation: fieldScaleIn 0.12s ease;
+}
+
+/* --- Pagination & Enhanced DataTable --- */
+.field-pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--field-border-subtle);
+  background-color: var(--field-surface-raised);
+  font-size: 0.8125rem;
+  color: var(--field-text-secondary);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.field-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field-pagination-btn {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: var(--field-radius-sm);
+  background-color: var(--field-surface-subtle);
+  border: 1px solid var(--field-border-default);
+  color: var(--field-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-pagination-btn:hover:not(:disabled) {
+  background-color: var(--field-surface-active);
+  border-color: var(--field-border-strong);
+}
+.field-pagination-btn.active {
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
+  color: var(--field-accent-contrast);
+}
+.field-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.field-table-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.field-table-sort-btn:hover {
+  color: var(--field-text-primary);
+}
+.field-table-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: var(--field-accent-subtle);
+  border: 1px solid var(--field-accent-primary);
+  border-radius: var(--field-radius-md);
+  margin-bottom: 12px;
+  animation: fieldFadeIn 0.15s ease;
+}
+.field-table-expand-btn {
+  background: transparent;
+  border: none;
+  color: var(--field-text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  transition: transform var(--field-duration-fast) var(--field-ease-default);
+}
+.field-table-expand-btn:hover {
+  color: var(--field-text-primary);
+}
+
+/* --- EmptyState --- */
+.field-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  border: 1px dashed var(--field-border-default);
+  border-radius: var(--field-radius-lg);
+  background-color: var(--field-surface-sunken);
+}
+.field-empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--field-radius-full);
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-secondary);
+  margin-bottom: 16px;
+}
+.field-empty-state-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--field-text-primary);
+  margin-bottom: 6px;
+}
+.field-empty-state-desc {
+  font-size: 0.875rem;
+  color: var(--field-text-secondary);
+  max-width: 420px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* --- TreeView --- */
+.field-tree-container {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.field-tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: var(--field-radius-sm);
+  color: var(--field-text-primary);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--field-duration-fast) var(--field-ease-default);
+}
+.field-tree-node:hover {
+  background-color: var(--field-surface-subtle);
+}
+.field-tree-node.selected {
+  background-color: var(--field-surface-active);
+  color: var(--field-accent-hover);
+  font-weight: 500;
+}
+.field-tree-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--field-text-tertiary);
+  transition: transform var(--field-duration-fast) var(--field-ease-default);
+}
+.field-tree-sublist {
+  list-style: none;
+  padding-left: 18px;
+  margin: 0;
+  border-left: 1px solid var(--field-border-subtle);
+}
+
+/* --- Stepper / Wizard --- */
+.field-stepper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+.field-step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  position: relative;
+}
+.field-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--field-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--field-surface-subtle);
+  border: 1px solid var(--field-border-default);
+  color: var(--field-text-secondary);
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-step-item.completed .field-step-circle {
+  background-color: var(--field-status-success-base);
+  border-color: var(--field-status-success-base);
+  color: #FFFFFF;
+}
+.field-step-item.active .field-step-circle {
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
+  color: var(--field-accent-contrast);
+  box-shadow: 0 0 0 3px var(--field-accent-subtle);
+}
+.field-step-label-group {
+  display: flex;
+  flex-direction: column;
+}
+.field-step-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--field-text-primary);
+}
+.field-step-desc {
+  font-size: 0.6875rem;
+  color: var(--field-text-tertiary);
+}
+.field-step-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--field-border-subtle);
+  margin: 0 8px;
+}
+.field-step-line.completed {
+  background-color: var(--field-status-success-base);
+}
+
+/* --- Timeline / AuditFeed --- */
+.field-timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 24px;
+}
+.field-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background-color: var(--field-border-subtle);
+}
+.field-timeline-item {
+  position: relative;
+  padding-bottom: 24px;
+}
+.field-timeline-item:last-child {
+  padding-bottom: 0;
+}
+.field-timeline-marker {
+  position: absolute;
+  left: -24px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--field-radius-full);
+  background-color: var(--field-surface-base);
+  border: 2px solid var(--field-accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.field-timeline-marker.status-success { border-color: var(--field-status-success-base); }
+.field-timeline-marker.status-warning { border-color: var(--field-status-warning-base); }
+.field-timeline-marker.status-danger { border-color: var(--field-status-danger-base); }
+.field-timeline-marker.status-info { border-color: var(--field-status-info-base); }
+.field-timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.field-timeline-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--field-text-primary);
+}
+.field-timeline-time {
+  font-size: 0.75rem;
+  color: var(--field-text-tertiary);
+}
+.field-timeline-content {
+  font-size: 0.8125rem;
+  color: var(--field-text-secondary);
+  line-height: 1.45;
+}
+
+/* --- CodeBlock & DiffViewer --- */
+.field-code-block-container {
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  background-color: var(--field-surface-sunken);
+  overflow: hidden;
+}
+.field-code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--field-border-subtle);
+  background-color: var(--field-surface-raised);
+  font-family: var(--field-font-mono);
+  font-size: 0.75rem;
+  color: var(--field-text-secondary);
+}
+.field-code-block-pre {
+  margin: 0;
+  padding: 12px 16px;
+  overflow: auto;
+  font-family: var(--field-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--field-text-primary);
+}
+.field-code-line {
+  display: flex;
+}
+.field-code-line.highlight {
+  background-color: var(--field-accent-subtle);
+}
+.field-code-line-number {
+  min-width: 32px;
+  user-select: none;
+  color: var(--field-text-disabled);
+  text-align: right;
+  padding-right: 16px;
+}
+.field-diff-viewer {
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  overflow: hidden;
+  font-family: var(--field-font-mono);
+  font-size: 0.8125rem;
+}
+.field-diff-line {
+  display: flex;
+  padding: 2px 8px;
+}
+.field-diff-line.added {
+  background-color: var(--field-status-success-surface);
+  color: var(--field-status-success-text);
+}
+.field-diff-line.removed {
+  background-color: var(--field-status-danger-surface);
+  color: var(--field-status-danger-text);
+}
+
+/* --- StatusDot & CopyButton --- */
+.field-status-dot-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--field-text-primary);
+}
+.field-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--field-radius-full);
+  flex-shrink: 0;
+  position: relative;
+}
+.field-status-dot.success { background-color: var(--field-status-success-base); }
+.field-status-dot.warning { background-color: var(--field-status-warning-base); }
+.field-status-dot.danger { background-color: var(--field-status-danger-base); }
+.field-status-dot.info { background-color: var(--field-status-info-base); }
+.field-status-dot.neutral { background-color: var(--field-text-tertiary); }
+
+@keyframes fieldPulseRing {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.field-status-dot.pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--field-radius-full);
+  background-color: inherit;
+  animation: fieldPulseRing 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+.field-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--field-border-subtle);
+  border-radius: var(--field-radius-xs);
+  padding: 3px 6px;
+  font-size: 0.75rem;
+  color: var(--field-text-secondary);
+  cursor: pointer;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-copy-btn:hover {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-primary);
+  border-color: var(--field-border-default);
+}
+
+/* --- Combobox / MultiSelect --- */
+.field-combobox-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 4px 8px;
+  background-color: var(--field-surface-sunken);
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  cursor: text;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-combobox-container:focus-within {
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 2px var(--field-accent-subtle);
+}
+.field-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background-color: var(--field-surface-raised);
+  border: 1px solid var(--field-border-subtle);
+  border-radius: var(--field-radius-sm);
+  font-size: 0.75rem;
+  color: var(--field-text-primary);
+}
+.field-tag-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: var(--field-text-tertiary);
+  cursor: pointer;
+  padding: 0;
+}
+.field-tag-chip-remove:hover {
+  color: var(--field-status-danger-text);
+}
+.field-combobox-input {
+  flex: 1;
+  min-width: 80px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--field-font-sans);
+  font-size: 0.8125rem;
+  color: var(--field-text-primary);
+}
+
+/* --- NumberInput / InputStepper --- */
+.field-number-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--field-surface-sunken);
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  overflow: hidden;
+  height: 38px;
+  transition: all var(--field-duration-fast) var(--field-ease-default);
+}
+.field-number-input-wrapper:focus-within {
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 2px var(--field-accent-subtle);
+}
+.field-number-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0 12px;
+  font-family: var(--field-font-sans);
+  font-size: 0.875rem;
+  color: var(--field-text-primary);
+  -moz-appearance: textfield;
+}
+.field-number-input::-webkit-inner-spin-button,
+.field-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.field-number-input-unit {
+  font-size: 0.8125rem;
+  color: var(--field-text-tertiary);
+  padding-right: 8px;
+}
+.field-number-input-stepper {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--field-border-subtle);
+  height: 100%;
+}
+.field-number-stepper-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  background: transparent;
+  border: none;
+  color: var(--field-text-secondary);
+  cursor: pointer;
+  padding: 0;
+}
+.field-number-stepper-btn:hover {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-primary);
+}
+
+/* --- Sparkline & Meter --- */
+.field-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+}
+.field-meter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.field-meter-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--field-text-secondary);
+}
+.field-meter-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--field-surface-sunken);
+  border-radius: var(--field-radius-full);
+  overflow: hidden;
+}
+.field-meter-fill {
+  height: 100%;
+  border-radius: var(--field-radius-full);
+  transition: width var(--field-duration-normal) var(--field-ease-default);
+}
+.field-meter-fill.normal { background-color: var(--field-accent-primary); }
+.field-meter-fill.warning { background-color: var(--field-status-warning-base); }
+.field-meter-fill.danger { background-color: var(--field-status-danger-base); }
+

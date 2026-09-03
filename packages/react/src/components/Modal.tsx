@@ -1,4 +1,5 @@
 import React, { useEffect, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { IconButton } from './Button';
 
@@ -30,17 +31,19 @@ export const Modal: React.FC<ModalProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) {
+    if (isOpen && typeof document !== 'undefined') {
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = '';
+      }
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const maxWidths = {
     sm: '400px',
@@ -49,7 +52,7 @@ export const Modal: React.FC<ModalProps> = ({
     full: '92vw',
   };
 
-  return (
+  const modalNode = (
     <div
       className="field-modal-backdrop"
       onClick={e => {
@@ -91,6 +94,8 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalNode, document.body);
 };
 
 export interface DrawerProps {
@@ -114,19 +119,21 @@ export const Drawer: React.FC<DrawerProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) {
+    if (isOpen && typeof document !== 'undefined') {
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = '';
+      }
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
+  const drawerNode = (
     <>
       <div className="field-drawer-backdrop" onClick={onClose} />
       <div className="field-drawer-panel" style={{ maxWidth: width }} role="dialog" aria-modal="true">
@@ -145,4 +152,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       </div>
     </>
   );
+
+  return createPortal(drawerNode, document.body);
 };
+

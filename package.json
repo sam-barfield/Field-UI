@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@field/showcase",
     "build": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm --prefix apps/showcase run build",
+    "build:showcase": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm --prefix apps/showcase run build",
     "typecheck": "npm --prefix packages/tokens run typecheck && npm --prefix packages/react run typecheck && npm --prefix apps/showcase run typecheck"
   },
   "keywords": [

@@ -1,3 +1,38 @@
+stages:
+  - build
+  - deploy
+
+# Deploy showcase application to GitLab Pages
+pages:
+  stage: deploy
+  image: node:20
+  only:
+    - tags
+  tags:
+    - docker
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+  script:
+    # 1. Build tokens, react library, and showcase application
+    - npm run build:showcase
+    # 2. Place build output into repository root `public` directory
+    - rm -rf public
+    - mv apps/showcase/dist public
+    # 3. Handle SPA client-side routing fallback & redirects
+    - cp public/index.html public/404.html
+    - echo "/* /index.html 200" > public/_redirects
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+# Publish NPM packages when Git tags are pushed
 publish_packages:
   image: node:20
   stage: deploy

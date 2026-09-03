@@ -22,6 +22,12 @@ import {
   Drawer,
   Tabs,
   Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHead,
+  Pagination,
   Accordion,
   Tooltip,
   Alert,
@@ -38,36 +44,86 @@ import {
   Flex,
   Stack,
   Grid,
+  DatePicker,
+  DateRangePicker,
+  DateRange,
+  DropdownMenu,
+  DropdownGroup,
+  DropdownItem,
+  DropdownDivider,
+  CommandPalette,
+  Popover,
+  ContextMenu,
+  EmptyState,
+  TreeView,
+  Stepper,
+  Timeline,
+  CodeBlock,
+  DiffViewer,
+  CopyButton,
+  StatusDot,
+  Sparkline,
+  Meter,
+  Combobox,
+  NumberInput,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarItem,
+  SidebarDropdown,
+  SidebarSubItem,
+  SidebarFooter,
+  SidebarTrigger,
+  Terminal,
+  TerminalHeader,
+  TerminalBody,
+  TerminalLine,
+  TerminalPrompt,
 } from '@field/react';
 import {
   Search,
-  Key,
   Shield,
   Send,
   Trash2,
   Settings,
-  Bell,
-  Terminal,
+  Terminal as TerminalIcon,
   Activity,
   Cpu,
   Database,
   Layers,
+  MoreVertical,
+  Zap,
+  HardDrive,
+  MousePointerClick,
+  FileSearch,
 } from 'lucide-react';
 
 export const StickerSheet: React.FC = () => {
   const { showToast } = useToast();
 
-  // Component demo state
+  // Component demo states
   const [segmentedVal, setSegmentedVal] = useState('metrics');
   const [textInputVal, setTextInputVal] = useState('field_alpha_node_01');
   const [selectVal, setSelectVal] = useState('prod');
+  const [comboboxVal, setComboboxVal] = useState<string[]>(['node-eu-1']);
+  const [numberVal, setNumberVal] = useState(42);
   const [switchVal, setSwitchVal] = useState(true);
   const [checkboxVal, setCheckboxVal] = useState(true);
   const [radioVal, setRadioVal] = useState('dedicated');
   const [sliderVal, setSliderVal] = useState(65);
+  const [dateVal, setDateVal] = useState<Date | null>(new Date());
+  const [dateRangeVal, setDateRangeVal] = useState<DateRange>({
+    start: new Date(Date.now() - 7 * 86400000),
+    end: new Date(),
+  });
   const [activeTab, setActiveTab] = useState('tab1');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [stepperStep, setStepperStep] = useState(1);
+  const [page, setPage] = useState(1);
+  const [sidebarDemoCollapsed, setSidebarDemoCollapsed] = useState(false);
 
   // Sample table data
   const sampleTableData = [
@@ -83,8 +139,8 @@ export const StickerSheet: React.FC = () => {
       <section>
         <div style={{ marginBottom: '16px' }}>
           <Badge variant="accent">01 // ACTIONS & TRIGGERS</Badge>
-          <Heading level={2} style={{ marginTop: '8px' }}>Buttons & Controls</Heading>
-          <Text tone="secondary" size="sm">Tactile micro-highlights, crisp hover responses, and keyboard focus outlines.</Text>
+          <Heading level={2} style={{ marginTop: '8px' }}>Buttons, Menus & Overlays</Heading>
+          <Text tone="secondary" size="sm">Tactile micro-highlights, crisp hover responses, contextual dropdowns and commands.</Text>
         </div>
 
         <Grid columns="repeat(auto-fit, minmax(320px, 1fr))" gap="20px">
@@ -109,150 +165,257 @@ export const StickerSheet: React.FC = () => {
           <Card>
             <CardHeader>
               <Heading level={4}>Sizes & Interactive States</Heading>
-              <Text tone="secondary" size="xs">Scale consistency across devices</Text>
+              <Text tone="secondary" size="xs">Proportional scales & feedback</Text>
             </CardHeader>
             <CardContent>
-              <Flex gap="10px" align="center" wrap="wrap">
-                <Button size="sm" variant="primary">Small (30px)</Button>
-                <Button size="md" variant="primary">Medium (38px)</Button>
-                <Button size="lg" variant="primary">Large (46px)</Button>
-                <Button size="md" variant="secondary" isLoading>Loading</Button>
-                <Button size="md" variant="secondary" disabled>Disabled</Button>
-              </Flex>
-            </CardContent>
-          </Card>
-
-          {/* Icon Buttons & Groups */}
-          <Card>
-            <CardHeader>
-              <Heading level={4}>Icon Buttons & Segmented</Heading>
-              <Text tone="secondary" size="xs">Compact controls and tabbed switchers</Text>
-            </CardHeader>
-            <CardContent>
-              <Stack gap="16px">
-                <Flex gap="10px" align="center">
-                  <IconButton icon={<Bell size={16} />} aria-label="Notifications" variant="secondary" />
-                  <IconButton icon={<Settings size={16} />} aria-label="Settings" variant="outline" />
-                  <IconButton icon={<Shield size={16} />} aria-label="Security" variant="primary" />
+              <Stack gap="14px">
+                <Flex gap="10px" align="center" wrap="wrap">
+                  <Button size="sm">Small</Button>
+                  <Button size="md">Medium</Button>
+                  <Button size="lg">Large</Button>
+                </Flex>
+                <Flex gap="10px" align="center" wrap="wrap">
+                  <Button isLoading>Deploying</Button>
+                  <Button disabled>Disabled</Button>
+                  <Tooltip content="Quick system settings">
+                    <IconButton icon={<Settings size={15} />} aria-label="Settings" />
+                  </Tooltip>
                   <ButtonGroup>
-                    <Button size="sm" variant="secondary">Day</Button>
+                    <Button size="sm">Day</Button>
                     <Button size="sm" variant="secondary">Week</Button>
                     <Button size="sm" variant="secondary">Month</Button>
                   </ButtonGroup>
                 </Flex>
+              </Stack>
+            </CardContent>
+          </Card>
 
+          {/* Menus & Popovers */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Dropdown, Popover & Command</Heading>
+              <Text tone="secondary" size="xs">Floating contextual surfaces</Text>
+            </CardHeader>
+            <CardContent>
+              <Flex gap="12px" align="center" wrap="wrap">
+                <DropdownMenu
+                  trigger={<Button variant="outline" rightIcon={<MoreVertical size={14} />}>Actions Menu</Button>}
+                >
+                  <DropdownGroup label="Cluster Operations">
+                    <DropdownItem icon={<Zap size={14} />} onSelect={() => showToast({ title: 'Sync Triggered' })}>
+                      Sync Topology
+                    </DropdownItem>
+                    <DropdownItem icon={<Activity size={14} />}>View Latency Stream</DropdownItem>
+                  </DropdownGroup>
+                  <DropdownDivider />
+                  <DropdownGroup label="Configuration">
+                    <DropdownItem icon={<Settings size={14} />}>Cluster Settings</DropdownItem>
+                    <DropdownItem icon={<Trash2 size={14} />} variant="danger">Purge Telemetry</DropdownItem>
+                  </DropdownGroup>
+                </DropdownMenu>
+
+                <Popover
+                  trigger={<Button variant="secondary">Popover Details</Button>}
+                  content={
+                    <div style={{ padding: '4px' }}>
+                      <Heading level={4}>Pod Status</Heading>
+                      <Text size="xs" tone="secondary" style={{ marginTop: '4px' }}>
+                        Node pod <code>us-east-1a-09</code> is running at 99.8% capacity with zero packet loss.
+                      </Text>
+                    </div>
+                  }
+                />
+
+                <Button
+                  variant="secondary"
+                  leftIcon={<Search size={14} />}
+                  onClick={() => setIsCommandOpen(true)}
+                >
+                  Search Commands <Kbd style={{ marginLeft: '6px' }}>⌘K</Kbd>
+                </Button>
+              </Flex>
+            </CardContent>
+          </Card>
+
+          {/* Context Menu & Segmented */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Context Menu & Segmented Control</Heading>
+              <Text tone="secondary" size="xs">Right-click canvas & multi-segmented switches</Text>
+            </CardHeader>
+            <CardContent>
+              <Stack gap="14px">
                 <SegmentedControl
                   value={segmentedVal}
                   onChange={setSegmentedVal}
                   options={[
-                    { value: 'metrics', label: 'Telemetry' },
-                    { value: 'logs', label: 'Raw Logs' },
-                    { value: 'traces', label: 'Distributed Traces' },
+                    { value: 'metrics', label: 'Metrics' },
+                    { value: 'logs', label: 'Logs' },
+                    { value: 'traces', label: 'Traces' },
+                    { value: 'alerts', label: 'Alerts' },
                   ]}
                 />
+                <ContextMenu
+                  items={[
+                    { id: '1', label: 'Run Health Check', icon: <Zap size={14} />, onSelect: () => showToast({ title: 'Health Check Triggered' }) },
+                    { id: '2', label: 'Inspect Manifest', icon: <FileSearch size={14} /> },
+                    { id: '3', label: 'Isolate Node', icon: <Trash2 size={14} />, variant: 'danger' },
+                  ]}
+                >
+                  <div
+                    style={{
+                      border: '1px dashed var(--field-border-strong)',
+                      borderRadius: 'var(--field-radius-md)',
+                      padding: '16px',
+                      textAlign: 'center',
+                      backgroundColor: 'var(--field-surface-subtle)',
+                      cursor: 'context-menu',
+                    }}
+                  >
+                    <Text size="xs" tone="secondary">
+                      <MousePointerClick size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                      Right-click anywhere inside this box to open the <strong>ContextMenu</strong>
+                    </Text>
+                  </div>
+                </ContextMenu>
               </Stack>
             </CardContent>
           </Card>
         </Grid>
       </section>
 
-      {/* 2. FORM INPUTS */}
+      {/* 2. FORM INPUTS & DATA ENTRY */}
       <section>
         <div style={{ marginBottom: '16px' }}>
-          <Badge variant="accent">02 // DATA ENTRY</Badge>
-          <Heading level={2} style={{ marginTop: '8px' }}>Forms & Precision Inputs</Heading>
-          <Text tone="secondary" size="sm">Recessed sunken surfaces with micro-glow focus states and WAI-ARIA validation.</Text>
+          <Badge variant="accent">02 // DATA ENTRY & CONTROLS</Badge>
+          <Heading level={2} style={{ marginTop: '8px' }}>Form Inputs & Pickers</Heading>
+          <Text tone="secondary" size="sm">Searchable comboboxes, numeric steppers, date pickers, and toggle switches.</Text>
         </div>
 
-        <Grid columns="repeat(auto-fit, minmax(340px, 1fr))" gap="20px">
-          {/* Text Inputs */}
+        <Grid columns="repeat(auto-fit, minmax(320px, 1fr))" gap="20px">
+          {/* Text Fields */}
           <Card>
             <CardHeader>
-              <Heading level={4}>Text Inputs & Adornments</Heading>
+              <Heading level={4}>Text Inputs & Combobox</Heading>
+              <Text tone="secondary" size="xs">Input fields with icons and filtering</Text>
             </CardHeader>
             <CardContent>
               <Stack gap="14px">
                 <TextInput
-                  label="Node Identifier"
+                  label="Host Identifier"
+                  leftAdornment={<Database size={15} />}
                   value={textInputVal}
                   onChange={e => setTextInputVal(e.target.value)}
-                  leftAdornment={<Terminal size={14} />}
-                  helperText="Unique hardware tag in cluster topology"
                 />
-                <TextInput
-                  label="Search Workspace"
-                  placeholder="Filter resources by name, tag, or region..."
-                  leftAdornment={<Search size={14} />}
+                <Combobox
+                  label="Target Node (Searchable)"
+                  value={comboboxVal}
+                  onChange={setComboboxVal}
+                  placeholder="Select or search node..."
+                  options={[
+                    { value: 'node-us-1', label: 'us-east-cluster-01 (Primary)' },
+                    { value: 'node-eu-1', label: 'eu-central-cluster-02' },
+                    { value: 'node-ap-1', label: 'ap-southeast-cluster-03' },
+                    { value: 'node-sa-1', label: 'sa-east-backup-04' },
+                  ]}
                 />
-                <TextInput
-                  label="Service Token"
-                  type="password"
-                  defaultValue="sk_live_9481948291048"
-                  leftAdornment={<Key size={14} />}
-                  error="Token requires renewal within 48 hours"
+                <NumberInput
+                  label="Replication Factor"
+                  value={numberVal}
+                  onChange={setNumberVal}
+                  min={1}
+                  max={128}
+                  step={1}
                 />
               </Stack>
             </CardContent>
           </Card>
 
-          {/* Select & TextArea */}
+          {/* Select & Textarea */}
           <Card>
             <CardHeader>
-              <Heading level={4}>Dropdown Select & Textarea</Heading>
+              <Heading level={4}>Select & Text Area</Heading>
+              <Text tone="secondary" size="xs">Multi-line inputs and dropdowns</Text>
             </CardHeader>
             <CardContent>
               <Stack gap="14px">
                 <Select
-                  label="Target Deployment Cluster"
+                  label="Environment Target"
                   value={selectVal}
                   onChange={setSelectVal}
                   options={[
-                    { value: 'dev', label: 'Development (us-east-1a)' },
-                    { value: 'staging', label: 'Staging Canary (eu-west-1)' },
-                    { value: 'prod', label: 'Production High-Availability (Global)' },
+                    { value: 'prod', label: 'Production (Tier 1)' },
+                    { value: 'staging', label: 'Staging Integration' },
+                    { value: 'dev', label: 'Local Development' },
                   ]}
                 />
                 <TextArea
-                  label="Deployment Notes"
-                  placeholder="Summarize changes, pull request links, or rollout verification steps..."
+                  label="Cluster Policy (YAML)"
+                  defaultValue="apiVersion: field.telemetry/v1&#10;kind: ClusterNode&#10;metadata:&#10;  name: core-prod-01"
                   rows={3}
                 />
               </Stack>
             </CardContent>
           </Card>
 
-          {/* Controls: Switch, Checkbox, Radio, Slider */}
+          {/* Dates & Pickers */}
           <Card>
             <CardHeader>
-              <Heading level={4}>Binary & Scalar Controls</Heading>
+              <Heading level={4}>Date & DateRange Pickers</Heading>
+              <Text tone="secondary" size="xs">Bidirectional hover selection</Text>
             </CardHeader>
             <CardContent>
-              <Stack gap="18px">
-                <Switch
-                  label="Strict Encrypted Tunnel (TLS 1.3)"
-                  description="Enforces mutual certificate authentication on all ingress ports"
-                  checked={switchVal}
-                  onChange={setSwitchVal}
+              <Stack gap="14px">
+                <DatePicker
+                  label="Snapshot Timestamp"
+                  value={dateVal}
+                  onChange={setDateVal}
                 />
-                <Checkbox
-                  label="Enable automatic edge failover"
-                  checked={checkboxVal}
-                  onChange={setCheckboxVal}
+                <DateRangePicker
+                  label="Audit Log Window"
+                  value={dateRangeVal}
+                  onChange={setDateRangeVal}
                 />
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {/* Switches, Checkboxes, Radios */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Toggles & Sliders</Heading>
+              <Text tone="secondary" size="xs">Discrete and continuous controls</Text>
+            </CardHeader>
+            <CardContent>
+              <Stack gap="16px">
+                <Flex justify="space-between" align="center">
+                  <Switch
+                    label="Automated Failover"
+                    checked={switchVal}
+                    onChange={setSwitchVal}
+                  />
+                  <Checkbox
+                    label="Strict SSL Pinning"
+                    checked={checkboxVal}
+                    onChange={setCheckboxVal}
+                  />
+                </Flex>
                 <RadioGroup
-                  label="Instance Provisioning Strategy"
+                  label="Resource Allocation"
                   value={radioVal}
                   onChange={setRadioVal}
                   options={[
-                    { value: 'dedicated', label: 'Dedicated Metal', description: 'Zero noisy neighbor latency variance' },
-                    { value: 'spot', label: 'Preemptible Spot', description: 'Cost optimized batch worker tier' },
+                    { value: 'dedicated', label: 'Dedicated Hardware' },
+                    { value: 'shared', label: 'Shared Pool' },
                   ]}
                 />
                 <Slider
-                  label="Compute Scaling Threshold"
+                  label="CPU Throttle Limit"
                   value={sliderVal}
                   onChange={setSliderVal}
-                  valueSuffix="%"
+                  min={0}
+                  max={100}
+                  step={5}
                 />
               </Stack>
             </CardContent>
@@ -260,268 +423,490 @@ export const StickerSheet: React.FC = () => {
         </Grid>
       </section>
 
-      {/* 3. DATA DISPLAY & TELEMETRY */}
+      {/* 3. DATA DISPLAY, TABLES & TELEMETRY */}
       <section>
         <div style={{ marginBottom: '16px' }}>
-          <Badge variant="accent">03 // VISUALIZATION</Badge>
-          <Heading level={2} style={{ marginTop: '8px' }}>Metrics & Data Display</Heading>
-          <Text tone="secondary" size="sm">Tabular figures, trend delta badges, and structured data tables.</Text>
+          <Badge variant="accent">03 // VISUALIZATION & TELEMETRY</Badge>
+          <Heading level={2} style={{ marginTop: '8px' }}>Data Display, Tables & Gauges</Heading>
+          <Text tone="secondary" size="sm">Compound tables, responsive sparklines, meters, and status indicators.</Text>
         </div>
 
-        {/* KPI Stat Cards */}
-        <Grid columns="repeat(auto-fit, minmax(240px, 1fr))" gap="16px" style={{ marginBottom: '20px' }}>
-          <StatCard
-            label="AGGREGATE THROUGHPUT"
-            value="48.2 Gbps"
-            delta={{ value: '+12.4%', trend: 'up' }}
-            icon={<Activity size={18} />}
-            subtitle="Global ingress over past 24h"
+        <Stack gap="20px">
+          {/* Navigation Tabs Bar */}
+          <Tabs
+            activeId={activeTab}
+            onChange={setActiveTab}
+            items={[
+              { id: 'tab1', label: 'Cluster Summary' },
+              { id: 'tab2', label: 'Telemetry Channels' },
+              { id: 'tab3', label: 'Historical Audits' },
+            ]}
           />
-          <StatCard
-            label="P99 RESPONSE LATENCY"
-            value="14.8 ms"
-            delta={{ value: '-3.1 ms', trend: 'up' }}
-            icon={<Cpu size={18} />}
-            subtitle="Calculated over 4.2M samples"
-          />
-          <StatCard
-            label="ACTIVE CLUSTER NODES"
-            value="128 / 128"
-            icon={<Database size={18} />}
-            subtitle="100% operational capacity"
-          />
-          <StatCard
-            label="ERROR BUDGET BURN"
-            value="0.04%"
-            delta={{ value: '+0.01%', trend: 'down' }}
-            icon={<Layers size={18} />}
-            subtitle="99.96% availability remaining"
-          />
-        </Grid>
 
-        {/* Badges, Avatars, and Data Table */}
-        <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="20px">
-          <Card>
-            <CardHeader>
-              <Heading level={4}>Badges & Identity</Heading>
-            </CardHeader>
-            <CardContent>
-              <Stack gap="16px">
-                <Flex gap="8px" wrap="wrap">
+          {/* Stat Cards, Meters, Sparklines */}
+          <Grid columns="repeat(auto-fit, minmax(260px, 1fr))" gap="16px">
+            <StatCard
+              label="TOTAL THROUGHPUT"
+              value="4.82 GB/s"
+              delta={{ value: '+12.4%', trend: 'up' }}
+              icon={<Zap size={18} />}
+            />
+            <Card>
+              <CardContent style={{ padding: '16px' }}>
+                <Flex justify="space-between" align="center">
+                  <Text size="xs" tone="secondary">BUFFER HEALTH</Text>
+                  <StatusDot status="success" pulse label="Normal" />
+                </Flex>
+                <Heading level={3} style={{ margin: '8px 0' }}>88.4%</Heading>
+                <Meter value={88.4} max={100} warningThreshold={75} dangerThreshold={90} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent style={{ padding: '16px' }}>
+                <Flex justify="space-between" align="center">
+                  <Text size="xs" tone="secondary">P99 LATENCY TREND</Text>
+                  <StatusDot status="warning" label="Slight Elevation" />
+                </Flex>
+                <Heading level={3} style={{ margin: '8px 0' }}>18.2 ms</Heading>
+                <Sparkline data={[12, 14, 15, 13, 16, 21, 18, 19, 17, 18]} height={28} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent style={{ padding: '16px' }}>
+                <Text size="xs" tone="secondary">BADGE SIZES & VERTICAL CENTERING</Text>
+                <Flex gap="8px" align="center" wrap="wrap" style={{ marginTop: '12px' }}>
+                  <Badge variant="accent" size="sm" dot>Small</Badge>
+                  <Badge variant="accent" size="md" dot>Medium (Default)</Badge>
+                  <Badge variant="accent" size="lg" dot>Large</Badge>
+                </Flex>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Badges & Avatars Row */}
+          <Grid columns="repeat(auto-fit, minmax(320px, 1fr))" gap="20px">
+            <Card>
+              <CardHeader>
+                <Heading level={4}>Status Badges & Indicators</Heading>
+                <Text tone="secondary" size="xs">Optical baseline alignment across all variants</Text>
+              </CardHeader>
+              <CardContent>
+                <Flex gap="8px" wrap="wrap" align="center">
                   <Badge variant="default">Default</Badge>
                   <Badge variant="accent" dot>Active Accent</Badge>
                   <Badge variant="success" dot>Operational</Badge>
                   <Badge variant="warning" dot>Degraded</Badge>
-                  <Badge variant="danger" dot>Outage</Badge>
+                  <Badge variant="danger" dot>Critical</Badge>
                   <Badge variant="info">Telemetry</Badge>
                 </Flex>
+              </CardContent>
+            </Card>
 
-                <Divider />
-
-                <Flex align="center" gap="16px">
-                  <Avatar name="Alex Vance" size="sm" />
-                  <Avatar name="Dr. Breen" size="md" />
+            <Card>
+              <CardHeader>
+                <Heading level={4}>Avatars & Avatar Groups</Heading>
+                <Text tone="secondary" size="xs">User representations and fallbacks</Text>
+              </CardHeader>
+              <CardContent>
+                <Flex gap="16px" align="center">
+                  <Avatar name="Sam Barfield" size="sm" />
+                  <Avatar name="Alex Vance" size="md" />
                   <Avatar name="Gordon Freeman" size="lg" />
                   <AvatarGroup max={3}>
-                    <Avatar name="Unit 01" />
-                    <Avatar name="Unit 02" />
-                    <Avatar name="Unit 03" />
-                    <Avatar name="Unit 04" />
-                    <Avatar name="Unit 05" />
+                    <Avatar name="Dev One" />
+                    <Avatar name="Dev Two" />
+                    <Avatar name="Dev Three" />
+                    <Avatar name="Dev Four" />
                   </AvatarGroup>
                 </Flex>
+              </CardContent>
+            </Card>
+          </Grid>
 
-                <Divider />
-
+          {/* Data-Driven Table & Pagination */}
+          <Card>
+            <CardHeader>
+              <Flex justify="space-between" align="center" style={{ width: '100%' }}>
                 <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '6px' }}>Keyboard Shortcuts</Text>
-                  <Flex gap="6px">
-                    <Kbd>⌘</Kbd>
-                    <Kbd>K</Kbd>
-                    <span style={{ margin: '0 4px', color: 'var(--field-text-secondary)' }}>or</span>
-                    <Code>Ctrl + Shift + P</Code>
-                  </Flex>
+                  <Heading level={4}>Data-Driven Table & Pagination</Heading>
+                  <Text tone="secondary" size="xs">Sortable headers, status mapping, and bottom pagination controls</Text>
                 </div>
+                <Badge variant="success" size="sm">4 Online</Badge>
+              </Flex>
+            </CardHeader>
+            <CardContent style={{ padding: 0 }}>
+              <Table
+                columns={[
+                  { key: 'name', header: 'Node Identifier', sortable: true },
+                  {
+                    key: 'status',
+                    header: 'Health',
+                    render: row => (
+                      <Badge variant={row.status === 'Optimal' ? 'success' : 'warning'} dot size="sm">
+                        {row.status}
+                      </Badge>
+                    ),
+                  },
+                  { key: 'latency', header: 'Roundtrip Latency', sortable: true },
+                  { key: 'cpu', header: 'CPU Usage' },
+                ]}
+                data={sampleTableData}
+              />
+              <Pagination
+                currentPage={page}
+                totalPages={12}
+                onPageChange={setPage}
+                pageSize={4}
+                totalItems={48}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Compound Table Primitives */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Compound Table Primitives</Heading>
+              <Text tone="secondary" size="xs">Composable subcomponents: TableHeader, TableBody, TableRow, TableCell, TableHead</Text>
+            </CardHeader>
+            <CardContent style={{ padding: 0 }}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Channel</TableHead>
+                    <TableHead>Protocols</TableHead>
+                    <TableHead>Ingress Rate</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell><span style={{ fontWeight: 600 }}>gRPC-Primary</span></TableCell>
+                    <TableCell><Code>HTTP/2 + TLS 1.3</Code></TableCell>
+                    <TableCell>1.42 GB/s</TableCell>
+                    <TableCell><Badge variant="success" size="sm" dot>Active</Badge></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell><span style={{ fontWeight: 600 }}>REST-Gateway</span></TableCell>
+                    <TableCell><Code>HTTP/1.1 + JSON</Code></TableCell>
+                    <TableCell>240 MB/s</TableCell>
+                    <TableCell><Badge variant="info" size="sm">Telemetry</Badge></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </Stack>
+      </section>
+
+      {/* 4. NAVIGATION, STRUCTURE & CODE */}
+      <section>
+        <div style={{ marginBottom: '16px' }}>
+          <Badge variant="accent">04 // STRUCTURE & CODE</Badge>
+          <Heading level={2} style={{ marginTop: '8px' }}>Navigation, Trees & Code Display</Heading>
+          <Text tone="secondary" size="sm">Steppers, timeline events, directory trees, empty states, and syntax-highlighted diffs.</Text>
+        </div>
+
+        <Grid columns="repeat(auto-fit, minmax(320px, 1fr))" gap="20px">
+          {/* Stepper & Breadcrumb */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Stepper Wizard & Breadcrumb</Heading>
+              <Text tone="secondary" size="xs">Multi-step progressions and location paths</Text>
+            </CardHeader>
+            <CardContent>
+              <Stack gap="18px">
+                <Stepper
+                  activeStep={stepperStep}
+                  steps={[
+                    { id: '1', title: 'Define', description: 'Configure node specs' },
+                    { id: '2', title: 'Provision', description: 'Mount hardware volume' },
+                    { id: '3', title: 'Verify', description: 'Run test suite' },
+                  ]}
+                />
+                <Flex gap="8px">
+                  <Button size="sm" variant="secondary" onClick={() => setStepperStep(s => Math.max(0, s - 1))}>
+                    Previous
+                  </Button>
+                  <Button size="sm" variant="primary" onClick={() => setStepperStep(s => Math.min(2, s + 1))}>
+                    Next Step
+                  </Button>
+                </Flex>
+                <Divider />
+                <Breadcrumb
+                  items={[
+                    { label: 'Workspaces', onClick: () => showToast({ title: 'Navigated to Workspaces' }) },
+                    { label: 'Cluster Alpha', onClick: () => showToast({ title: 'Navigated to Cluster' }) },
+                    { label: 'Node Settings' },
+                  ]}
+                />
               </Stack>
             </CardContent>
           </Card>
 
-          {/* Data Table */}
+          {/* TreeView & Timeline */}
           <Card>
             <CardHeader>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <Heading level={4}>Infrastructure Fleet Status</Heading>
-                  <Text tone="secondary" size="xs">Live node status telemetry</Text>
-                </div>
-                <Button size="sm" variant="outline">Export CSV</Button>
-              </div>
+              <Heading level={4}>Tree View & Activity Timeline</Heading>
+              <Text tone="secondary" size="xs">Hierarchical directory navigation & audit trails</Text>
             </CardHeader>
             <CardContent>
-              <Table
-                columns={[
-                  { key: 'id', header: 'Node ID', render: r => <span style={{ fontFamily: 'var(--field-font-mono)' }}>{r.id}</span> },
-                  { key: 'name', header: 'Cluster Name', render: r => <strong>{r.name}</strong> },
-                  {
-                    key: 'status',
-                    header: 'Health',
-                    render: r => (
-                      <Badge variant={r.status === 'Optimal' ? 'success' : 'warning'} dot>
-                        {r.status}
-                      </Badge>
-                    ),
-                  },
-                  { key: 'latency', header: 'RTT Latency', render: r => <span style={{ fontFamily: 'var(--field-font-mono)' }}>{r.latency}</span> },
-                  { key: 'cpu', header: 'CPU Load', render: r => <span style={{ fontFamily: 'var(--field-font-mono)' }}>{r.cpu}</span> },
-                ]}
-                data={sampleTableData}
-                keyExtractor={r => r.id}
+              <Grid columns="1fr 1fr" gap="16px">
+                <div>
+                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>File Structure</Text>
+                  <TreeView
+                    data={[
+                      {
+                        id: 'packages',
+                        label: 'packages',
+                        children: [
+                          { id: 'tokens', label: 'tokens' },
+                          { id: 'react', label: 'react' },
+                        ],
+                      },
+                      {
+                        id: 'apps',
+                        label: 'apps',
+                        children: [
+                          { id: 'showcase', label: 'showcase' },
+                        ],
+                      },
+                    ]}
+                  />
+                </div>
+                <div>
+                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Audit Log</Text>
+                  <Timeline
+                    items={[
+                      { id: '1', title: 'Cluster Deploy', timestamp: '12m ago', status: 'success', content: 'Image v0.2.0 pushed' },
+                      { id: '2', title: 'Health Check', timestamp: '34m ago', status: 'info', content: 'All nodes green' },
+                      { id: '3', title: 'Warning', timestamp: '1h ago', status: 'warning', content: 'Memory reached 85%' },
+                    ]}
+                  />
+                </div>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          {/* EmptyState Component */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Empty State</Heading>
+              <Text tone="secondary" size="xs">Zero-data placeholder indicators</Text>
+            </CardHeader>
+            <CardContent>
+              <EmptyState
+                icon={<FileSearch size={28} />}
+                title="No Disconnected Nodes"
+                description="All 24 cluster pods are currently connected and reporting healthy telemetry."
+                action={
+                  <Button size="sm" variant="outline" onClick={() => showToast({ title: 'Cluster Polled' })}>
+                    Refresh Health
+                  </Button>
+                }
               />
+            </CardContent>
+          </Card>
+
+          {/* CodeBlock & DiffViewer */}
+          <Card style={{ gridColumn: '1 / -1' }}>
+            <CardHeader>
+              <Flex justify="space-between" align="center" style={{ width: '100%' }}>
+                <div>
+                  <Heading level={4}>Code Block & Diff Viewer</Heading>
+                  <Text tone="secondary" size="xs">Syntax display, copy actions, and side-by-side git diffs</Text>
+                </div>
+                <CopyButton value="npm install @sam.barfield/field-react" />
+              </Flex>
+            </CardHeader>
+            <CardContent>
+              <Grid columns="1fr 1fr" gap="16px">
+                <CodeBlock
+                  language="tsx"
+                  code={`import { Button, Badge } from '@sam.barfield/field-react';\n\nexport const DeployWidget = () => (\n  <Button variant="primary" size="md">\n    Deploy <Badge variant="accent">v0.2.1</Badge>\n  </Button>\n);`}
+                />
+                <DiffViewer
+                  title="Topology Config Diff"
+                  lines={[
+                    { type: 'normal', content: '  timeout: 5000,' },
+                    { type: 'removed', content: '- retries: 3,' },
+                    { type: 'added', content: '+ retries: 5,' },
+                    { type: 'added', content: '+ circuitBreaker: true,' },
+                  ]}
+                />
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
       </section>
 
-      {/* 4. FEEDBACK, ALERTS, & OVERLAYS */}
+      {/* 5. WORKSTATION SHELL & FEEDBACK SYSTEMS */}
       <section>
         <div style={{ marginBottom: '16px' }}>
-          <Badge variant="accent">04 // SYSTEM FEEDBACK & OVERLAYS</Badge>
-          <Heading level={2} style={{ marginTop: '8px' }}>Feedback, Modals & Drawers</Heading>
-          <Text tone="secondary" size="sm">Accessible overlays with focus trapping, backdrop blurs, and animated banners.</Text>
+          <Badge variant="accent">05 // WORKSTATION SHELL & FEEDBACK</Badge>
+          <Heading level={2} style={{ marginTop: '8px' }}>Workstation Systems & Feedback</Heading>
+          <Text tone="secondary" size="sm">Docked sidebars, terminal consoles, alerts, dialogs, and sliding drawers.</Text>
         </div>
 
         <Grid columns="repeat(auto-fit, minmax(320px, 1fr))" gap="20px">
-          {/* Alerts */}
+          {/* Feedback & Overlays */}
           <Card>
             <CardHeader>
-              <Heading level={4}>System Alerts & Callouts</Heading>
+              <Heading level={4}>Alerts & Progress</Heading>
+              <Text tone="secondary" size="xs">Inline warnings, async progress bars, and skeletons</Text>
             </CardHeader>
             <CardContent>
-              <Stack gap="12px">
-                <Alert variant="info" title="System Maintenance">
-                  Scheduled database migration in 2 hours. Read replicas remain active.
+              <Stack gap="14px">
+                <Alert variant="warning" title="Elevated Memory Usage">
+                  Node <code>us-east-core</code> is operating at 82% RAM threshold. Automatic compaction scheduled.
                 </Alert>
-                <Alert variant="success" title="Deploy Succeeded">
-                  Version 3.4.1 has been propagated to all edge datacenters.
-                </Alert>
-                <Alert variant="warning" title="Memory Threshold">
-                  Pod memory utilization exceeded 85% on node us-east-core.
-                </Alert>
-                <Alert variant="danger" title="Unauthorized Ingress">
-                  Blocked 1,420 connection attempts matching known malicious IP block.
-                </Alert>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* Overlays & Triggers */}
-          <Card>
-            <CardHeader>
-              <Heading level={4}>Modals, Drawers & Toasts</Heading>
-            </CardHeader>
-            <CardContent>
-              <Stack gap="16px">
-                <Flex gap="10px" wrap="wrap">
-                  <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-                    Open Dialog Modal
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsDrawerOpen(true)}>
-                    Open Slide Drawer
-                  </Button>
+                <Progress value={78} showValue label="Disk Compaction Sync" />
+                <Stack gap="6px">
+                  <Text size="xs" tone="secondary">Loading Skeleton States</Text>
+                  <Skeleton width="100%" height="20px" />
+                  <Skeleton width="60%" height="16px" />
+                </Stack>
+                <Flex gap="16px" align="center">
+                  <Spinner size={20} />
+                  <Text size="sm" tone="secondary">Orchestrator polling live clusters...</Text>
+                </Flex>
+                <Flex gap="10px">
+                  <Button variant="secondary" onClick={() => setIsModalOpen(true)}>Open Modal</Button>
+                  <Button variant="secondary" onClick={() => setIsDrawerOpen(true)}>Open Drawer</Button>
                   <Button
-                    variant="secondary"
-                    onClick={() => {
+                    variant="outline"
+                    onClick={() =>
                       showToast({
                         title: 'Telemetry Synced',
-                        description: 'Updated 4,280 metrics from regional edge brokers.',
+                        description: '14 nodes reported healthy metrics.',
                         variant: 'success',
-                      });
-                    }}
+                      })
+                    }
                   >
-                    Dispatch Toast Notification
+                    Trigger Toast
                   </Button>
                 </Flex>
-
-                <Divider />
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <Tooltip content="Tooltip explains technical nuance on hover" position="top">
-                    <Button size="sm" variant="ghost">Hover me for Tooltip</Button>
-                  </Tooltip>
-                  <Tooltip content="Secondary verification step" position="bottom">
-                    <Badge variant="accent">Action Tooltip</Badge>
-                  </Tooltip>
-                </div>
-
-                <Divider />
-
-                <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Progress & Shimmer Skeletons</Text>
-                  <Stack gap="10px">
-                    <Progress value={68} label="Data Transfer" showValue />
-                    <Flex gap="8px" align="center">
-                      <Spinner size={16} />
-                      <Skeleton width="120px" height="14px" />
-                      <Skeleton width="60px" height="14px" />
-                    </Flex>
-                  </Stack>
-                </div>
               </Stack>
             </CardContent>
           </Card>
 
-          {/* Navigation & Tabs */}
+          {/* Accordion with custom flex layout */}
           <Card>
             <CardHeader>
-              <Heading level={4}>Navigation & Accordion</Heading>
+              <Heading level={4}>Collapsible Accordion</Heading>
+              <Text tone="secondary" size="xs">Full flex expansion with left/right title metadata</Text>
             </CardHeader>
             <CardContent>
-              <Stack gap="22px">
-                <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Breadcrumb Hierarchy</Text>
-                  <Breadcrumb
-                    items={[
-                      { label: 'Cluster Fleet', href: '#' },
-                      { label: 'North America', href: '#' },
-                      { label: 'us-east-1a (Active)', isCurrent: true },
-                    ]}
-                  />
-                </div>
+              <Accordion
+                defaultOpenIds={['acc1']}
+                items={[
+                  {
+                    id: 'acc1',
+                    title: (
+                      <Flex justify="space-between" align="center" style={{ width: '100%' }}>
+                        <span>prod-api-high-p99-latency</span>
+                        <Badge variant="danger" size="sm">12m ago</Badge>
+                      </Flex>
+                    ),
+                    content: 'Incident triggered by network spike on secondary uplink gateway. Mitigated automatically.',
+                  },
+                  {
+                    id: 'acc2',
+                    title: (
+                      <Flex justify="space-between" align="center" style={{ width: '100%' }}>
+                        <span>automated-db-snapshot</span>
+                        <Badge variant="success" size="sm">1h ago</Badge>
+                      </Flex>
+                    ),
+                    content: 'Daily compressed archive uploaded to secure multi-region cold vault.',
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
 
+          {/* Terminal Console System */}
+          <Card style={{ gridColumn: '1 / -1' }}>
+            <CardHeader>
+              <Flex justify="space-between" align="center" style={{ width: '100%' }}>
                 <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Underline Navigation Tabs</Text>
-                  <Tabs
-                    activeId={activeTab}
-                    onChange={setActiveTab}
-                    items={[
-                      { id: 'tab1', label: 'Cluster Config' },
-                      { id: 'tab2', label: 'Security Firewall' },
-                      { id: 'tab3', label: 'Audit Log' },
-                    ]}
-                  />
+                  <Heading level={4}>Interactive Terminal System</Heading>
+                  <Text tone="secondary" size="xs">Monospace console logs, level badges, and interactive command execution</Text>
                 </div>
+                <Badge variant="info" size="sm">CLI Ready</Badge>
+              </Flex>
+            </CardHeader>
+            <CardContent>
+              <Terminal height="240px">
+                <TerminalHeader title="cluster-telemetry-monitor" />
+                <TerminalBody>
+                  <TerminalLine level="cmd">field-cli cluster inspect --node us-east-core</TerminalLine>
+                  <TerminalLine level="info" timestamp="12:04:18">Connecting to secure gRPC ingress port 8443...</TerminalLine>
+                  <TerminalLine level="success" timestamp="12:04:19">Handshake established. TLS 1.3 session valid.</TerminalLine>
+                  <TerminalLine level="warn" timestamp="12:04:22">Secondary egress buffer capacity at 78%.</TerminalLine>
+                  <TerminalPrompt
+                    onSubmit={cmd => {
+                      showToast({
+                        title: 'Command Executed',
+                        description: `Sent: ${cmd}`,
+                      });
+                    }}
+                  />
+                </TerminalBody>
+              </Terminal>
+            </CardContent>
+          </Card>
 
+          {/* Docked Sidebar Workstation Shell Demo */}
+          <Card style={{ gridColumn: '1 / -1' }}>
+            <CardHeader>
+              <Flex justify="space-between" align="center" style={{ width: '100%' }}>
                 <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Collapsible Accordion</Text>
-                  <Accordion
-                    defaultOpenIds={['acc1']}
-                    items={[
-                      {
-                        id: 'acc1',
-                        title: 'How does token inheritance work in Field?',
-                        content:
-                          'Field uses a 3-tier token structure: Primitives (raw colors/scales) feed into Semantics (theme-reactive roles), which components consume via CSS variables. Zero hardcoded styles.',
-                      },
-                      {
-                        id: 'acc2',
-                        title: 'Is keyboard navigation fully supported?',
-                        content:
-                          'Yes. Modals and drawers feature focus traps and Escape dismissal. Dropdowns and tabs support Arrow key roving focus.',
-                      },
-                    ]}
-                  />
+                  <Heading level={4}>Workstation Sidebar Shell</Heading>
+                  <Text tone="secondary" size="xs">Dockable collapsible navigation tree with grouped items and footer</Text>
                 </div>
-              </Stack>
+                <Button size="sm" variant="secondary" onClick={() => setSidebarDemoCollapsed(c => !c)}>
+                  Toggle Collapse
+                </Button>
+              </Flex>
+            </CardHeader>
+            <CardContent style={{ padding: 0 }}>
+              <div style={{ height: '320px', display: 'flex', overflow: 'hidden' }}>
+                <Sidebar collapsed={sidebarDemoCollapsed}>
+                  <SidebarHeader
+                    title="Field Control"
+                    subtitle="Cluster v0.2.1"
+                    icon={<Shield size={16} />}
+                    showToggle
+                  />
+                  <SidebarContent>
+                    <SidebarGroup label="Platform">
+                      <SidebarItem icon={<Layers size={16} />} label="Overview" isActive />
+                      <SidebarDropdown icon={<Cpu size={16} />} label="Compute Nodes">
+                        <SidebarSubItem label="us-east-core" isActive />
+                        <SidebarSubItem label="eu-central-alpha" />
+                      </SidebarDropdown>
+                      <SidebarItem icon={<HardDrive size={16} />} label="Storage Volumes" />
+                    </SidebarGroup>
+                  </SidebarContent>
+                  <SidebarFooter
+                    collapsedChildren={<Avatar name="Sam Barfield" size="sm" />}
+                  >
+                    <Flex justify="space-between" align="center" style={{ width: '100%' }}>
+                      <Avatar name="Sam Barfield" size="sm" />
+                      <Text size="xs" tone="secondary">Cluster Admin</Text>
+                    </Flex>
+                  </SidebarFooter>
+                </Sidebar>
+                <div style={{ flex: 1, padding: '24px', backgroundColor: 'var(--field-surface-base)' }}>
+                  <Heading level={3}>Live Canvas Area</Heading>
+                  <Text tone="secondary" size="sm" style={{ marginTop: '8px' }}>
+                    Connected to workspace mesh. Demonstrates <code>Sidebar</code>, <code>SidebarHeader</code>, <code>SidebarGroup</code>, <code>SidebarItem</code>, <code>SidebarDropdown</code>, <code>SidebarSubItem</code>, and <code>SidebarFooter</code>.
+                  </Text>
+                  <div style={{ marginTop: '16px' }}>
+                    <SidebarTrigger />
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </Grid>
@@ -556,7 +941,7 @@ export const StickerSheet: React.FC = () => {
           <Alert variant="info">
             Targeting production cluster with <strong>Zero-Downtime Rolling Update</strong> strategy.
           </Alert>
-          <TextInput label="Deployment Tag" defaultValue="v3.8.0-rc4" />
+          <TextInput label="Deployment Tag" defaultValue="v0.2.1" />
           <Switch
             label="Bypass smoke tests (Not recommended)"
             checked={false}
@@ -588,6 +973,35 @@ export const StickerSheet: React.FC = () => {
           </Text>
         </Stack>
       </Drawer>
+
+      {/* Command Palette Component */}
+      <CommandPalette
+        isOpen={isCommandOpen}
+        onClose={() => setIsCommandOpen(false)}
+        items={[
+          {
+            id: 'deploy',
+            title: 'Deploy to Production',
+            description: 'Trigger continuous delivery rollout',
+            icon: <Send size={15} />,
+            onSelect: () => showToast({ title: 'Deploying', variant: 'info' }),
+          },
+          {
+            id: 'purge',
+            title: 'Purge Telemetry Cache',
+            description: 'Flush memory cache across all edge pods',
+            icon: <Trash2 size={15} />,
+            onSelect: () => showToast({ title: 'Cache Purged', variant: 'warning' }),
+          },
+          {
+            id: 'terminal',
+            title: 'Open Debug CLI Terminal',
+            description: 'Connect direct interactive terminal session',
+            icon: <TerminalIcon size={15} />,
+            onSelect: () => showToast({ title: 'Connecting CLI', variant: 'success' }),
+          },
+        ]}
+      />
     </div>
   );
 };

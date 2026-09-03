@@ -258,9 +258,24 @@
       }
     },
     "Table": {
-      "description": "Data table container with responsive overflow wrapper",
+      "description": "Data-driven or compound table supporting sorting, selection, expandable sub-rows, and pagination",
       "props": {
-        "children": { "type": "ReactNode", "required": true }
+        "columns": { "type": "Array<Column<T>>" },
+        "data": { "type": "Array<T>" },
+        "keyExtractor": { "type": "(row: T, index: number) => string | number" },
+        "selectable": { "type": "boolean", "default": false },
+        "expandable": { "type": "boolean", "default": false },
+        "children": { "type": "ReactNode" }
+      }
+    },
+    "Pagination": {
+      "description": "Accessible pagination controls with rows-per-page selector and first/prev/next/last navigators",
+      "props": {
+        "currentPage": { "type": "number", "required": true },
+        "totalPages": { "type": "number", "required": true },
+        "pageSize": { "type": "number", "default": 10 },
+        "onPageChange": { "type": "(page: number) => void", "required": true },
+        "totalItems": { "type": "number" }
       }
     },
     "Accordion": {
@@ -314,6 +329,132 @@
       "description": "Hardware keyboard shortcut keycap indicator",
       "props": {
         "children": { "type": "ReactNode", "required": true }
+      }
+    },
+    "DropdownMenu": {
+      "description": "Tactile dropdown action menu with support for grouped items, dividers, and danger variants",
+      "props": {
+        "trigger": { "type": "ReactNode", "required": true },
+        "children": { "type": "ReactNode", "required": true },
+        "align": { "type": "string", "enum": ["start", "end"], "default": "start" }
+      }
+    },
+    "CommandPalette": {
+      "description": "Keyboard-first omnibar modal with fuzzy search across services, resources, and commands",
+      "props": {
+        "isOpen": { "type": "boolean", "required": true },
+        "onClose": { "type": "() => void", "required": true },
+        "items": { "type": "Array<CommandItemData>", "required": true },
+        "placeholder": { "type": "string" }
+      }
+    },
+    "Popover": {
+      "description": "Anchor-positioned interactive floating card with click-outside dismissal",
+      "props": {
+        "trigger": { "type": "ReactNode", "required": true },
+        "content": { "type": "ReactNode", "required": true },
+        "align": { "type": "string", "enum": ["start", "center", "end"], "default": "start" }
+      }
+    },
+    "ContextMenu": {
+      "description": "Native-feeling right-click context menu positioned at cursor coordinates",
+      "props": {
+        "children": { "type": "ReactNode", "required": true },
+        "items": { "type": "Array<ContextMenuItem>", "required": true }
+      }
+    },
+    "EmptyState": {
+      "description": "Centered empty state visual indicator with icon, title, description, and call-to-action",
+      "props": {
+        "icon": { "type": "ReactNode" },
+        "title": { "type": "ReactNode", "required": true },
+        "description": { "type": "ReactNode" },
+        "action": { "type": "ReactNode" }
+      }
+    },
+    "TreeView": {
+      "description": "Hierarchical collapsible tree explorer for folders, resources, and JSON trees",
+      "props": {
+        "data": { "type": "Array<TreeNode>", "required": true },
+        "selectedId": { "type": "string" },
+        "onSelect": { "type": "(node: TreeNode) => void" }
+      }
+    },
+    "Stepper": {
+      "description": "Multi-step workflow wizard progress tracker",
+      "props": {
+        "steps": { "type": "Array<StepItem>", "required": true },
+        "activeStep": { "type": "number", "required": true },
+        "onStepClick": { "type": "(stepIndex: number) => void" }
+      }
+    },
+    "Timeline": {
+      "description": "Chronological audit and event feed with status-colored nodes and timestamps",
+      "props": {
+        "items": { "type": "Array<TimelineEvent>", "required": true }
+      }
+    },
+    "CodeBlock": {
+      "description": "Multi-line code snippet display with syntax highlighting, line numbers, and copy button",
+      "props": {
+        "code": { "type": "string", "required": true },
+        "language": { "type": "string" },
+        "showLineNumbers": { "type": "boolean", "default": true },
+        "copyable": { "type": "boolean", "default": true }
+      }
+    },
+    "DiffViewer": {
+      "description": "Code and configuration diff viewer with addition and deletion line highlights",
+      "props": {
+        "lines": { "type": "Array<DiffLine>", "required": true },
+        "title": { "type": "string" }
+      }
+    },
+    "CopyButton": {
+      "description": "Micro-component for copying text to clipboard with tooltip confirmation",
+      "props": {
+        "value": { "type": "string", "required": true },
+        "label": { "type": "string", "default": "Copy" }
+      }
+    },
+    "StatusDot": {
+      "description": "Subtle status indicator dot with optional pulsing animation for real-time telemetry",
+      "props": {
+        "status": { "type": "string", "enum": ["success", "warning", "danger", "info", "neutral"], "default": "info" },
+        "pulse": { "type": "boolean", "default": false },
+        "label": { "type": "ReactNode" }
+      }
+    },
+    "Sparkline": {
+      "description": "Lightweight SVG telemetry trend curve with optional filled gradient",
+      "props": {
+        "data": { "type": "Array<number>", "required": true },
+        "color": { "type": "string", "default": "accent" },
+        "height": { "type": "number", "default": 32 }
+      }
+    },
+    "Meter": {
+      "description": "Visual capacity and quota gauge with status threshold colors",
+      "props": {
+        "value": { "type": "number", "required": true },
+        "min": { "type": "number", "default": 0 },
+        "max": { "type": "number", "default": 100 }
+      }
+    },
+    "NumberInput": {
+      "description": "Numeric input with ArrowUp/Down keyboard stepping and unit suffixes",
+      "props": {
+        "value": { "type": "number" },
+        "onChange": { "type": "(val: number) => void" },
+        "unit": { "type": "string" }
+      }
+    },
+    "Combobox": {
+      "description": "Searchable multi-select input with removable tag chips",
+      "props": {
+        "options": { "type": "Array<ComboboxOption>", "required": true },
+        "value": { "type": "Array<string>" },
+        "onChange": { "type": "(val: Array<string>) => void" }
       }
     }
   }

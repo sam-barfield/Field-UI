@@ -54,6 +54,31 @@ import {
   DateRangePicker,
   DateRange,
   useToast,
+  DropdownMenu,
+  DropdownGroup,
+  DropdownItem,
+  DropdownDivider,
+  CommandPalette,
+  Popover,
+  ContextMenu,
+  Pagination,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHead,
+  EmptyState,
+  TreeView,
+  Stepper,
+  Timeline,
+  CodeBlock,
+  DiffViewer,
+  CopyButton,
+  StatusDot,
+  Sparkline,
+  Meter,
+  NumberInput,
+  Combobox,
 } from '@field/react';
 import {
   MousePointerClick,
@@ -78,6 +103,12 @@ import {
   Heart,
   Share2,
   Clock,
+  MoreVertical,
+  Command,
+  Server,
+  ServerOff,
+  RotateCcw,
+  Square,
 } from 'lucide-react';
 
 interface ComponentEntry {
@@ -94,11 +125,13 @@ const componentRegistry: ComponentEntry[] = [
   { id: 'icon-btn', name: 'IconButton', category: 'Actions', description: 'Compact square action button optimized for iconography and toolbars.', importCode: "import { IconButton } from '@field/react';" },
   { id: 'btn-group', name: 'ButtonGroup', category: 'Actions', description: 'Cohesive clustered set of related button controls.', importCode: "import { ButtonGroup } from '@field/react';" },
   { id: 'segmented', name: 'SegmentedControl', category: 'Actions', description: 'Tactile multi-option switcher with smooth pill selection.', importCode: "import { SegmentedControl } from '@field/react';" },
+  { id: 'dropdown-menu', name: 'DropdownMenu', category: 'Actions', description: 'Contextual actions dropdown with grouped items, icons, and danger triggers.', importCode: "import { DropdownMenu, DropdownGroup, DropdownItem, DropdownDivider } from '@field/react';" },
 
   // Forms
   { id: 'text-input', name: 'TextInput', category: 'Forms', description: 'Text entry with adornments, status borders, and clean focus rings.', importCode: "import { TextInput } from '@field/react';" },
   { id: 'textarea', name: 'TextArea', category: 'Forms', description: 'Multi-line expanded text input for logs, commands, and descriptions.', importCode: "import { TextArea } from '@field/react';" },
   { id: 'select', name: 'Select', category: 'Forms', description: 'Drop-down select menu with customizable options and helper states.', importCode: "import { Select } from '@field/react';" },
+  { id: 'combobox', name: 'Combobox & NumberInput', category: 'Forms', description: 'Searchable multi-select with tag chips, alongside numeric stepper inputs.', importCode: "import { Combobox, NumberInput } from '@field/react';" },
   { id: 'switch', name: 'Switch', category: 'Forms', description: 'Hardware-inspired binary toggle switch with smooth spring easing.', importCode: "import { Switch } from '@field/react';" },
   { id: 'checkbox', name: 'Checkbox', category: 'Forms', description: 'Accessible boolean selection box with high-precision check icon.', importCode: "import { Checkbox } from '@field/react';" },
   { id: 'radio-group', name: 'RadioGroup', category: 'Forms', description: 'Exclusive option list with label and secondary description support.', importCode: "import { RadioGroup } from '@field/react';" },
@@ -109,6 +142,7 @@ const componentRegistry: ComponentEntry[] = [
   { id: 'sidebar-comp', name: 'Sidebar', category: 'Navigation', description: 'Collapsible application navigation sidebar with groups, icons, and tooltips.', importCode: "import { Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarItem, SidebarFooter } from '@field/react';" },
   { id: 'tabs', name: 'Tabs', category: 'Navigation', description: 'Responsive underline navigation tab bar with smooth touch rail on mobile.', importCode: "import { Tabs } from '@field/react';" },
   { id: 'breadcrumb', name: 'Breadcrumb', category: 'Navigation', description: 'Hierarchical navigation trail with auto-wrapping on small viewports.', importCode: "import { Breadcrumb } from '@field/react';" },
+  { id: 'stepper', name: 'Stepper & Wizard', category: 'Navigation', description: 'Sequential multi-step workflow progress indicator.', importCode: "import { Stepper } from '@field/react';" },
 
   // Layout
   { id: 'card', name: 'Card', category: 'Layout', description: 'Tactile elevated container with header, content, and footer sections.', importCode: "import { Card, CardHeader, CardContent, CardFooter } from '@field/react';" },
@@ -119,11 +153,19 @@ const componentRegistry: ComponentEntry[] = [
   // Data Display
   { id: 'badge', name: 'Badge', category: 'Data Display', description: 'Status tags and category indicators with optional pulsing pulse dots.', importCode: "import { Badge } from '@field/react';" },
   { id: 'avatar', name: 'Avatar & AvatarGroup', category: 'Data Display', description: 'User profile representation with initials fallback and stacked group count.', importCode: "import { Avatar, AvatarGroup } from '@field/react';" },
-  { id: 'table', name: 'Table', category: 'Data Display', description: 'Tabular data grid with zebra striping, hover highlights, and alignment.', importCode: "import { Table } from '@field/react';" },
+  { id: 'table', name: 'DataTable & Pagination', category: 'Data Display', description: 'Tabular data grid with sorting, row selection, bulk actions, and pagination.', importCode: "import { Table, Pagination } from '@field/react';" },
+  { id: 'empty-state', name: 'EmptyState', category: 'Data Display', description: 'Centered empty state with iconography, heading, and call to action.', importCode: "import { EmptyState } from '@field/react';" },
+  { id: 'tree-view', name: 'TreeView', category: 'Data Display', description: 'Hierarchical directory and cloud resource tree explorer.', importCode: "import { TreeView } from '@field/react';" },
+  { id: 'timeline', name: 'Timeline', category: 'Data Display', description: 'Chronological telemetry and audit event stream with status markers.', importCode: "import { Timeline } from '@field/react';" },
+  { id: 'code-block', name: 'CodeBlock & DiffViewer', category: 'Data Display', description: 'Syntax-colored code snippets with line numbers and configuration diff views.', importCode: "import { CodeBlock, DiffViewer, CopyButton } from '@field/react';" },
+  { id: 'metrics', name: 'StatusDot, Sparkline & Meter', category: 'Data Display', description: 'Subtle telemetry status dots, SVG trend lines, and capacity quota meters.', importCode: "import { StatusDot, Sparkline, Meter } from '@field/react';" },
   { id: 'terminal', name: 'Terminal', category: 'Data Display', description: 'Instrument-grade dark carbon terminal and telemetry log streamer with interactive prompt.', importCode: "import { Terminal, TerminalHeader, TerminalBody, TerminalLine, TerminalPrompt } from '@field/react';" },
   { id: 'kbd-code', name: 'Kbd & Code', category: 'Data Display', description: 'Monospace code snippets and physical keyboard shortcut keys.', importCode: "import { Kbd, Code } from '@field/react';" },
 
   // Feedback & Overlays
+  { id: 'command-palette', name: 'CommandPalette (⌘K)', category: 'Feedback', description: 'Keyboard-first omnibar modal with fuzzy search and quick navigation.', importCode: "import { CommandPalette } from '@field/react';" },
+  { id: 'popover', name: 'Popover', category: 'Feedback', description: 'Anchor-positioned floating card for rich interactive overlays.', importCode: "import { Popover } from '@field/react';" },
+  { id: 'context-menu', name: 'ContextMenu', category: 'Feedback', description: 'Native-feeling right-click context menu positioned at cursor coordinates.', importCode: "import { ContextMenu } from '@field/react';" },
   { id: 'alert', name: 'Alert', category: 'Feedback', description: 'High-contrast status callouts with subtle tint surfaces and warning tones.', importCode: "import { Alert } from '@field/react';" },
   { id: 'toast', name: 'Toast / useToast', category: 'Feedback', description: 'Non-blocking notification system with auto-dismiss timers and actions.', importCode: "import { useToast, ToastProvider } from '@field/react';" },
   { id: 'modal', name: 'Modal', category: 'Feedback', description: 'Focus-trapped accessible dialog with backdrop blur and escape dismissal.', importCode: "import { Modal } from '@field/react';" },
@@ -164,6 +206,13 @@ export const ComponentCatalog: React.FC = () => {
     end: new Date(),
   });
   const [demoDatePickerWithDone, setDemoDatePickerWithDone] = useState(true);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [demoCombobox, setDemoCombobox] = useState<string[]>(['sg-web']);
+  const [demoNumber, setDemoNumber] = useState(2048);
+  const [demoStep, setDemoStep] = useState(1);
+  const [demoTablePage, setDemoTablePage] = useState(1);
+  const [demoTableSelected, setDemoTableSelected] = useState<(string | number)[]>(['1']);
+  const [demoTreeSelected, setDemoTreeSelected] = useState<string>('node-1-1');
 
   const copyImportCode = (code: string, name: string) => {
     navigator.clipboard.writeText(code);
@@ -425,6 +474,71 @@ export const ComponentCatalog: React.FC = () => {
             </Card>
           </section>
 
+          {/* 3B. DROPDOWN MENU */}
+          <section id="comp-dropdown-menu">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>DropdownMenu & ActionMenu</Heading>
+                      <Badge variant="default">Actions</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Floating context menus for table rows, overflow actions, and danger operations.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { DropdownMenu, DropdownGroup, DropdownItem, DropdownDivider } from '@field/react';", 'DropdownMenu')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Flex gap="16px" align="center" wrap="wrap">
+                  <DropdownMenu
+                    trigger={
+                      <Button variant="secondary" rightIcon={<MoreVertical size={14} />}>
+                        Instance Actions
+                      </Button>
+                    }
+                  >
+                    <DropdownGroup label="Lifecycle">
+                      <DropdownItem icon={<Play size={14} />} onSelect={() => showToast({ title: 'Started', description: 'EC2 instance starting.', variant: 'success' })}>
+                        Start Instance
+                      </DropdownItem>
+                      <DropdownItem icon={<RotateCcw size={14} />} onSelect={() => showToast({ title: 'Rebooting', description: 'Graceful reboot initiated.', variant: 'warning' })}>
+                        Reboot Instance
+                      </DropdownItem>
+                      <DropdownItem icon={<Square size={14} />} onSelect={() => showToast({ title: 'Stopped', description: 'Instance stopped.', variant: 'info' })}>
+                        Stop Instance
+                      </DropdownItem>
+                    </DropdownGroup>
+                    <DropdownDivider />
+                    <DropdownItem
+                      variant="danger"
+                      icon={<Trash2 size={14} />}
+                      onSelect={() => showToast({ title: 'Terminated', description: 'Resource removed.', variant: 'danger' })}
+                    >
+                      Terminate Instance
+                    </DropdownItem>
+                  </DropdownMenu>
+
+                  <DropdownMenu
+                    align="end"
+                    trigger={<IconButton icon={<MoreVertical size={16} />} aria-label="Row menu" variant="outline" />}
+                  >
+                    <DropdownItem onSelect={() => showToast({ title: 'Exported', description: 'JSON definition copied.', variant: 'info' })}>
+                      Export JSON
+                    </DropdownItem>
+                    <DropdownItem onSelect={() => showToast({ title: 'Cloned', description: 'Profile cloned.', variant: 'success' })}>
+                      Clone Settings
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Flex>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* 4. TEXT INPUT & TEXT AREA */}
           <section id="comp-text-input">
             <Card>
@@ -649,6 +763,54 @@ export const ComponentCatalog: React.FC = () => {
             </Card>
           </section>
 
+          {/* 6B. COMBOBOX & NUMBER INPUT */}
+          <section id="comp-combobox">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>Combobox & NumberInput</Heading>
+                      <Badge variant="default">Forms</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Searchable multi-select tags chip selector and clamped numeric stepper controls.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Combobox, NumberInput } from '@field/react';", 'Combobox')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Grid columns="repeat(auto-fit, minmax(280px, 1fr))" gap="24px">
+                  <Combobox
+                    label="Assigned Security Groups"
+                    helperText="Multi-select tags with search filtering"
+                    options={[
+                      { value: 'sg-web', label: 'sg-web (HTTPS 443)' },
+                      { value: 'sg-db', label: 'sg-db (PostgreSQL 5432)' },
+                      { value: 'sg-bastion', label: 'sg-bastion (SSH 22)' },
+                      { value: 'sg-redis', label: 'sg-redis (Cluster 6379)' },
+                    ]}
+                    value={demoCombobox}
+                    onChange={setDemoCombobox}
+                  />
+                  <NumberInput
+                    label="Worker Memory Allocation"
+                    helperText="Clamped between 512 and 16384 MiB"
+                    value={demoNumber}
+                    onChange={setDemoNumber}
+                    min={512}
+                    max={16384}
+                    step={512}
+                    unit="MiB"
+                  />
+                </Grid>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* 7. SIDEBAR */}
           <section id="comp-sidebar-comp">
             <Card>
@@ -796,6 +958,50 @@ export const ComponentCatalog: React.FC = () => {
             </Card>
           </section>
 
+          {/* 7B. STEPPER / WIZARD */}
+          <section id="comp-stepper">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>Stepper & Wizard</Heading>
+                      <Badge variant="default">Navigation</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Multi-step workflow progression indicator for complex cloud provisioning wizards.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Stepper } from '@field/react';", 'Stepper')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Stack gap="20px">
+                  <Stepper
+                    activeStep={demoStep}
+                    onStepClick={setDemoStep}
+                    steps={[
+                      { id: '1', title: 'Hardware Instance', description: 'Compute & memory sizing' },
+                      { id: '2', title: 'VPC Networking', description: 'Subnets & security groups' },
+                      { id: '3', title: 'EBS Storage Volumes', description: 'IOPS & encryption' },
+                      { id: '4', title: 'Review & Deploy', description: 'Confirm launch specification' },
+                    ]}
+                  />
+                  <Flex justify="flex-end" gap="10px">
+                    <Button size="sm" variant="ghost" disabled={demoStep <= 0} onClick={() => setDemoStep(prev => Math.max(0, prev - 1))}>
+                      Previous Step
+                    </Button>
+                    <Button size="sm" variant="primary" disabled={demoStep >= 3} onClick={() => setDemoStep(prev => Math.min(3, prev + 1))}>
+                      Next Step
+                    </Button>
+                  </Flex>
+                </Stack>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* 8. CARDS & STATCARDS */}
           <section id="comp-stat-card">
             <Card>
@@ -823,6 +1029,7 @@ export const ComponentCatalog: React.FC = () => {
                     delta={{ value: '+14.2%', trend: 'up' }}
                     icon={<Activity size={18} />}
                     subtitle="24h peak traffic"
+                    chart={<Sparkline data={[14, 19, 28, 22, 35, 48]} color="success" height={32} />}
                   />
                   <StatCard
                     label="CPU COMPUTE LOAD"
@@ -830,6 +1037,7 @@ export const ComponentCatalog: React.FC = () => {
                     delta={{ value: '-2.1%', trend: 'up' }}
                     icon={<Cpu size={18} />}
                     subtitle="Across 32 worker nodes"
+                    chart={<Sparkline data={[34, 30, 25, 29, 31, 28]} color="accent" height={32} />}
                   />
                   <StatCard
                     label="ERROR BUDGET"
@@ -913,21 +1121,21 @@ export const ComponentCatalog: React.FC = () => {
             </Card>
           </section>
 
-          {/* 10. TABLE */}
+          {/* 10. ENHANCED TABLE & PAGINATION */}
           <section id="comp-table">
             <Card>
               <CardHeader>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Heading level={3}>Table</Heading>
+                      <Heading level={3}>DataTable & Pagination</Heading>
                       <Badge variant="default">Data Display</Badge>
                     </div>
                     <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
-                      Data table with strict type column definitions, alignment, and hover feedback.
+                      Advanced data grid with column sorting, row selection, bulk actions bar, expandable rows, and pagination.
                     </Text>
                   </div>
-                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Table } from '@field/react';", 'Table')}>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Table, Pagination } from '@field/react';", 'Table')}>
                     Copy Import
                   </Button>
                 </div>
@@ -935,29 +1143,353 @@ export const ComponentCatalog: React.FC = () => {
               <CardContent>
                 <Table
                   keyExtractor={(row) => row.id}
+                  selectable={true}
+                  selectedKeys={demoTableSelected}
+                  onSelectionChange={setDemoTableSelected}
+                  renderBulkActions={(keys, clear) => (
+                    <Flex gap="8px">
+                      <Button size="sm" variant="secondary" onClick={() => { showToast({ title: 'Rebooting Fleet', description: `Rebooting ${keys.length} instances`, variant: 'info' }); clear(); }}>
+                        Reboot Selected ({keys.length})
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => { showToast({ title: 'Terminated', description: `Terminated ${keys.length} instances`, variant: 'danger' }); clear(); }}>
+                        Terminate ({keys.length})
+                      </Button>
+                    </Flex>
+                  )}
+                  expandable={true}
+                  renderExpandedRow={(row) => (
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--field-text-secondary)', display: 'flex', gap: '24px' }}>
+                      <div><strong>Instance ID:</strong> i-09827a{row.id}</div>
+                      <div><strong>IPv4 Private:</strong> 10.0.12.{row.id.replace('node-', '')}</div>
+                      <div><strong>VPC Subnet:</strong> subnet-vpc-prod-east</div>
+                    </div>
+                  )}
                   data={[
-                    { id: 'node-01', name: 'edge-gateway-us-01', region: 'us-east-1a', load: '14%', status: 'Healthy' },
-                    { id: 'node-02', name: 'core-router-eu-04', region: 'eu-central-1', load: '82%', status: 'Degraded' },
-                    { id: 'node-03', name: 'db-replica-ap-02', region: 'ap-northeast-1', load: '36%', status: 'Healthy' },
+                    { id: '1', name: 'edge-gateway-us-01', region: 'us-east-1a', load: '14%', status: 'Healthy' },
+                    { id: '2', name: 'core-router-eu-04', region: 'eu-central-1', load: '82%', status: 'Degraded' },
+                    { id: '3', name: 'db-replica-ap-02', region: 'ap-northeast-1', load: '36%', status: 'Healthy' },
+                    { id: '4', name: 'ingres-proxy-us-02', region: 'us-west-2b', load: '58%', status: 'Healthy' },
                   ]}
                   columns={[
-                    { key: 'name', header: 'Node Name' },
-                    { key: 'region', header: 'Region' },
-                    { key: 'load', header: 'CPU Load' },
+                    { key: 'name', header: 'Node Name', sortable: true },
+                    { key: 'region', header: 'Region', sortable: true },
+                    { key: 'load', header: 'CPU Load', sortable: true },
                     {
                       key: 'status',
                       header: 'Status',
                       render: (row) => (
-                        <Badge variant={row.status === 'Healthy' ? 'success' : 'warning'} dot>
-                          {row.status}
-                        </Badge>
+                        <StatusDot
+                          status={row.status === 'Healthy' ? 'success' : 'warning'}
+                          pulse={row.status === 'Degraded'}
+                          label={row.status}
+                        />
                       ),
+                    },
+                    {
+                      key: 'actions',
+                      header: 'Actions',
+                      render: (row) => (
+                        <DropdownMenu
+                          align="end"
+                          trigger={<IconButton icon={<MoreVertical size={14} />} aria-label="Row menu" variant="ghost" size="sm" />}
+                        >
+                          <DropdownItem onSelect={() => showToast({ title: 'Restarted', description: `Node ${row.name} restarted`, variant: 'info' })}>
+                            Restart Node
+                          </DropdownItem>
+                          <DropdownDivider />
+                          <DropdownItem variant="danger" onSelect={() => showToast({ title: 'Drained', description: `Node ${row.name} drained`, variant: 'danger' })}>
+                            Drain Node
+                          </DropdownItem>
+                        </DropdownMenu>
+                      ),
+                    },
+                  ]}
+                />
+                <Pagination
+                  currentPage={demoTablePage}
+                  totalPages={8}
+                  pageSize={10}
+                  onPageChange={setDemoTablePage}
+                  totalItems={78}
+                />
+
+                <div style={{ marginTop: '20px' }}>
+                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Compound Subcomponents Composition</Text>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subsystem</TableHead>
+                        <TableHead>Driver</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Network Interface eth0</TableCell>
+                        <TableCell>ena (AWS Elastic)</TableCell>
+                        <TableCell><Badge variant="success" dot>Active</Badge></TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>NVMe Storage Array</TableCell>
+                        <TableCell>nvme-core</TableCell>
+                        <TableCell><Badge variant="info">Optimized</Badge></TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 10B. EMPTY STATE */}
+          <section id="comp-empty-state">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>EmptyState</Heading>
+                      <Badge variant="default">Data Display</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Clean zero-data indicators with contextual iconography and prominent action callouts.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { EmptyState } from '@field/react';", 'EmptyState')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<ServerOff size={28} />}
+                  title="No Compute Instances Found"
+                  description="No EC2 instances match your active search filters or region selection in us-east-1."
+                  action={
+                    <Button variant="primary" leftIcon={<Plus size={14} />} onClick={() => showToast({ title: 'Launch', description: 'Opening instance launcher', variant: 'info' })}>
+                      Launch Instance
+                    </Button>
+                  }
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 10C. TREE VIEW */}
+          <section id="comp-tree-view">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>TreeView</Heading>
+                      <Badge variant="default">Data Display</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Hierarchical resource browser for S3 folders, VPC subnet trees, and IAM organizational units.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { TreeView } from '@field/react';", 'TreeView')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div style={{ maxWidth: '420px', border: '1px solid var(--field-border-subtle)', borderRadius: 'var(--field-radius-md)', padding: '12px' }}>
+                  <TreeView
+                    selectedId={demoTreeSelected}
+                    onSelect={(node) => setDemoTreeSelected(node.id)}
+                    defaultExpandedIds={['s3-root', 'infra']}
+                    data={[
+                      {
+                        id: 's3-root',
+                        label: 's3://field-production-artifacts',
+                        children: [
+                          {
+                            id: 'infra',
+                            label: 'infrastructure-tf',
+                            children: [
+                              { id: 'node-1-1', label: 'terraform.tfstate' },
+                              { id: 'node-1-2', label: 'variables.tf' },
+                            ],
+                          },
+                          {
+                            id: 'logs',
+                            label: 'cloudtrail-audit-logs',
+                            children: [
+                              { id: 'log-1', label: 'audit-2026-09-01.json.gz' },
+                              { id: 'log-2', label: 'audit-2026-09-02.json.gz' },
+                            ],
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 10D. TIMELINE */}
+          <section id="comp-timeline">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>Timeline & AuditFeed</Heading>
+                      <Badge variant="default">Data Display</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Chronological event feed with status nodes for deployment pipelines and CloudTrail telemetry.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Timeline } from '@field/react';", 'Timeline')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Timeline
+                  items={[
+                    {
+                      id: 't-1',
+                      title: 'Production Cluster Rolled to v2.4.1',
+                      content: 'Deployment pipeline #4928 finished across all 6 Kubernetes clusters without downtime.',
+                      timestamp: '12 minutes ago',
+                      status: 'success',
+                    },
+                    {
+                      id: 't-2',
+                      title: 'Security Group Rule Added (Port 443)',
+                      content: 'Operator Sarah Connor authorized CIDR 192.168.1.0/24 on ingress router.',
+                      timestamp: '1 hour ago',
+                      status: 'info',
+                    },
+                    {
+                      id: 't-3',
+                      title: 'Spike in p99 API Latency',
+                      content: 'Database connection pool reached 94% capacity during telemetry sync.',
+                      timestamp: '3 hours ago',
+                      status: 'warning',
                     },
                   ]}
                 />
               </CardContent>
             </Card>
           </section>
+
+          {/* 10E. CODE BLOCK & DIFF VIEWER */}
+          <section id="comp-code-block">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>CodeBlock, DiffViewer & CopyButton</Heading>
+                      <Badge variant="default">Data Display</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Syntax highlighting, line numbers, line highlights, and unified git/JSON diffs.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { CodeBlock, DiffViewer, CopyButton } from '@field/react';", 'CodeBlock')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Stack gap="20px">
+                  <CodeBlock
+                    title="iam-execution-policy.json"
+                    language="json"
+                    highlightLines={[4, 5]}
+                    code={`{\n  "Version": "2012-10-17",\n  "Statement": [\n    {\n      "Effect": "Allow",\n      "Action": "s3:GetObject",\n      "Resource": "arn:aws:s3:::field-prod/*"\n    }\n  ]\n}`}
+                  />
+                  <DiffViewer
+                    title="Cluster Helm Values Diff (staging vs production)"
+                    lines={[
+                      { type: 'normal', content: 'replicaCount: 3', oldLineNumber: 1, newLineNumber: 1 },
+                      { type: 'removed', content: 'logLevel: "debug"', oldLineNumber: 2 },
+                      { type: 'added', content: 'logLevel: "warn"', newLineNumber: 2 },
+                      { type: 'added', content: 'enableTelemetryExport: true', newLineNumber: 3 },
+                    ]}
+                  />
+                  <div>
+                    <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Standalone CopyButton Component</Text>
+                    <Flex gap="12px" align="center">
+                      <Code>npm install @sam.barfield/field-react</Code>
+                      <CopyButton value="npm install @sam.barfield/field-react" label="Copy Command" />
+                    </Flex>
+                  </div>
+                </Stack>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 10F. METRICS: STATUS DOT, SPARKLINE & METER */}
+          <section id="comp-metrics">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>StatusDot, Sparkline & Meter</Heading>
+                      <Badge variant="default">Data Display</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Live telemetry status indicators with pulsing animation, mini curves, and capacity meters.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { StatusDot, Sparkline, Meter } from '@field/react';", 'StatusDot')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Stack gap="24px">
+                  <div>
+                    <Text size="xs" tone="secondary" style={{ marginBottom: '10px' }}>Status Dots with Real-Time Pulse</Text>
+                    <Flex gap="20px" align="center" wrap="wrap">
+                      <StatusDot status="success" pulse={true} label="Active Telemetry" />
+                      <StatusDot status="warning" pulse={true} label="Auto-Healing Pod" />
+                      <StatusDot status="danger" pulse={true} label="Degraded Node" />
+                      <StatusDot status="info" label="Rebalancing" />
+                      <StatusDot status="neutral" label="Offline" />
+                    </Flex>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Text size="xs" tone="secondary" style={{ marginBottom: '10px' }}>Sparkline Telemetry Trendlines</Text>
+                    <Flex gap="24px" align="center" wrap="wrap">
+                      <Flex align="center" gap="10px">
+                        <Sparkline data={[12, 16, 24, 20, 32, 45, 42]} color="accent" width={140} height={36} />
+                        <Text size="xs" tone="secondary">IOPS Activity</Text>
+                      </Flex>
+                      <Flex align="center" gap="10px">
+                        <Sparkline data={[45, 40, 32, 28, 20, 16, 14]} color="success" width={140} height={36} />
+                        <Text size="xs" tone="secondary">Error Rate Reduction</Text>
+                      </Flex>
+                      <Flex align="center" gap="10px">
+                        <Sparkline data={[10, 14, 18, 25, 45, 68, 92]} color="danger" width={140} height={36} />
+                        <Text size="xs" tone="secondary">Spike Anomaly</Text>
+                      </Flex>
+                    </Flex>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Text size="xs" tone="secondary" style={{ marginBottom: '10px' }}>Capacity Quota Meters</Text>
+                    <Grid columns="repeat(auto-fit, minmax(240px, 1fr))" gap="16px">
+                      <Meter label="RAM Allocation" value={62} max={100} valueLabel="62% Used" />
+                      <Meter label="Disk Volume I/O" value={82} max={100} valueLabel="82% (Warning Threshold)" />
+                      <Meter label="Egress Bandwidth" value={95} max={100} valueLabel="95% (Near Quota)" />
+                    </Grid>
+                  </div>
+                </Stack>
+              </CardContent>
+            </Card>
+          </section>
+
 
           {/* 11. TERMINAL & TELEMETRY STREAM */}
           <section id="comp-terminal">
@@ -1084,6 +1616,132 @@ export const ComponentCatalog: React.FC = () => {
                     Trigger System Toast
                   </Button>
                 </Flex>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 12B. COMMAND PALETTE (⌘K) */}
+          <section id="comp-command-palette">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>CommandPalette (⌘K Omnibar)</Heading>
+                      <Badge variant="default">Feedback</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Fast keyboard-first search modal for invoking actions, navigating clusters, and jumping to settings.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { CommandPalette } from '@field/react';", 'CommandPalette')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Flex gap="12px" align="center">
+                  <Button variant="primary" leftIcon={<Command size={14} />} onClick={() => setIsCommandOpen(true)}>
+                    Open Command Palette (⌘K)
+                  </Button>
+                  <Text size="xs" tone="secondary">Or press ⌘K anywhere on the page</Text>
+                </Flex>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 12C. POPOVER */}
+          <section id="comp-popover">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>Popover</Heading>
+                      <Badge variant="default">Feedback</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Anchor-positioned interactive floating cards with outside-click dismissal.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { Popover } from '@field/react';", 'Popover')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Popover
+                  trigger={<Button variant="outline">Filter Dimensions</Button>}
+                  width="300px"
+                  content={
+                    <Stack gap="12px">
+                      <Heading level={4}>Filter Cluster Telemetry</Heading>
+                      <TextInput label="Cluster Tag" placeholder="e.g. env:production" />
+                      <Select
+                        label="Log Severity"
+                        defaultValue="warn"
+                        options={[
+                          { value: 'all', label: 'All Logs' },
+                          { value: 'warn', label: 'Warnings & Errors' },
+                          { value: 'error', label: 'Errors Only' },
+                        ]}
+                      />
+                      <Flex justify="flex-end" gap="8px">
+                        <Button size="sm" variant="ghost">Reset</Button>
+                        <Button size="sm" variant="primary" onClick={() => showToast({ title: 'Filters Applied', description: 'Query updated.', variant: 'success' })}>Apply</Button>
+                      </Flex>
+                    </Stack>
+                  }
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* 12D. CONTEXT MENU */}
+          <section id="comp-context-menu">
+            <Card>
+              <CardHeader>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Heading level={3}>ContextMenu</Heading>
+                      <Badge variant="default">Feedback</Badge>
+                    </div>
+                    <Text size="sm" tone="secondary" style={{ marginTop: '4px' }}>
+                      Native right-click trigger area rendering cursor-positioned tactile context menus.
+                    </Text>
+                  </div>
+                  <Button size="sm" variant="outline" leftIcon={<Copy size={13} />} onClick={() => copyImportCode("import { ContextMenu } from '@field/react';", 'ContextMenu')}>
+                    Copy Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ContextMenu
+                  items={[
+                    { id: 'inspect', label: 'Inspect Pod Metrics', onSelect: () => showToast({ title: 'Inspect', description: 'Opening inspector.', variant: 'info' }) },
+                    { id: 'copy', label: 'Copy Pod DNS', onSelect: () => showToast({ title: 'Copied', description: 'DNS address copied.', variant: 'success' }) },
+                    { id: 'div1', label: '', divider: true },
+                    { id: 'restart', label: 'Rolling Restart', onSelect: () => showToast({ title: 'Restarting', description: 'Rolling restart dispatched.', variant: 'warning' }) },
+                    { id: 'terminate', label: 'Terminate Pod', variant: 'danger', onSelect: () => showToast({ title: 'Terminated', description: 'Pod stopped.', variant: 'danger' }) },
+                  ]}
+                >
+                  <div
+                    style={{
+                      padding: '36px 24px',
+                      border: '1px dashed var(--field-border-strong)',
+                      borderRadius: 'var(--field-radius-md)',
+                      backgroundColor: 'var(--field-surface-sunken)',
+                      textAlign: 'center',
+                      cursor: 'context-menu',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <Text tone="secondary">
+                      Right-click anywhere inside this target box to trigger the Field ContextMenu
+                    </Text>
+                  </div>
+                </ContextMenu>
               </CardContent>
             </Card>
           </section>
@@ -1228,6 +1886,42 @@ export const ComponentCatalog: React.FC = () => {
           <Button variant="danger" leftIcon={<Trash2 size={15} />}>Terminate Node Instance</Button>
         </Stack>
       </Drawer>
+
+      <CommandPalette
+        isOpen={isCommandOpen}
+        onClose={() => setIsCommandOpen(false)}
+        items={[
+          {
+            id: 'cmd-launch',
+            title: 'Launch EC2 Compute Instance',
+            category: 'Compute',
+            icon: <Server size={16} />,
+            shortcut: '⌘L',
+            onSelect: () => showToast({ title: 'Launch', description: 'Opening instance launcher', variant: 'info' }),
+          },
+          {
+            id: 'cmd-reboot',
+            title: 'Reboot Core Router Fleet',
+            category: 'Operations',
+            icon: <RotateCcw size={16} />,
+            onSelect: () => showToast({ title: 'Rebooting', description: 'Fleet reboot initiated', variant: 'warning' }),
+          },
+          {
+            id: 'cmd-s3',
+            title: 'Explore S3 Storage Buckets',
+            category: 'Storage',
+            icon: <Database size={16} />,
+            onSelect: () => scrollToComponent('tree-view'),
+          },
+          {
+            id: 'cmd-policy',
+            title: 'View IAM Security Policy',
+            category: 'Security',
+            icon: <Shield size={16} />,
+            onSelect: () => scrollToComponent('code-block'),
+          },
+        ]}
+      />
     </div>
   );
 };

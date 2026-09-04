@@ -4,6 +4,18 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ---
 
+## [0.2.2] - 2026-09-04
+
+### Component Library Documentation Redesign (Shadcn Style)
+- **Shadcn-Style Documentation Architecture**: Completely redesigned the Component Catalog in `@field/showcase` to match the layout and interactive conventions of shadcn/ui.
+- **Left Navigation Sidebar**: Real-time fuzzy search filtering, categorized and alphabetical component directory, and active item indicators with pill styling.
+- **Header & Navigation Bar**: Component title, category badge, one-line summary, `Copy Page` markdown action, and sequential `Prev`/`Next` pagination controls.
+- **Hero Interactive Preview**: Centered render canvas with interactive controls, subtle radial grid background, and a bottom code preview drawer with centered `View Code` / `Collapse Code` toggle and instant copy action.
+- **Usage & Composition**: Standardized import snippets and monospace hierarchical ASCII component anatomy diagrams.
+- **In-Depth Variants**: Dedicated variant sections (Basic, Destructive, Warning, Sizes, States, etc.) with individual live preview cards and code drawers.
+- **Props & Guidelines**: Exhaustive props specification tables, keyboard navigation interactions, and accessibility implementation notes.
+- **Hook Isolation & Remounting**: Enforced React JSX component mounting (`<PrimaryDemo />`, `<VariantDemo />`) to decouple hook execution and keyed `ComponentDocView` on component ID to cleanly reset state across transitions.
+
 ## [0.2.1] - 2026-09-04
 
 ### Summary of Upstream Fixes

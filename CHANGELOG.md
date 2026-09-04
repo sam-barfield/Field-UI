@@ -41,6 +41,22 @@ This release addresses feedback and bug reports identified during integration te
 - **Problem**: When `<Sidebar collapsed={true}>`, multi-element or spaced footer layouts pushed icons to opposite edges.
 - **Fix**: Centered collapsed footer content in CSS and added `collapsedChildren?: React.ReactNode` to `SidebarFooterProps` so consumers can pass a dedicated compact layout for the collapsed state.
 
+#### 9. Standalone `SidebarTrigger` & `SidebarProvider` Architecture
+- **Problem**: `<SidebarTrigger>` threw an unhandled runtime error if rendered outside of `<Sidebar>` (e.g. inside an app top bar or header).
+- **Fix**: Upgraded `useSidebar()` to return a safe fallback object `{ collapsed: false, setCollapsed: () => {}, toggleCollapsed: () => {} }` when called outside context. Added `isCollapsed?: boolean` and `onToggle?: () => void` props to `SidebarTrigger` for standalone controlled usage, and exported `SidebarProvider` from `@sam.barfield/field-react` for global shell layouts.
+
+#### 10. Living Sticker Sheet Expansion
+- **Update**: Expanded `StickerSheet` with full visual coverage of all 84 Field components and primitives across 5 dedicated sections (Core Actions & Inputs, Navigation & Indicators, Data Display & Feedback, Complex Structures & Layouts, Theming & Token Surfaces).
+
+#### 11. Desktop Viewport Responsiveness & Layout Polish
+- **Fix**: Added flex wrapping to action rows in `Alerts & Progress` to eliminate horizontal clipping. Refined Stepper CSS (`.field-step-item` as `flex: 0 0 auto`, `.field-step-line` with dynamic space absorption) and horizontal scroll protection. Decoupled `Timeline` and `TreeView` from a cramped 2-column grid into full-width dedicated cards.
+
+#### 12. Automated GitLab Pages Showcase Deployment
+- **Feature**: Added GitLab Pages CI pipeline job (`pages`) in `.gitlab-ci.yml` building and deploying `@field/showcase` with base-path awareness and SPA fallback routing (`404.html`).
+
+#### 13. Documentation & Agent Specification Alignment
+- **Update**: Synchronized `docs/AGENTS.md` with all exported components (`SidebarProvider`, `SidebarTrigger`, `useSidebar`), Recipe G for collapsible shells, and new prop guidelines (`Badge` size, `Breadcrumb` onClick, `SidebarFooter` collapsedChildren). Upgraded `docs/COMPONENT_MANIFEST.json` to v0.2.0 covering all 84 components. Aligned `README.md` and `DocsViewer.tsx` to `@sam.barfield/field-react` and `@sam.barfield/field-tokens`.
+
 ---
 
 ## [0.2.0] - 2026-09-03

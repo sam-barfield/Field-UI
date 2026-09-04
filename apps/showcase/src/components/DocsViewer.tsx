@@ -21,16 +21,16 @@ export const DocsViewer: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const promptRecipes: Record<string, string> = {
-    dashboard: `You are an expert frontend engineer using the **Field Design System** (@field/react, @field/tokens).
+    dashboard: `You are an expert frontend engineer using the **Field Design System** (@sam.barfield/field-react, @sam.barfield/field-tokens).
 Create an analytics overview panel featuring:
 - 3 StatCards with metrics: 'P99 Latency', 'Request Rate', and 'Error Budget', using tabular figures and trend deltas.
 - An infrastructure Table showing Server Nodes, Status (using Badge with dot), and Throughput.
 - A Filter Bar containing a TextInput search with a Search icon left adornment, and a Select for regional filtering.
 Follow these rules strictly:
-1. Wrap root with <ThemeProvider> and import '@field/react/styles.css'.
+1. Wrap root with <ThemeProvider> and import '@sam.barfield/field-react/styles.css'.
 2. Use Field components (<Card>, <Stack>, <Flex>, <Button>, <Badge>, <Table>).
 3. Do NOT hardcode arbitrary colors; rely entirely on Field design tokens and CSS variables.`,
-    form: `You are an expert frontend engineer using the **Field Design System** (@field/react, @field/tokens).
+    form: `You are an expert frontend engineer using the **Field Design System** (@sam.barfield/field-react, @sam.barfield/field-tokens).
 Create a secure credentials management form containing:
 - Card with CardHeader, CardContent, and CardFooter.
 - TextInput for 'API Key Label' and a password TextInput for 'Secret Access Token'.
@@ -38,7 +38,7 @@ Create a secure credentials management form containing:
 - Select dropdown for 'Token Expiration Duration' (30d, 90d, 1y).
 - CardFooter with 'Cancel' (variant="ghost") and 'Generate Key' (variant="primary") buttons.
 Follow Field accessibility guidelines: provide explicit labels, error states, and helper text.`,
-    modal: `You are an expert frontend engineer using the **Field Design System** (@field/react, @field/tokens).
+    modal: `You are an expert frontend engineer using the **Field Design System** (@sam.barfield/field-react, @sam.barfield/field-tokens).
 Build an accessible confirmation modal using <Modal>:
 - State managed with isOpen and onClose.
 - Keyboard support with Escape key dismissal and focus trapping.
@@ -151,15 +151,15 @@ Build an accessible confirmation modal using <Modal>:
               <div>
                 <Text weight="medium">1. Install packages</Text>
                 <div style={{ marginTop: '8px', padding: '12px', background: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-md)', fontFamily: 'var(--field-font-mono)', fontSize: '0.8125rem' }}>
-                  npm install @field/react @field/tokens lucide-react
+                  npm install @sam.barfield/field-react @sam.barfield/field-tokens lucide-react
                 </div>
               </div>
 
               <div>
                 <Text weight="medium">2. Mount the ThemeProvider and CSS styles</Text>
                 <div style={{ marginTop: '8px', padding: '12px', background: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-md)', fontFamily: 'var(--field-font-mono)', fontSize: '0.8125rem' }}>
-                  <pre style={{ margin: 0 }}>{`import '@field/react/styles.css';
-import { ThemeProvider, Button, Card, darkTheme } from '@field/react';
+                  <pre style={{ margin: 0 }}>{`import '@sam.barfield/field-react/styles.css';
+import { ThemeProvider, Button, Card, darkTheme } from '@sam.barfield/field-react';
 
 export function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -174,7 +174,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
               <div>
                 <Text weight="medium">3. Build with typed components</Text>
                 <div style={{ marginTop: '8px', padding: '12px', background: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-md)', fontFamily: 'var(--field-font-mono)', fontSize: '0.8125rem' }}>
-                  <pre style={{ margin: 0 }}>{`import { Button, TextInput, StatCard } from '@field/react';
+                  <pre style={{ margin: 0 }}>{`import { Button, TextInput, StatCard } from '@sam.barfield/field-react';
 
 export function ExampleWidget() {
   return (
@@ -235,16 +235,22 @@ export function ExampleWidget() {
               <pre style={{ margin: 0, maxHeight: '350px', overflowY: 'auto' }}>
 {`{
   "name": "Field Design System",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "packages": [
+    "@sam.barfield/field-tokens",
+    "@sam.barfield/field-react"
+  ],
   "components": [
     "Button", "IconButton", "ButtonGroup", "SegmentedControl",
-    "TextInput", "TextArea", "Select", "Switch", "Checkbox", "RadioGroup", "Slider",
+    "TextInput", "TextArea", "Select", "Combobox", "NumberInput", "Switch", "Checkbox", "RadioGroup", "Slider",
     "DatePicker", "DateRangePicker",
-    "Sidebar", "SidebarHeader", "SidebarContent", "SidebarGroup", "SidebarItem", "SidebarDropdown", "SidebarSubItem", "SidebarFooter",
+    "Sidebar", "SidebarHeader", "SidebarContent", "SidebarGroup", "SidebarItem", "SidebarDropdown", "SidebarSubItem", "SidebarFooter", "SidebarTrigger", "SidebarProvider",
     "Terminal", "TerminalHeader", "TerminalBody", "TerminalLine", "TerminalPrompt",
-    "Card", "StatCard", "Badge", "Avatar", "AvatarGroup", "Modal", "Drawer",
-    "Tabs", "Table", "Accordion", "Tooltip", "Alert", "Toast", "Progress", "Spinner", "Skeleton",
-    "Breadcrumb", "Heading", "Text", "Kbd", "Code", "Box", "Flex", "Stack", "Grid", "Divider"
+    "Card", "CardHeader", "CardContent", "CardFooter", "StatCard", "Badge", "Avatar", "AvatarGroup", "Modal", "Drawer", "Popover", "ContextMenu", "CommandPalette",
+    "Tabs", "Table", "TableHeader", "TableBody", "TableRow", "TableCell", "TableHead", "EmptyState", "TreeView", "Timeline", "Accordion", "Tooltip", "Alert", "ToastProvider", "Progress", "Spinner", "Skeleton",
+    "CodeBlock", "DiffViewer", "CopyButton", "StatusDot", "Sparkline", "Meter",
+    "Breadcrumb", "Pagination", "Stepper",
+    "Heading", "Text", "Kbd", "Code", "Box", "Flex", "Stack", "Grid", "Container", "Divider"
   ],
   "accessibility": "WAI-ARIA 1.2 AA compliant",
   "tokenSpecification": "W3C DTCG Format"

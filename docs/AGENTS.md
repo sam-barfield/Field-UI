@@ -31,6 +31,8 @@ import {
   // Theme & Context
   ThemeProvider,
   useTheme,
+  SidebarProvider,
+  useSidebar,
   
   // Actions & Buttons
   Button,
@@ -65,6 +67,7 @@ import {
   SidebarDropdown,
   SidebarSubItem,
   SidebarFooter,
+  SidebarTrigger,
   Tabs,
   Breadcrumb,
   Pagination,
@@ -294,3 +297,45 @@ const columns: Column<EC2Instance>[] = [
   />
 </Stack>
 ```
+
+### Recipe G: Collapsible App Shell with Sidebar & Header Trigger
+```tsx
+// Pattern 1: Integrated shell with SidebarProvider
+<SidebarProvider defaultCollapsed={false}>
+  <div style={{ display: 'flex', height: '100vh' }}>
+    <Sidebar
+      header={<SidebarHeader logo={<span>⚡</span>} title="Control Center" />}
+      footer={<SidebarFooter collapsedChildren={<User size={16} />}><span>Admin User</span></SidebarFooter>}
+    >
+      <SidebarGroup label="Overview">
+        <SidebarItem icon={<Home size={16} />} label="Dashboard" active />
+        <SidebarItem icon={<Activity size={16} />} label="Monitoring" badge="Live" />
+      </SidebarGroup>
+    </Sidebar>
+    <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <header style={{ padding: '12px', borderBottom: '1px solid var(--field-border-subtle)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <SidebarTrigger />
+        <Heading level={3}>Monitoring</Heading>
+      </header>
+      <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
+        {/* Content */}
+      </div>
+    </main>
+  </div>
+</SidebarProvider>
+
+// Pattern 2: Standalone Controlled Trigger
+<SidebarTrigger isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+```
+
+---
+
+## 5. Recent Prop Guidelines & Patterns
+
+- **`Badge`**: Supports `size="sm" | "md" | "lg"` (default `"md"`). Use `size="sm"` for compact inline status indicators inside tables or cards.
+- **`Breadcrumb`**: Items support `onClick` handlers directly without requiring dummy `href="#"` attributes, enabling native client-side routing.
+- **`SidebarFooter`**: Supports `collapsedChildren?: React.ReactNode` to provide an alternative compact view when the sidebar is minimized.
+- **`SidebarTrigger`**: Works within `<Sidebar>`, `<SidebarProvider>`, or as a standalone controlled toggle (`isCollapsed`, `onToggle`). Safe to call `useSidebar()` anywhere; it returns a safe no-op fallback outside providers.
+- **`Accordion`**: Supports custom flex headers; title container expands with `flex: 1` so right-aligned tags or badges in header JSX are positioned correctly.
+- **`DateRangePicker`**: Supports bidirectional range selection previews when hovering either forward or backward in time.
+

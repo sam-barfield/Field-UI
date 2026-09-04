@@ -23,7 +23,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Package / Directory | Purpose |
 |:---|:---|
 | [`packages/tokens`](./packages/tokens) | Minimal, 3-tier design token engine (primitives, dark/light semantics, presets, W3C DTCG JSON, and CSS compiler) |
-| [`packages/react`](./packages/react) | First-class React + TypeScript client library (`@field/react`) with 35+ accessible components |
+| [`packages/react`](./packages/react) | First-class React + TypeScript client library (`@sam.barfield/field-react`) with 45+ accessible components |
 | [`apps/showcase`](./apps/showcase) | Interactive application featuring the **Component Catalog**, **Living Sticker Sheet**, **Theme Editor**, **Real-World Demos & Cloud Terminal**, and **Documentation** |
 | [`docs/DESIGN_PHILOSOPHY.md`](./docs/DESIGN_PHILOSOPHY.md) | Design rationale, tactical aesthetics, token inheritance model, and accessibility standards |
 | [`docs/AGENTS.md`](./docs/AGENTS.md) | Dedicated LLM & AI coding assistant guide with import contracts, recipes, and anti-hallucination rules |
@@ -41,11 +41,11 @@ Field deliberately rejects generic AI / template boilerplate:
 
 ---
 
-## 🛠️ Using `@field/react` in your React / TypeScript App
+## 🛠️ Using `@sam.barfield/field-react` in your React / TypeScript App
 
 ```tsx
-import '@field/react/styles/field.css';
-import { ThemeProvider, Button, Card, StatCard, TextInput } from '@field/react';
+import '@sam.barfield/field-react/styles.css';
+import { ThemeProvider, Button, Card, StatCard, TextInput } from '@sam.barfield/field-react';
 
 export function Dashboard() {
   return (

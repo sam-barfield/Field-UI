@@ -618,12 +618,12 @@ export const StickerSheet: React.FC = () => {
                 <Stepper
                   activeStep={stepperStep}
                   steps={[
-                    { id: '1', title: 'Define', description: 'Configure node specs' },
-                    { id: '2', title: 'Provision', description: 'Mount hardware volume' },
-                    { id: '3', title: 'Verify', description: 'Run test suite' },
+                    { id: '1', title: 'Define', description: 'Specs' },
+                    { id: '2', title: 'Provision', description: 'Volume' },
+                    { id: '3', title: 'Verify', description: 'Tests' },
                   ]}
                 />
-                <Flex gap="8px">
+                <Flex gap="8px" wrap="wrap">
                   <Button size="sm" variant="secondary" onClick={() => setStepperStep(s => Math.max(0, s - 1))}>
                     Previous
                   </Button>
@@ -643,47 +643,49 @@ export const StickerSheet: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* TreeView & Timeline */}
+          {/* Activity Timeline */}
           <Card>
             <CardHeader>
-              <Heading level={4}>Tree View & Activity Timeline</Heading>
-              <Text tone="secondary" size="xs">Hierarchical directory navigation & audit trails</Text>
+              <Heading level={4}>Activity Timeline</Heading>
+              <Text tone="secondary" size="xs">Chronological event stream with status badges</Text>
             </CardHeader>
             <CardContent>
-              <Grid columns="1fr 1fr" gap="16px">
-                <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>File Structure</Text>
-                  <TreeView
-                    data={[
-                      {
-                        id: 'packages',
-                        label: 'packages',
-                        children: [
-                          { id: 'tokens', label: 'tokens' },
-                          { id: 'react', label: 'react' },
-                        ],
-                      },
-                      {
-                        id: 'apps',
-                        label: 'apps',
-                        children: [
-                          { id: 'showcase', label: 'showcase' },
-                        ],
-                      },
-                    ]}
-                  />
-                </div>
-                <div>
-                  <Text size="xs" tone="secondary" style={{ marginBottom: '8px' }}>Audit Log</Text>
-                  <Timeline
-                    items={[
-                      { id: '1', title: 'Cluster Deploy', timestamp: '12m ago', status: 'success', content: 'Image v0.2.0 pushed' },
-                      { id: '2', title: 'Health Check', timestamp: '34m ago', status: 'info', content: 'All nodes green' },
-                      { id: '3', title: 'Warning', timestamp: '1h ago', status: 'warning', content: 'Memory reached 85%' },
-                    ]}
-                  />
-                </div>
-              </Grid>
+              <Timeline
+                items={[
+                  { id: '1', title: 'Cluster Deploy', timestamp: '12m ago', status: 'success', content: 'Image v0.2.1 pushed' },
+                  { id: '2', title: 'Health Check', timestamp: '34m ago', status: 'info', content: 'All nodes reporting green' },
+                  { id: '3', title: 'Buffer Warning', timestamp: '1h ago', status: 'warning', content: 'Memory reached 85%' },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          {/* TreeView */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Directory Tree View</Heading>
+              <Text tone="secondary" size="xs">Hierarchical directory navigation</Text>
+            </CardHeader>
+            <CardContent>
+              <TreeView
+                data={[
+                  {
+                    id: 'packages',
+                    label: 'packages',
+                    children: [
+                      { id: 'tokens', label: 'tokens' },
+                      { id: 'react', label: 'react' },
+                    ],
+                  },
+                  {
+                    id: 'apps',
+                    label: 'apps',
+                    children: [
+                      { id: 'showcase', label: 'showcase' },
+                    ],
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -719,7 +721,7 @@ export const StickerSheet: React.FC = () => {
               </Flex>
             </CardHeader>
             <CardContent>
-              <Grid columns="1fr 1fr" gap="16px">
+              <Grid columns="repeat(auto-fit, minmax(280px, 1fr))" gap="16px">
                 <CodeBlock
                   language="tsx"
                   code={`import { Button, Badge } from '@sam.barfield/field-react';\n\nexport const DeployWidget = () => (\n  <Button variant="primary" size="md">\n    Deploy <Badge variant="accent">v0.2.1</Badge>\n  </Button>\n);`}
@@ -769,7 +771,7 @@ export const StickerSheet: React.FC = () => {
                   <Spinner size={20} />
                   <Text size="sm" tone="secondary">Orchestrator polling live clusters...</Text>
                 </Flex>
-                <Flex gap="10px">
+                <Flex gap="10px" wrap="wrap">
                   <Button variant="secondary" onClick={() => setIsModalOpen(true)}>Open Modal</Button>
                   <Button variant="secondary" onClick={() => setIsDrawerOpen(true)}>Open Drawer</Button>
                   <Button

@@ -2503,12 +2503,17 @@ select:focus-visible,
   align-items: center;
   width: 100%;
   gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.field-stepper::-webkit-scrollbar {
+  display: none;
 }
 .field-step-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
+  flex: 0 0 auto;
   position: relative;
 }
 .field-step-circle {
@@ -2555,6 +2560,7 @@ select:focus-visible,
 }
 .field-step-line {
   flex: 1;
+  min-width: 16px;
   height: 2px;
   background-color: var(--field-border-subtle);
   margin: 0 8px;

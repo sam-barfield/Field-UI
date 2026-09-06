@@ -1,6 +1,6 @@
 {
   "name": "@sam.barfield/field-react",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Smart, precision-crafted React component library for the Field Design System",
   "main": "dist/index.js",
   "module": "dist/index.js",

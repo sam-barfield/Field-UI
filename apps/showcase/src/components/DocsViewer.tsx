@@ -11,7 +11,7 @@ import {
   Tabs,
   Stack,
   useToast,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import { Copy, Bot, BookOpen, Terminal, Sparkles, Check } from 'lucide-react';
 
 export const DocsViewer: React.FC = () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ThemeProvider, ToastProvider } from '@field/react';
+import { ThemeProvider, ToastProvider } from '@sam.barfield/field-react';
 import { Header } from './components/Header';
 import { StickerSheet } from './components/StickerSheet';
 import { ThemeEditor } from './components/ThemeEditor';

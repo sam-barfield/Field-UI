@@ -13,7 +13,7 @@ import {
   Heading,
   Text,
   useToast,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import { Copy, Download, Sparkles, Sliders, Code2, Palette } from 'lucide-react';
 
 export const ThemeEditor: React.FC = () => {

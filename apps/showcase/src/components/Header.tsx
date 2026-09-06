@@ -5,7 +5,8 @@ import {
   IconButton,
   Badge,
   SegmentedControl,
-} from '@field/react';
+} from '@sam.barfield/field-react';
+import pkg from '../../package.json';
 import {
   Sun,
   Moon,
@@ -87,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 FIELD
               </span>
-              <Badge variant="accent">v0.1</Badge>
+              <Badge variant="accent">v{pkg.version}</Badge>
               <span style={{ fontSize: '0.75rem', color: 'var(--field-text-secondary)' }}>
                 {theme.label}
               </span>

@@ -4,7 +4,7 @@ import {
   Text,
   Badge,
   useToast,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import {
   Copy,
   Check,
@@ -136,7 +136,7 @@ ${doc.compositionTree}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <Badge variant="accent">{doc.category.toUpperCase()}</Badge>
-            <Text size="xs" tone="tertiary">@field/react</Text>
+            <Text size="xs" tone="tertiary">@sam.barfield/field-react</Text>
           </div>
           <h1
             style={{

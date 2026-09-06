@@ -65,7 +65,7 @@ import {
   Meter,
   NumberInput,
   Combobox,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import {
   Play,
   Plus,
@@ -390,7 +390,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Alert',
     category: 'Feedback',
     description: 'Displays a callout for user attention.',
-    importCode: `import {\n  Alert,\n  AlertAction,\n  AlertDescription,\n  AlertTitle,\n} from "@field/react";`,
+    importCode: `import {\n  Alert,\n  AlertAction,\n  AlertDescription,\n  AlertTitle,\n} from "@sam.barfield/field-react";`,
     usageCode: `<Alert variant="success" title="Payment successful">\n  Your payment of $29.99 has been processed. A receipt has been sent to your email address.\n</Alert>`,
     compositionTree: `Alert\n├── Icon\n├── AlertTitle\n├── AlertDescription\n└── AlertAction`,
     primaryDemo: {
@@ -461,7 +461,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Button',
     category: 'Actions',
     description: 'Engineered tactile action trigger with micro-interactions, scale press, and specular highlights.',
-    importCode: `import { Button } from "@field/react";`,
+    importCode: `import { Button } from "@sam.barfield/field-react";`,
     usageCode: `<Button variant="primary" onClick={() => console.log('Clicked')}>\n  Deploy Changes\n</Button>`,
     compositionTree: `Button\n├── LeftIcon (optional)\n├── ButtonLabel / Children\n└── RightIcon (optional)`,
     primaryDemo: {
@@ -516,7 +516,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'IconButton',
     category: 'Actions',
     description: 'Square aspect-ratio icon button optimized for toolbars and compact actions.',
-    importCode: `import { IconButton } from "@field/react";`,
+    importCode: `import { IconButton } from "@sam.barfield/field-react";`,
     usageCode: `<IconButton aria-label="Refresh telemetry" icon={<RefreshCw size={15} />} variant="primary" />`,
     compositionTree: `IconButton\n└── Icon`,
     primaryDemo: {
@@ -545,7 +545,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'SegmentedControl',
     category: 'Actions',
     description: 'Tactile multi-option switcher with smooth pill selection and attached button clusters.',
-    importCode: `import { SegmentedControl, ButtonGroup } from "@field/react";`,
+    importCode: `import { SegmentedControl, ButtonGroup } from "@sam.barfield/field-react";`,
     usageCode: `<SegmentedControl\n  value="grid"\n  onChange={(val) => console.log(val)}\n  options={[\n    { value: 'grid', label: 'Grid View' },\n    { value: 'list', label: 'List View' },\n  ]}\n/>`,
     compositionTree: `SegmentedControl\n├── SegmentOption (Active Pill)\n└── SegmentOption`,
     primaryDemo: {
@@ -587,7 +587,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'DropdownMenu',
     category: 'Actions',
     description: 'Contextual actions dropdown with grouped items, icons, shortcuts, and destructive items.',
-    importCode: `import {\n  DropdownMenu,\n  DropdownGroup,\n  DropdownItem,\n  DropdownDivider\n} from "@field/react";`,
+    importCode: `import {\n  DropdownMenu,\n  DropdownGroup,\n  DropdownItem,\n  DropdownDivider\n} from "@sam.barfield/field-react";`,
     usageCode: `<DropdownMenu\n  trigger={<Button variant="secondary">Actions</Button>}\n>\n  <DropdownGroup label="Lifecycle">\n    <DropdownItem icon={<Play size={14} />}>Start Instance</DropdownItem>\n  </DropdownGroup>\n</DropdownMenu>`,
     compositionTree: `DropdownMenu\n├── Trigger\n└── MenuPortal\n    ├── DropdownGroup\n    │   ├── DropdownItem\n    │   └── DropdownItem\n    ├── DropdownDivider\n    └── DropdownItem (Danger)`,
     primaryDemo: {
@@ -627,7 +627,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'TextInput & TextArea',
     category: 'Forms',
     description: 'Text entry with adornments, status borders, clean focus rings, and multi-line editor support.',
-    importCode: `import { TextInput, TextArea } from "@field/react";`,
+    importCode: `import { TextInput, TextArea } from "@sam.barfield/field-react";`,
     usageCode: `<TextInput\n  label="Endpoint Hostname"\n  placeholder="api.cluster.internal"\n  helperText="DNS resolving to VPC mesh"\n/>`,
     compositionTree: `TextInput\n├── Label\n├── LeftAdornment\n├── NativeInput\n├── RightAdornment\n└── HelperText / ErrorText`,
     primaryDemo: {
@@ -672,7 +672,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Select',
     category: 'Forms',
     description: 'Custom accessible dropdown select menu with custom options and helper states.',
-    importCode: `import { Select } from "@field/react";`,
+    importCode: `import { Select } from "@sam.barfield/field-react";`,
     usageCode: `<Select\n  label="Deployment Region"\n  value="us-east"\n  onChange={(val) => console.log(val)}\n  options={[\n    { value: 'us-east', label: 'US East (N. Virginia)' },\n    { value: 'us-west', label: 'US West (Oregon)' },\n  ]}\n/>`,
     compositionTree: `Select\n├── Label\n├── SelectTrigger\n└── SelectOptionsList`,
     primaryDemo: {
@@ -709,7 +709,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Switch, Checkbox & Radio',
     category: 'Forms',
     description: 'High-precision boolean selectors and exclusive option groups with accessible keyboard focus.',
-    importCode: `import { Switch, Checkbox, RadioGroup } from "@field/react";`,
+    importCode: `import { Switch, Checkbox, RadioGroup } from "@sam.barfield/field-react";`,
     usageCode: `<Switch\n  checked={enabled}\n  onChange={setEnabled}\n  label="Automatic Failover"\n  description="Reroute traffic to healthy replicas"\n/>`,
     compositionTree: `ControlField\n├── Label\n├── Switch / Checkbox / Radio\n└── Description`,
     primaryDemo: {
@@ -730,7 +730,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Slider',
     category: 'Forms',
     description: 'Numeric range slider supporting threshold zones, divider notches, and optional luminous glow.',
-    importCode: `import { Slider } from "@field/react";`,
+    importCode: `import { Slider } from "@sam.barfield/field-react";`,
     usageCode: `<Slider\n  label="Cluster Compute Allocation"\n  value={65}\n  onChange={(val) => console.log(val)}\n  min={0}\n  max={100}\n  valueSuffix="%"\n  glow={true}\n/>`,
     compositionTree: `Slider\n├── Label & ValueDisplay\n├── Track\n│   ├── FilledProgress\n│   └── ThresholdZones\n└── Thumb (with specular glow)`,
     primaryDemo: {
@@ -761,7 +761,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'DatePicker & DateRangePicker',
     category: 'Forms',
     description: 'Portal-backed precision calendar date and range selector with month jumping and quick presets.',
-    importCode: `import { DatePicker, DateRangePicker } from "@field/react";`,
+    importCode: `import { DatePicker, DateRangePicker } from "@sam.barfield/field-react";`,
     usageCode: `<DatePicker\n  label="Target Cutoff"\n  value={date}\n  onChange={setDate}\n  showDoneButton={true}\n/>`,
     compositionTree: `DatePicker\n├── Label\n├── DateInputTrigger\n└── CalendarPortal\n    ├── MonthNavigation\n    ├── DayGrid\n    └── ActionFooter (Done / Close)`,
     primaryDemo: {
@@ -790,7 +790,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Combobox & NumberInput',
     category: 'Forms',
     description: 'Searchable multi-select with tag chips, alongside numeric stepper inputs with keyboard arrows.',
-    importCode: `import { Combobox, NumberInput } from "@field/react";`,
+    importCode: `import { Combobox, NumberInput } from "@sam.barfield/field-react";`,
     usageCode: `<Combobox\n  label="Assigned Security Groups"\n  options={[\n    { value: 'sg-web', label: 'sg-web (HTTPS 443)' },\n    { value: 'sg-db', label: 'sg-db (PostgreSQL 5432)' },\n  ]}\n  value={selectedGroups}\n  onChange={setSelectedGroups}\n/>`,
     compositionTree: `Combobox\n├── Label\n├── ChipsContainer\n│   ├── TagChip (Removable)\n│   └── SearchInput\n└── DropdownOptionsList`,
     primaryDemo: {
@@ -835,7 +835,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Sidebar',
     category: 'Navigation',
     description: 'Collapsible application navigation sidebar with Cloudflare-style nested dropdown hierarchy lines.',
-    importCode: `import {\n  Sidebar,\n  SidebarHeader,\n  SidebarContent,\n  SidebarGroup,\n  SidebarItem,\n  SidebarDropdown,\n  SidebarSubItem\n} from "@field/react";`,
+    importCode: `import {\n  Sidebar,\n  SidebarHeader,\n  SidebarContent,\n  SidebarGroup,\n  SidebarItem,\n  SidebarDropdown,\n  SidebarSubItem\n} from "@sam.barfield/field-react";`,
     usageCode: `<Sidebar width={260} collapsed={false}>\n  <SidebarHeader icon={<Zap size={18} />} title="Field Cloud" />\n  <SidebarContent>\n    <SidebarGroup label="Workspaces">\n      <SidebarItem icon={<Activity size={16} />} label="Telemetry" />\n    </SidebarGroup>\n  </SidebarContent>\n</Sidebar>`,
     compositionTree: `Sidebar\n├── SidebarHeader\n├── SidebarContent\n│   ├── SidebarGroup\n│   │   └── SidebarItem\n│   └── SidebarDropdown\n│       ├── 1px Vertical Hierarchy Line\n│       └── SidebarSubItem\n└── SidebarFooter`,
     primaryDemo: {
@@ -855,7 +855,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Tabs & Breadcrumb',
     category: 'Navigation',
     description: 'Underline navigation tab bar with smooth touch rail and hierarchical trail breadcrumbs.',
-    importCode: `import { Tabs, Breadcrumb } from "@field/react";`,
+    importCode: `import { Tabs, Breadcrumb } from "@sam.barfield/field-react";`,
     usageCode: `<Tabs\n  activeId="general"\n  onChange={(id) => console.log(id)}\n  items={[\n    { id: 'general', label: 'General Config' },\n    { id: 'security', label: 'Security Firewall' },\n  ]}\n/>`,
     compositionTree: `Tabs\n├── TabItem (Active Indicator Underline)\n└── TabItem`,
     primaryDemo: {
@@ -898,7 +898,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Stepper',
     category: 'Navigation',
     description: 'Sequential multi-step workflow progress indicator for wizards and deployments.',
-    importCode: `import { Stepper } from "@field/react";`,
+    importCode: `import { Stepper } from "@sam.barfield/field-react";`,
     usageCode: `<Stepper\n  activeStep={1}\n  steps={[\n    { id: '1', title: 'Hardware Instance', description: 'Compute & memory' },\n    { id: '2', title: 'Networking', description: 'VPC & subnets' },\n  ]}\n/>`,
     compositionTree: `Stepper\n├── StepNode (Completed / Active / Pending)\n├── ConnectorLine\n└── StepNode`,
     primaryDemo: {
@@ -934,7 +934,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Card & StatCard',
     category: 'Layout',
     description: 'Tactile elevated containers with header, content, and footer sections alongside telemetry KPI cards.',
-    importCode: `import { Card, CardHeader, CardContent, CardFooter, StatCard } from "@field/react";`,
+    importCode: `import { Card, CardHeader, CardContent, CardFooter, StatCard } from "@sam.barfield/field-react";`,
     usageCode: `<Card>\n  <CardHeader>\n    <Heading level={4}>Compute Cluster</Heading>\n  </CardHeader>\n  <CardContent>\n    <Text>8 active worker nodes healthy.</Text>\n  </CardContent>\n</Card>`,
     compositionTree: `Card\n├── CardHeader\n├── CardContent\n└── CardFooter`,
     primaryDemo: {
@@ -977,7 +977,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Badge & Avatar',
     category: 'Data Display',
     description: 'Compact status tags with pulsing dots, alongside user profile representations with initials fallback.',
-    importCode: `import { Badge, Avatar, AvatarGroup } from "@field/react";`,
+    importCode: `import { Badge, Avatar, AvatarGroup } from "@sam.barfield/field-react";`,
     usageCode: `<Badge variant="success" dot>Operational</Badge>\n<Avatar name="Sarah Lin" size="md" />`,
     compositionTree: `Badge\n├── StatusDot (optional pulse)\n└── LabelText`,
     primaryDemo: {
@@ -1017,7 +1017,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Table & Pagination',
     category: 'Data Display',
     description: 'Tabular data grid with multi-row selection, sorting, pagination, and compound sub-components.',
-    importCode: `import { Table, Pagination } from "@field/react";`,
+    importCode: `import { Table, Pagination } from "@sam.barfield/field-react";`,
     usageCode: `<Table\n  data={nodes}\n  keyExtractor={(r) => r.id}\n  columns={[\n    { key: 'node', header: 'Node Name' },\n    { key: 'status', header: 'Status' },\n  ]}\n/>`,
     compositionTree: `Table\n├── TableHeader\n│   └── TableRow\n│       └── TableHead (Sortable)\n└── TableBody\n    └── TableRow (Selectable / Hover)\n        └── TableCell`,
     primaryDemo: {
@@ -1037,7 +1037,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Terminal',
     category: 'Data Display',
     description: 'Instrument-grade dark carbon terminal and telemetry log streamer with interactive prompt.',
-    importCode: `import {\n  Terminal,\n  TerminalHeader,\n  TerminalBody,\n  TerminalLine,\n  TerminalPrompt\n} from "@field/react";`,
+    importCode: `import {\n  Terminal,\n  TerminalHeader,\n  TerminalBody,\n  TerminalLine,\n  TerminalPrompt\n} from "@sam.barfield/field-react";`,
     usageCode: `<Terminal>\n  <TerminalHeader title="cluster.log" />\n  <TerminalBody>\n    <TerminalLine level="info">Mesh connected</TerminalLine>\n    <TerminalPrompt onSubmit={(cmd) => console.log(cmd)} />\n  </TerminalBody>\n</Terminal>`,
     compositionTree: `Terminal\n├── TerminalHeader (Traffic Lights & Session Title)\n└── TerminalBody\n    ├── TerminalLine (Level badge & timestamp)\n    └── TerminalPrompt (History cycling)`,
     primaryDemo: {
@@ -1056,7 +1056,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'CodeBlock & DiffViewer',
     category: 'Data Display',
     description: 'Syntax-colored code snippets with line numbers, copy actions, and unified git diff views.',
-    importCode: `import { CodeBlock, DiffViewer, CopyButton } from "@field/react";`,
+    importCode: `import { CodeBlock, DiffViewer, CopyButton } from "@sam.barfield/field-react";`,
     usageCode: `<CodeBlock\n  language="typescript"\n  code="export const api = createClient();"\n/>`,
     compositionTree: `CodeBlock\n├── Header (Language badge & CopyButton)\n└── Pre / Code (Line numbers & highlighted lines)`,
     primaryDemo: {
@@ -1084,7 +1084,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'StatusDot, Sparkline & Meter',
     category: 'Data Display',
     description: 'Telemetry status dots, lightweight SVG trend curves, and visual quota meters.',
-    importCode: `import { StatusDot, Sparkline, Meter } from "@field/react";`,
+    importCode: `import { StatusDot, Sparkline, Meter } from "@sam.barfield/field-react";`,
     usageCode: `<StatusDot status="success" pulse label="Ingress Active" />\n<Sparkline data={[12, 19, 15, 28, 22, 34, 42]} />\n<Meter value={74} />`,
     compositionTree: `StatusDot\n├── Dot (Pulse Animation)\n└── Label`,
     primaryDemo: {
@@ -1119,7 +1119,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Modal & Drawer',
     category: 'Feedback',
     description: 'Focus-trapped accessible dialogs and slide-in panels with backdrop blur and escape dismissal.',
-    importCode: `import { Modal, Drawer } from "@field/react";`,
+    importCode: `import { Modal, Drawer } from "@sam.barfield/field-react";`,
     usageCode: `<Modal isOpen={isOpen} onClose={() => setOpen(false)} title="Confirm Action">\n  <Text>Modal body content</Text>\n</Modal>`,
     compositionTree: `ModalPortal\n├── Backdrop (Blur overlay)\n└── Dialog\n    ├── ModalHeader\n    ├── ModalBody\n    └── ModalFooter`,
     primaryDemo: {
@@ -1144,7 +1144,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Tooltip & Popover',
     category: 'Feedback',
     description: 'Portal-backed unclipped floating micro-labels and rich interactive cards anchored to triggers.',
-    importCode: `import { Tooltip, Popover } from "@field/react";`,
+    importCode: `import { Tooltip, Popover } from "@sam.barfield/field-react";`,
     usageCode: `<Tooltip content="Copy command to clipboard">\n  <Button>Hover Me</Button>\n</Tooltip>`,
     compositionTree: `Tooltip\n├── Children (Trigger)\n└── TooltipPortal (Floating Tooltip bubble)`,
     primaryDemo: {
@@ -1182,7 +1182,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Progress, Spinner & Skeleton',
     category: 'Feedback',
     description: 'Illuminated progress bars, indeterminate circular spinners, and shimmering placeholder skeletons.',
-    importCode: `import { Progress, Spinner, Skeleton } from "@field/react";`,
+    importCode: `import { Progress, Spinner, Skeleton } from "@sam.barfield/field-react";`,
     usageCode: `<Progress value={65} showValue />\n<Spinner size={24} />\n<Skeleton width={200} height={24} />`,
     compositionTree: `Progress\n├── Track\n└── ProgressBar (with glowing specular front edge)`,
     primaryDemo: {
@@ -1213,7 +1213,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Accordion',
     category: 'Feedback',
     description: 'Expandable disclosure panels for progressive disclosure of complex settings with smooth spring easing.',
-    importCode: `import { Accordion } from "@field/react";`,
+    importCode: `import { Accordion } from "@sam.barfield/field-react";`,
     usageCode: `<Accordion\n  items={[\n    { id: '1', title: 'Network Security', content: 'mTLS rules and VPC peering.' },\n    { id: '2', title: 'Telemetry Metrics', content: 'Prometheus scrapers and OpenTelemetry.' },\n  ]}\n/>`,
     compositionTree: `Accordion\n└── AccordionItem\n    ├── AccordionTrigger (Chevron rotation)\n    └── AccordionContent (Height transition)`,
     primaryDemo: {
@@ -1254,7 +1254,7 @@ export const componentRegistry: ComponentDoc[] = [
     name: 'Heading, Text, Kbd & Code',
     category: 'Typography',
     description: 'Standardized typographic hierarchy with tight tracking, muted secondary tones, and monospace keys.',
-    importCode: `import { Heading, Text, Kbd, Code } from "@field/react";`,
+    importCode: `import { Heading, Text, Kbd, Code } from "@sam.barfield/field-react";`,
     usageCode: `<Heading level={2}>Production Clusters</Heading>\n<Text tone="secondary">Press <Kbd>⌘K</Kbd> to open the omnibar.</Text>`,
     compositionTree: `Typography\n├── Heading (H1-H6 levels)\n├── Text (sizes xs-lg, tones primary/secondary/tertiary)\n├── Kbd (Hardware keycap)\n└── Code (Monospace badge)`,
     primaryDemo: {

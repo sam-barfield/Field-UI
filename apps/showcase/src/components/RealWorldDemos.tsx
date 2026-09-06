@@ -25,7 +25,7 @@ import {
   TerminalLine,
   TerminalPrompt,
   LogLine,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import {
   Server,
   ShieldCheck,

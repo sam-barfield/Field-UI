@@ -80,7 +80,7 @@ import {
   TerminalBody,
   TerminalLine,
   TerminalPrompt,
-} from '@field/react';
+} from '@sam.barfield/field-react';
 import {
   Search,
   Shield,

@@ -215,6 +215,7 @@ export const StickerSheet: React.FC = () => {
                 </DropdownMenu>
 
                 <Popover
+                  align="end"
                   trigger={<Button variant="secondary">Popover Details</Button>}
                   content={
                     <div style={{ padding: '4px' }}>
@@ -352,7 +353,7 @@ export const StickerSheet: React.FC = () => {
                 <TextArea
                   label="Cluster Policy (YAML)"
                   defaultValue="apiVersion: field.telemetry/v1&#10;kind: ClusterNode&#10;metadata:&#10;  name: core-prod-01"
-                  rows={3}
+                  rows={4}
                 />
               </Stack>
             </CardContent>
@@ -872,7 +873,7 @@ export const StickerSheet: React.FC = () => {
               </Flex>
             </CardHeader>
             <CardContent style={{ padding: 0 }}>
-              <div style={{ height: '320px', display: 'flex', overflow: 'hidden' }}>
+              <div style={{ height: '320px', display: 'flex', overflow: 'hidden', minWidth: 0 }}>
                 <Sidebar
                   collapsed={sidebarDemoCollapsed}
                   onCollapseChange={setSidebarDemoCollapsed}
@@ -902,12 +903,12 @@ export const StickerSheet: React.FC = () => {
                     </Flex>
                   </SidebarFooter>
                 </Sidebar>
-                <div style={{ flex: 1, padding: '24px', backgroundColor: 'var(--field-surface-base)' }}>
+                <div style={{ flex: 1, minWidth: 0, padding: '16px', backgroundColor: 'var(--field-surface-base)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <Heading level={3}>Live Canvas Area</Heading>
-                  <Text tone="secondary" size="sm" style={{ marginTop: '8px' }}>
-                    Connected to workspace mesh. Demonstrates <code>Sidebar</code>, <code>SidebarHeader</code>, <code>SidebarGroup</code>, <code>SidebarItem</code>, <code>SidebarDropdown</code>, <code>SidebarSubItem</code>, and <code>SidebarFooter</code>.
+                  <Text tone="secondary" size="sm" style={{ marginTop: '8px', wordBreak: 'break-word' }}>
+                    Connected to workspace mesh. Demonstrates <code>Sidebar</code> and subcomponents.
                   </Text>
-                  <div style={{ marginTop: '16px' }}>
+                  <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
                     <SidebarTrigger
                       isCollapsed={sidebarDemoCollapsed}
                       onToggle={() => setSidebarDemoCollapsed(c => !c)}

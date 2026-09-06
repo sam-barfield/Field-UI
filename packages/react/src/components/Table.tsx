@@ -146,7 +146,7 @@ export function Table<T = any>({
 }: TableProps<T>) {
   if (children) {
     return (
-      <div className={`field-table-wrapper ${className}`}>
+      <div className={`field-table-container ${className}`}>
         <table className="field-table">{children}</table>
       </div>
     );
@@ -414,7 +414,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 
         <button
           type="button"
-          className="field-pagination-btn"
+          className="field-pagination-btn field-pagination-first"
           onClick={() => onPageChange(1)}
           disabled={currentPage <= 1}
           aria-label="First page"
@@ -465,7 +465,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         </button>
         <button
           type="button"
-          className="field-pagination-btn"
+          className="field-pagination-btn field-pagination-last"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage >= totalPages}
           aria-label="Last page"

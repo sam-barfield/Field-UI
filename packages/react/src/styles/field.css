@@ -19,6 +19,33 @@
   box-sizing: border-box;
 }
 
+/* Custom Theme-Aware Scrollbars */
+.field-scope,
+[data-field-theme],
+.field-scope *,
+[data-field-theme] * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--field-border-strong) transparent;
+}
+.field-scope ::-webkit-scrollbar,
+[data-field-theme] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.field-scope ::-webkit-scrollbar-track,
+[data-field-theme] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.field-scope ::-webkit-scrollbar-thumb,
+[data-field-theme] ::-webkit-scrollbar-thumb {
+  background: var(--field-border-default);
+  border-radius: var(--field-radius-full);
+}
+.field-scope ::-webkit-scrollbar-thumb:hover,
+[data-field-theme] ::-webkit-scrollbar-thumb:hover {
+  background: var(--field-border-strong);
+}
+
 /* --- Focus Rings --- */
 .field-focus-ring:focus-visible,
 button:focus-visible,
@@ -392,6 +419,8 @@ select:focus-visible,
   outline: none;
   resize: vertical;
   transition: all var(--field-duration-fast) var(--field-ease-default);
+  scrollbar-width: thin;
+  scrollbar-color: var(--field-border-strong) transparent;
 }
 .field-textarea:focus,
 .field-textarea:focus-visible {
@@ -892,9 +921,12 @@ select:focus-visible,
 }
 
 /* --- Tables --- */
-.field-table-container {
+.field-table-container,
+.field-table-wrapper {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--field-border-subtle);
   border-radius: var(--field-radius-lg);
   background-color: var(--field-surface-raised);
@@ -2314,6 +2346,9 @@ select:focus-visible,
   border-radius: var(--field-radius-md);
   box-shadow: var(--field-shadow-lg);
   padding: 16px;
+  max-width: min(calc(100vw - 24px), 320px);
+  box-sizing: border-box;
+  word-break: break-word;
   animation: fieldScaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .field-popover-card.align-start { left: 0; }
@@ -2347,11 +2382,14 @@ select:focus-visible,
   color: var(--field-text-secondary);
   flex-wrap: wrap;
   gap: 12px;
+  container-type: inline-size;
+  container-name: field-pagination;
 }
 .field-pagination-controls {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .field-pagination-btn {
   height: 32px;
@@ -2368,6 +2406,7 @@ select:focus-visible,
   align-items: center;
   justify-content: center;
   transition: all var(--field-duration-fast) var(--field-ease-default);
+  flex-shrink: 0;
 }
 .field-pagination-btn:hover:not(:disabled) {
   background-color: var(--field-surface-active);
@@ -2381,6 +2420,42 @@ select:focus-visible,
 .field-pagination-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@container field-pagination (max-width: 380px) {
+  .field-pagination-container {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .field-pagination-controls {
+    gap: 4px;
+  }
+  .field-pagination-btn {
+    height: 28px;
+    min-width: 28px;
+    padding: 0 4px;
+    font-size: 0.75rem;
+  }
+  .field-pagination-first,
+  .field-pagination-last {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .field-pagination-container {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .field-pagination-controls {
+    gap: 4px;
+  }
+  .field-pagination-btn {
+    height: 28px;
+    min-width: 28px;
+    padding: 0 4px;
+    font-size: 0.75rem;
+  }
 }
 .field-table-sort-btn {
   display: inline-flex;

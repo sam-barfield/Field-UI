@@ -22,7 +22,9 @@ export const Popover: React.FC<PopoverProps> = ({
   className = '',
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [effectiveAlign, setEffectiveAlign] = useState<'start' | 'center' | 'end'>(align);
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isControlled = controlledIsOpen !== undefined;
   const open = isControlled ? controlledIsOpen : internalIsOpen;
@@ -35,7 +37,26 @@ export const Popover: React.FC<PopoverProps> = ({
   };
 
   useEffect(() => {
+    setEffectiveAlign(align);
+  }, [align]);
+
+  useEffect(() => {
     if (!open) return;
+
+    // Edge/boundary detection: auto-flip to 'end' if opening start would overflow right boundary
+    if (align === 'start' && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const viewportLimit = window.innerWidth - 12;
+
+      // Also check if inside a constrained scroll/layout container
+      const parent = containerRef.current?.closest<HTMLElement>('main, [data-field-theme], .field-scope, [style*="overflow"]');
+      const parentRect = parent?.getBoundingClientRect();
+      const rightLimit = parentRect && parentRect.right < viewportLimit ? parentRect.right - 8 : viewportLimit;
+
+      if (rect.right > rightLimit) {
+        setEffectiveAlign('end');
+      }
+    }
 
     const handlePointerDown = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -53,7 +74,7 @@ export const Popover: React.FC<PopoverProps> = ({
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open]);
+  }, [open, align]);
 
   return (
     <div ref={containerRef} className={`field-popover-wrapper ${className}`}>
@@ -63,8 +84,9 @@ export const Popover: React.FC<PopoverProps> = ({
 
       {open && (
         <div
-          className={`field-popover-card align-${align} position-${position}`}
-          style={{ width }}
+          ref={cardRef}
+          className={`field-popover-card align-${effectiveAlign} position-${position}`}
+          style={{ width, maxWidth: 'min(calc(100vw - 24px), 320px)' }}
           role="dialog"
         >
           {content}

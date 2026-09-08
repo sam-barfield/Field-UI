@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+import { renderPolymorphic } from '../utils/polymorphic';
 
 export interface TabItem {
   id: string;
   label: React.ReactNode;
   icon?: React.ReactNode;
   disabled?: boolean;
+  href?: string;
+  asChild?: boolean;
+  as?: React.ElementType;
 }
 
 export interface TabsProps {
@@ -22,9 +26,10 @@ export const Tabs: React.FC<TabsProps> = ({
   defaultActiveId,
   onChange,
   className = '',
+  children,
 }) => {
   const [internalActive, setInternalActive] = useState(defaultActiveId || items[0]?.id);
-  const activeId = controlledActiveId !== undefined ? controlledActiveId : internalActive;
+  const activeId = controlledActiveId ?? internalActive;
 
   const handleSelect = (id: string) => {
     if (controlledActiveId === undefined) setInternalActive(id);
@@ -36,22 +41,49 @@ export const Tabs: React.FC<TabsProps> = ({
       <div className="field-tabs-list" role="tablist">
         {items.map(item => {
           const isActive = item.id === activeId;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              disabled={item.disabled}
-              onClick={() => handleSelect(item.id)}
-              className={`field-tab-trigger ${isActive ? 'active' : ''}`}
-            >
+          const itemClass = `field-tab-trigger ${isActive ? 'active' : ''}`;
+          const itemContent = (
+            <>
               {item.icon && <span>{item.icon}</span>}
               <span>{item.label}</span>
-            </button>
+            </>
+          );
+
+          if (item.asChild && React.isValidElement(item.label)) {
+            return (
+              <React.Fragment key={item.id}>
+                {renderPolymorphic('button', {
+                  asChild: true,
+                  role: 'tab',
+                  'aria-selected': isActive,
+                  disabled: item.disabled,
+                  onClick: () => handleSelect(item.id),
+                  className: itemClass,
+                  children: item.label,
+                })}
+              </React.Fragment>
+            );
+          }
+
+          const defaultTag = item.href ? 'a' : 'button';
+          return (
+            <React.Fragment key={item.id}>
+              {renderPolymorphic(defaultTag, {
+                as: item.as,
+                role: 'tab',
+                'aria-selected': isActive,
+                href: item.disabled ? undefined : item.href,
+                type: !item.href && (!item.as || item.as === 'button') ? 'button' : undefined,
+                disabled: item.disabled,
+                onClick: () => handleSelect(item.id),
+                className: itemClass,
+                children: itemContent,
+              })}
+            </React.Fragment>
           );
         })}
       </div>
+      {children}
     </div>
   );
 };

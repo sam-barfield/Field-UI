@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { PanelLeftClose, PanelLeft, ChevronDown } from 'lucide-react';
 import { Tooltip } from './Accordion';
+import { renderPolymorphic } from '../utils/polymorphic';
 
 export interface SidebarContextValue {
   isCollapsed: boolean;
@@ -41,19 +42,24 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   density = 'default',
 }) => {
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
-  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+  const isCollapsed = controlledCollapsed ?? internalCollapsed;
 
-  const setCollapsed = (nextCollapsed: boolean) => {
+  const setCollapsed = useCallback((nextCollapsed: boolean) => {
     if (controlledCollapsed === undefined) setInternalCollapsed(nextCollapsed);
     onCollapseChange?.(nextCollapsed);
-  };
+  }, [controlledCollapsed, onCollapseChange]);
 
-  const toggleCollapsed = () => {
+  const toggleCollapsed = useCallback(() => {
     setCollapsed(!isCollapsed);
-  };
+  }, [setCollapsed, isCollapsed]);
+
+  const contextValue = useMemo(
+    () => ({ isCollapsed, toggleCollapsed, setCollapsed, density }),
+    [isCollapsed, toggleCollapsed, setCollapsed, density]
+  );
 
   return (
-    <SidebarContext.Provider value={{ isCollapsed, toggleCollapsed, setCollapsed, density }}>
+    <SidebarContext.Provider value={contextValue}>
       {children}
     </SidebarContext.Provider>
   );
@@ -86,27 +92,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const outerContext = useContext(SidebarContext);
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
 
-  const isCollapsed =
-    controlledCollapsed !== undefined
-      ? controlledCollapsed
-      : outerContext
-        ? outerContext.isCollapsed
-        : internalCollapsed;
+  const isCollapsed = controlledCollapsed ?? outerContext?.isCollapsed ?? internalCollapsed;
 
   const density = propDensity || outerContext?.density || 'default';
 
-  const setCollapsed = (nextCollapsed: boolean) => {
+  const setCollapsed = useCallback((nextCollapsed: boolean) => {
     if (outerContext) {
       outerContext.setCollapsed(nextCollapsed);
-    } else {
-      if (controlledCollapsed === undefined) setInternalCollapsed(nextCollapsed);
+    } else if (controlledCollapsed === undefined) {
+      setInternalCollapsed(nextCollapsed);
     }
     onCollapseChange?.(nextCollapsed);
-  };
+  }, [outerContext, controlledCollapsed, onCollapseChange]);
 
-  const toggleCollapsed = () => {
+  const toggleCollapsed = useCallback(() => {
     setCollapsed(!isCollapsed);
-  };
+  }, [setCollapsed, isCollapsed]);
 
   const currentWidth = isCollapsed ? collapsedWidth : width;
 
@@ -125,12 +126,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 
+  const sidebarContextValue = useMemo(
+    () => ({ isCollapsed, toggleCollapsed, setCollapsed, density }),
+    [isCollapsed, toggleCollapsed, setCollapsed, density]
+  );
+
   if (outerContext) {
     return asideContent;
   }
 
   return (
-    <SidebarContext.Provider value={{ isCollapsed, toggleCollapsed, setCollapsed, density }}>
+    <SidebarContext.Provider value={sidebarContextValue}>
       {asideContent}
     </SidebarContext.Provider>
   );
@@ -166,22 +172,30 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     );
   }
 
+  const renderCollapsedHeader = () => {
+    if (showToggle) {
+      return (
+        <button
+          type="button"
+          className="field-sidebar-trigger"
+          onClick={toggleCollapsed}
+          aria-label="Expand sidebar"
+          title="Expand sidebar"
+        >
+          <PanelLeft size={17} />
+        </button>
+      );
+    }
+    if (icon) {
+      return <div className="field-sidebar-header-icon">{icon}</div>;
+    }
+    return null;
+  };
+
   return (
     <div className={`field-sidebar-header ${className}`} style={style}>
       {isCollapsed ? (
-        showToggle ? (
-          <button
-            type="button"
-            className="field-sidebar-trigger"
-            onClick={toggleCollapsed}
-            aria-label="Expand sidebar"
-            title="Expand sidebar"
-          >
-            <PanelLeft size={17} />
-          </button>
-        ) : (
-          icon && <div className="field-sidebar-header-icon">{icon}</div>
-        )
+        renderCollapsedHeader()
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
@@ -279,7 +293,7 @@ export const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
 }) => {
   const { isCollapsed, toggleCollapsed } = useSidebar();
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const isOpen = controlledOpen ?? internalOpen;
 
   const handleToggle = () => {
     if (isCollapsed) {
@@ -341,15 +355,18 @@ export const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
 
 /* --- SIDEBAR SUB ITEM (CONNECTS TO TREE LINE WITH LABEL + OPTIONAL SUBTITLE) --- */
 export interface SidebarSubItemProps {
-  label: React.ReactNode;
+  label?: React.ReactNode;
   description?: React.ReactNode;
   badge?: React.ReactNode;
   isActive?: boolean;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   href?: string;
   className?: string;
   style?: React.CSSProperties;
+  asChild?: boolean;
+  as?: React.ElementType;
+  children?: React.ReactNode;
 }
 
 export const SidebarSubItem: React.FC<SidebarSubItemProps> = ({
@@ -362,45 +379,71 @@ export const SidebarSubItem: React.FC<SidebarSubItemProps> = ({
   href,
   className = '',
   style,
+  asChild = false,
+  as,
+  children,
+  ...props
 }) => {
   const itemClass = `field-sidebar-subitem ${isActive ? 'active' : ''} ${disabled ? 'disabled' : ''} ${className}`;
 
   const content = (
     <>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div className="field-sidebar-subitem-label">{label}</div>
+        {label && <div className="field-sidebar-subitem-label">{label}</div>}
         {description && <div className="field-sidebar-subitem-desc">{description}</div>}
+        {children && !label && !description && children}
       </div>
       {badge && <span className="field-sidebar-item-badge">{badge}</span>}
     </>
   );
 
-  if (href && !disabled) {
-    return (
-      <a href={href} className={itemClass} style={style} onClick={onClick}>
-        {content}
-      </a>
-    );
+  if (asChild && React.isValidElement(children)) {
+    return renderPolymorphic('button', {
+      asChild: true,
+      className: itemClass,
+      style,
+      onClick,
+      disabled,
+      children,
+      ...props,
+    });
   }
 
-  return (
-    <button type="button" className={itemClass} style={style} onClick={onClick} disabled={disabled}>
-      {content}
-    </button>
-  );
+  const defaultTag = href && !disabled ? 'a' : 'button';
+  const elementProps: Record<string, any> = {
+    as,
+    className: itemClass,
+    style,
+    onClick,
+    children: content,
+    ...props,
+  };
+
+  if (href && !disabled) {
+    elementProps.href = href;
+  }
+  if (!as || as === 'button') {
+    elementProps.type = 'button';
+    elementProps.disabled = disabled;
+  }
+
+  return renderPolymorphic(defaultTag, elementProps);
 };
 
 /* --- SIDEBAR ITEM --- */
 export interface SidebarItemProps {
   icon?: React.ReactNode;
-  label: React.ReactNode;
+  label?: React.ReactNode;
   badge?: React.ReactNode;
   isActive?: boolean;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   href?: string;
   className?: string;
   style?: React.CSSProperties;
+  asChild?: boolean;
+  as?: React.ElementType;
+  children?: React.ReactNode;
 }
 
 export const SidebarItem: React.FC<SidebarItemProps> = ({
@@ -413,6 +456,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
   href,
   className = '',
   style,
+  asChild = false,
+  as,
+  children,
+  ...props
 }) => {
   const { isCollapsed } = useSidebar();
 
@@ -421,7 +468,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       {icon && <span className="field-sidebar-item-icon">{icon}</span>}
       {!isCollapsed && (
         <>
-          <span className="field-sidebar-item-label">{label}</span>
+          {label && <span className="field-sidebar-item-label">{label}</span>}
+          {children && !label && children}
           {badge && <span className="field-sidebar-item-badge">{badge}</span>}
         </>
       )}
@@ -431,32 +479,40 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
   const itemClass = `field-sidebar-item ${isActive ? 'active' : ''} ${disabled ? 'disabled' : ''} ${className}`;
 
   const renderElement = () => {
-    if (href && !disabled) {
-      return (
-        <a
-          href={href}
-          className={itemClass}
-          style={style}
-          onClick={onClick}
-          aria-current={isActive ? 'page' : undefined}
-        >
-          {content}
-        </a>
-      );
+    if (asChild && React.isValidElement(children)) {
+      return renderPolymorphic('button', {
+        asChild: true,
+        className: itemClass,
+        style,
+        onClick,
+        disabled,
+        'aria-current': isActive ? 'page' : undefined,
+        children,
+        ...props,
+      });
     }
 
-    return (
-      <button
-        type="button"
-        className={itemClass}
-        style={style}
-        onClick={onClick}
-        disabled={disabled}
-        aria-pressed={isActive}
-      >
-        {content}
-      </button>
-    );
+    const defaultTag = href && !disabled ? 'a' : 'button';
+    const elementProps: Record<string, any> = {
+      as,
+      className: itemClass,
+      style,
+      onClick,
+      children: content,
+      'aria-current': isActive ? 'page' : undefined,
+      ...props,
+    };
+
+    if (href && !disabled) {
+      elementProps.href = href;
+    }
+    if (!as || as === 'button') {
+      elementProps.type = 'button';
+      elementProps.disabled = disabled;
+      elementProps['aria-pressed'] = isActive;
+    }
+
+    return renderPolymorphic(defaultTag, elementProps);
   };
 
   if (isCollapsed && typeof label === 'string') {
@@ -507,7 +563,7 @@ export const SidebarTrigger: React.FC<SidebarTriggerProps> = ({
   style,
 }) => {
   const context = useSidebar();
-  const isCollapsed = controlledIsCollapsed !== undefined ? controlledIsCollapsed : context.isCollapsed;
+  const isCollapsed = controlledIsCollapsed ?? context.isCollapsed;
   const handleToggle = onToggle || context.toggleCollapsed;
 
   return (

@@ -17,23 +17,35 @@ export interface SelectProps<T extends string = string> {
   disabled?: boolean;
   error?: string;
   className?: string;
+  name?: string;
+  id?: string;
+  required?: boolean;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
-export function Select<T extends string = string>({
-  label,
-  options,
-  value: controlledValue,
-  defaultValue,
-  onChange,
-  placeholder = 'Select an option...',
-  disabled = false,
-  error,
-  className = '',
-}: SelectProps<T>) {
+function SelectInner<T extends string = string>(
+  {
+    label,
+    options,
+    value: controlledValue,
+    defaultValue,
+    onChange,
+    placeholder = 'Select an option...',
+    disabled = false,
+    error,
+    className = '',
+    name,
+    id: customId,
+    required,
+    onBlur,
+  }: SelectProps<T>,
+  ref: React.ForwardedRef<HTMLInputElement>
+) {
   const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue);
   const containerRef = useRef<HTMLDivElement>(null);
-  const id = useId();
+  const generatedId = useId();
+  const id = customId || generatedId;
 
   const isControlled = controlledValue !== undefined;
   const activeValue = isControlled ? controlledValue : internalValue;
@@ -68,13 +80,25 @@ export function Select<T extends string = string>({
 
   return (
     <div className={`field-form-item ${className}`} ref={containerRef}>
+      {name && (
+        <input
+          ref={ref}
+          type="hidden"
+          name={name}
+          id={`${id}-input`}
+          value={activeValue ?? ''}
+          required={required}
+          onBlur={onBlur}
+        />
+      )}
       {label && (
-        <label id={`${id}-label`} className="field-label">
+        <label id={`${id}-label`} htmlFor={`${id}-trigger`} className="field-label">
           {label}
         </label>
       )}
       <div style={{ position: 'relative' }}>
         <button
+          id={`${id}-trigger`}
           type="button"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
@@ -109,9 +133,16 @@ export function Select<T extends string = string>({
                 <li
                   key={opt.value}
                   role="option"
+                  tabIndex={opt.disabled ? -1 : 0}
                   aria-selected={isSelected}
                   className={`field-select-option ${isSelected ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
                   onClick={() => !opt.disabled && handleSelect(opt.value)}
+                  onKeyDown={(e) => {
+                    if (!opt.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      handleSelect(opt.value);
+                    }
+                  }}
                 >
                   <span>{opt.label}</span>
                   {isSelected && <Check size={14} color="var(--field-accent-primary)" />}
@@ -121,7 +152,15 @@ export function Select<T extends string = string>({
           </ul>
         )}
       </div>
-      {error && <span className="field-error-text">{error}</span>}
+      {error && (
+        <span className="field-error-text" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   );
 }
+
+export const Select = React.forwardRef(SelectInner) as <T extends string = string>(
+  props: SelectProps<T> & { ref?: React.ForwardedRef<HTMLInputElement> }
+) => React.ReactElement;

@@ -119,6 +119,12 @@ export interface DiffViewerProps {
   className?: string;
 }
 
+const DIFF_MARKERS: Record<DiffLine['type'], string> = {
+  added: '+',
+  removed: '-',
+  normal: ' ',
+};
+
 export const DiffViewer: React.FC<DiffViewerProps> = ({ lines, title, className = '' }) => {
   return (
     <div className={`field-diff-viewer ${className}`}>
@@ -128,20 +134,23 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ lines, title, className 
         </div>
       )}
       <div style={{ padding: '8px 0', backgroundColor: 'var(--field-surface-sunken)' }}>
-        {lines.map((line, idx) => (
-          <div key={idx} className={`field-diff-line ${line.type}`}>
-            <span style={{ width: '40px', color: 'var(--field-text-disabled)', userSelect: 'none' }}>
-              {line.oldLineNumber || ' '}
-            </span>
-            <span style={{ width: '40px', color: 'var(--field-text-disabled)', userSelect: 'none' }}>
-              {line.newLineNumber || ' '}
-            </span>
-            <span style={{ width: '20px', userSelect: 'none', fontWeight: 600 }}>
-              {line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' '}
-            </span>
-            <span style={{ flex: 1, whiteSpace: 'pre' }}>{line.content}</span>
-          </div>
-        ))}
+        {lines.map((line, idx) => {
+          const lineKey = `diff-${line.type}-${line.oldLineNumber ?? ''}-${line.newLineNumber ?? ''}-${idx}`;
+          return (
+            <div key={lineKey} className={`field-diff-line ${line.type}`}>
+              <span style={{ width: '40px', color: 'var(--field-text-disabled)', userSelect: 'none' }}>
+                {line.oldLineNumber || ' '}
+              </span>
+              <span style={{ width: '40px', color: 'var(--field-text-disabled)', userSelect: 'none' }}>
+                {line.newLineNumber || ' '}
+              </span>
+              <span style={{ width: '20px', userSelect: 'none', fontWeight: 600 }}>
+                {DIFF_MARKERS[line.type]}
+              </span>
+              <span style={{ flex: 1, whiteSpace: 'pre' }}>{line.content}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

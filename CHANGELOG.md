@@ -4,6 +4,62 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ---
 
+## [0.2.4] - 2026-09-06
+
+### Summary of Enhancements
+This release implements the architecture improvements and targeted developer ergonomics outlined in the `design_system_enhancements_rfc.md` across `@sam.barfield/field-tokens` and `@sam.barfield/field-react`, extending all enhancements consistently across the entire component library.
+
+#### 1. Tailwind CSS v4 Theme Integration & CSS Variable Scoping
+- **Tailwind v4 `@theme` Configuration**: Added `packages/tokens/src/tailwind.css` exporting all Field design tokens as standard Tailwind CSS variables (`--color-surface-*`, `--color-border-*`, `--color-text-*`, `--color-accent-*`, `--color-status-*`, `--radius-*`, `--shadow-*`, `--font-*`).
+- **Export & Build**: Configured package export `"@sam.barfield/field-tokens/tailwind.css"` and automated copy to `dist/tailwind.css` during package build.
+- **Strictly Scoped Focus Ring Reset**: Replaced global `*:focus-visible` reset with scoped selectors (`.field-scope :is(...)`, `[data-field-theme] :is(...)`, `.field-focus-ring:focus-visible`), eliminating style bleed when consumed in applications alongside Tailwind or unstyled components.
+
+#### 2. Client-Side Router Polymorphism (`asChild`, `as`, `href`)
+- **Polymorphic Slot Utility**: Implemented `renderPolymorphic` helper supporting `asChild` (cloning child element while merging `className`, `style`, and event handlers like `onClick`), custom element types via `as`, and default element rendering.
+- **Components Extended**:
+  - `DropdownItem`: Full router polymorphism (`asChild`, `as`, `href`).
+  - `SidebarItem` & `SidebarSubItem`: Full router polymorphism (`asChild`, `as`).
+  - `BreadcrumbItem`: Full router polymorphism (`asChild`, `as`), with `label` prop updated to `React.ReactNode` for rendering rich content or icons.
+  - `Button` & `IconButton`: Full router polymorphism (`asChild`, `as`, `href`) with `forwardRef` preservation.
+  - `Tabs` (`TabItem`): Router polymorphism (`asChild`, `as`, `href`).
+  - `ContextMenu` (`ContextMenuItem`): Router polymorphism (`asChild`, `as`, `href`).
+
+#### 3. Container-Level Theme Scoping & Unmount Cleanup
+- **`ThemeProvider` Unmount Cleanup**: Added cleanup handler stripping `--field-*` properties, `data-field-theme`, `data-theme`, and `colorScheme` from `document.documentElement` when the provider unmounts, preventing ghost styles from polluting adjacent routes.
+- **Container Scoping (`scope="container"`)**: Added `scope?: 'root' | 'container'`, `as?: React.ElementType`, `className`, and `style` to `ThemeProviderProps`. Renders a styled wrapper element with class `.field-scope` and localized CSS variables without touching `:root`.
+- **`<ThemeScope>` Component**: Exported convenient `<ThemeScope theme={...} as="div">` container primitive.
+- **`useThemeSafe()` Hook**: Safe hook returning active theme or falling back to `darkTheme` without throwing when called outside `<ThemeProvider>`.
+
+#### 4. Form Library & Native Form Submission Integration
+- **`forwardRef` & Native Form Fields**:
+  - `Checkbox`: Wrapped with `forwardRef<HTMLInputElement>`, added `name`, `id`, `value`, `required`, `onBlur`, and rendered visually hidden native checkbox input for seamless integration with `react-hook-form`, Formik, and native `FormData`.
+  - `Switch`: Wrapped with `forwardRef<HTMLInputElement>`, added `name`, `id`, `value`, `required`, `onBlur`, and rendered visually hidden native checkbox input.
+  - `Select`: Wrapped with `forwardRef<HTMLSelectElement>` with generic type safety, added `name`, `id`, `required`, `onBlur`, and rendered hidden form input with selected value.
+  - `RadioGroup`: Added `name`, `required`, and hidden native radio inputs for each option.
+  - `Slider`: Added `name`, `id`, `required` props and native `<input type="range">`.
+  - `NumberInput`: Added `name`, `id`, `required`, `onBlur` props and native `<input type="number">`.
+  - `Combobox`: Added `name`, `id`, `required` props and hidden inputs for selected values.
+  - `DatePicker` & `DateRangePicker`: Added `name`, `id`, `required` props and hidden ISO date inputs.
+
+#### 5. Portaled Overlays Theme Inheritance & Scoped Mounting
+- **Targeted Container Mounting**: Added `container?: HTMLElement | null` prop to portaled overlays (`Modal`, `Drawer`, `ToastProvider`, `ContextMenu`, `CommandPalette`, `Tooltip`, `DatePicker`, `DateRangePicker`).
+- **Theme Data Attributes**: Portaled overlay wrappers now automatically inherit theme context via `.field-scope`, `data-field-theme`, and `data-theme`, guaranteeing dark/light contrast and accent styling inside scoped portals without manual CSS variable forwarding.
+
+#### 6. Table Alignment & Asynchronous Loading States
+- **Column & Cell Alignment**: Added `align?: 'left' | 'center' | 'right'` to `Column<T>`, `TableHeadProps`, and `TableCellProps`. Automatically aligns header text and sort button (`justifyContent`), and body cell content.
+- **Table Loading Skeleton**: Added `isLoading?: boolean` to `TableProps`. When `true`, renders 5 skeleton rows matching columns and alignment.
+- **StatCard Loading Skeleton**: Added `isLoading?: boolean` to `StatCardProps`. When `true`, renders structured `<Skeleton>` placeholders in place of metric value and delta.
+
+---
+
+## [0.2.3] - 2026-09-05
+
+### Mobile Polish & Responsive Improvements
+- Fixed responsive padding and mobile overflow behaviors in showcase layouts, dialogs, and component demo sheets.
+- Updated version references across packages.
+
+---
+
 ## [0.2.2] - 2026-09-04
 
 ### Component Library Documentation Redesign (Shadcn Style)

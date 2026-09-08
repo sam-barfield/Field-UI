@@ -39,7 +39,7 @@ export const StatusDot: React.FC<StatusDotProps> = ({
 /* --- Sparkline --- */
 export interface SparklineProps {
   data: number[];
-  color?: 'accent' | 'success' | 'warning' | 'danger' | string;
+  color?: 'accent' | 'success' | 'warning' | 'danger' | (string & {});
   width?: number;
   height?: number;
   strokeWidth?: number;
@@ -144,7 +144,16 @@ export const Meter: React.FC<MeterProps> = ({
   }
 
   return (
-    <div className={`field-meter-container ${className}`} role="meter" aria-valuenow={value} aria-valuemin={min} aria-valuemax={max}>
+    <div className={`field-meter-container ${className}`}>
+      <meter
+        min={min}
+        max={max}
+        value={clamped}
+        aria-label={label}
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+      >
+        {percentage}%
+      </meter>
       {(label || valueLabel) && (
         <div className="field-meter-header">
           {label && <span>{label}</span>}

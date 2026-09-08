@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "Field Design System Component Manifest",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "components": {
     "Button": {
       "description": "Interactive action button with tactile elevation and loading state",
@@ -39,6 +39,16 @@
         },
         "rightIcon": {
           "type": "ReactNode"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        },
+        "href": {
+          "type": "string"
         }
       }
     },
@@ -72,6 +82,16 @@
             "lg"
           ],
           "default": "md"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        },
+        "href": {
+          "type": "string"
         }
       }
     },
@@ -169,6 +189,19 @@
         },
         "placeholder": {
           "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "onBlur": {
+          "type": "(e: React.FocusEvent<HTMLInputElement>) => void"
         }
       }
     },
@@ -188,6 +221,22 @@
         },
         "description": {
           "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "onBlur": {
+          "type": "(e: React.FocusEvent<HTMLInputElement>) => void"
         }
       }
     },
@@ -208,6 +257,22 @@
         "disabled": {
           "type": "boolean",
           "default": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "onBlur": {
+          "type": "(e: React.FocusEvent<HTMLInputElement>) => void"
         }
       }
     },
@@ -228,6 +293,13 @@
         "onChange": {
           "type": "(val: string) => void",
           "required": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -279,6 +351,16 @@
         "disabled": {
           "type": "boolean",
           "default": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -326,6 +408,19 @@
         "disabled": {
           "type": "boolean",
           "default": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -363,6 +458,19 @@
         "disabled": {
           "type": "boolean",
           "default": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -434,6 +542,13 @@
         },
         "onClick": {
           "type": "() => void"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
         }
       }
     },
@@ -539,6 +654,10 @@
         },
         "subtitle": {
           "type": "string"
+        },
+        "isLoading": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -571,6 +690,9 @@
             "full"
           ],
           "default": "md"
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -598,6 +720,9 @@
         "width": {
           "type": "string",
           "default": "420px"
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -668,6 +793,10 @@
         },
         "children": {
           "type": "ReactNode"
+        },
+        "isLoading": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -728,6 +857,9 @@
             "right"
           ],
           "default": "top"
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -876,6 +1008,9 @@
         },
         "placeholder": {
           "type": "string"
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -911,6 +1046,9 @@
         "items": {
           "type": "Array<ContextMenuItem>",
           "required": true
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     },
@@ -1085,6 +1223,19 @@
         },
         "unit": {
           "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "onBlur": {
+          "type": "(e: React.FocusEvent<HTMLInputElement>) => void"
         }
       }
     },
@@ -1100,6 +1251,16 @@
         },
         "onChange": {
           "type": "(val: Array<string>) => void"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
@@ -1182,6 +1343,13 @@
         },
         "onClick": {
           "type": "() => void"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
         }
       }
     },
@@ -1398,6 +1566,14 @@
       "props": {
         "children": {
           "type": "ReactNode"
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         }
       }
     },
@@ -1421,6 +1597,14 @@
         },
         "onSort": {
           "type": "() => void"
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         }
       }
     },
@@ -1460,6 +1644,16 @@
         },
         "onSelect": {
           "type": "() => void"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        },
+        "href": {
+          "type": "string"
         }
       }
     },
@@ -1588,6 +1782,9 @@
         "children": {
           "type": "ReactNode",
           "required": true
+        },
+        "container": {
+          "type": "HTMLElement | null"
         }
       }
     }

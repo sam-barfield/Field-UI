@@ -9,6 +9,30 @@ export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputEleme
   isFullWidth?: boolean;
 }
 
+function getDescribedBy(id: string, error?: string, helperText?: string): string | undefined {
+  if (error) return `${id}-error`;
+  if (helperText) return `${id}-helper`;
+  return undefined;
+}
+
+function renderHelperOrError(id: string, error?: string, helperText?: string) {
+  if (error) {
+    return (
+      <span id={`${id}-error`} className="field-error-text" role="alert">
+        {error}
+      </span>
+    );
+  }
+  if (helperText) {
+    return (
+      <span id={`${id}-helper`} className="field-helper-text">
+        {helperText}
+      </span>
+    );
+  }
+  return null;
+}
+
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   (
     {
@@ -36,7 +60,11 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             {label}
           </label>
         )}
-        <div className={`field-input-wrapper ${error ? 'error' : ''} ${className}`}>
+        <div
+          className={`field-input-wrapper ${error ? 'error' : ''} ${
+            disabled ? 'disabled' : ''
+          } ${className}`}
+        >
           {leftAdornment && (
             <span
               style={{
@@ -59,7 +87,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             className="field-input"
             disabled={disabled}
             aria-invalid={Boolean(error)}
-            aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+            aria-describedby={getDescribedBy(id, error, helperText)}
             style={{
               flex: 1,
               minWidth: 0,
@@ -85,15 +113,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             </span>
           )}
         </div>
-        {error ? (
-          <span id={`${id}-error`} className="field-error-text" role="alert">
-            {error}
-          </span>
-        ) : helperText ? (
-          <span id={`${id}-helper`} className="field-helper-text">
-            {helperText}
-          </span>
-        ) : null}
+        {renderHelperOrError(id, error, helperText)}
       </div>
     );
   }
@@ -138,18 +158,10 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           className={`field-textarea ${className}`}
           disabled={disabled}
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+          aria-describedby={getDescribedBy(id, error, helperText)}
           {...props}
         />
-        {error ? (
-          <span id={`${id}-error`} className="field-error-text" role="alert">
-            {error}
-          </span>
-        ) : helperText ? (
-          <span id={`${id}-helper`} className="field-helper-text">
-            {helperText}
-          </span>
-        ) : null}
+        {renderHelperOrError(id, error, helperText)}
       </div>
     );
   }

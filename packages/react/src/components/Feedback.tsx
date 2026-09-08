@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 import { IconButton } from './Button';
+import { useThemeSafe } from '../theme';
 
 /* --- ALERT --- */
 export type AlertVariant = 'info' | 'success' | 'warning' | 'danger';
@@ -66,7 +67,20 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export interface ToastProviderProps {
+  children: React.ReactNode;
+  container?: HTMLElement | null;
+  className?: string;
+}
+
+let toastCounter = 0;
+
+export const ToastProvider: React.FC<ToastProviderProps> = ({
+  children,
+  container,
+  className = '',
+}) => {
+  const { theme } = useThemeSafe();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const dismissToast = useCallback((id: string) => {
@@ -75,7 +89,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback(
     ({ title, description, variant = 'info', duration = 4000 }: Omit<ToastItem, 'id'>) => {
-      const id = Math.random().toString(36).substring(2, 9);
+      toastCounter += 1;
+      const id = `toast-${Date.now()}-${toastCounter}`;
       setToasts(prev => [...prev, { id, title, description, variant, duration }]);
 
       if (duration > 0) {
@@ -87,12 +102,20 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [dismissToast]
   );
 
+  const contextValue = useMemo(() => ({ showToast, dismissToast }), [showToast, dismissToast]);
+
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+
   return (
-    <ToastContext.Provider value={{ showToast, dismissToast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
-      {typeof document !== 'undefined' &&
+      {portalTarget &&
         createPortal(
-          <div className="field-toast-container">
+          <div
+            className={`field-toast-container field-scope ${className}`.trim()}
+            data-field-theme={theme.id}
+            data-theme={theme.mode}
+          >
             {toasts.map(toast => (
               <div key={toast.id} className="field-toast-item">
                 <div className="field-toast-body">
@@ -109,7 +132,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               </div>
             ))}
           </div>,
-          document.body
+          portalTarget
         )}
     </ToastContext.Provider>
   );

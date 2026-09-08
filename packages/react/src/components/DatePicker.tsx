@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useThemeSafe } from '../theme';
 
 export interface DateRange {
   start: Date | null;
@@ -39,6 +40,57 @@ const isBetween = (target: Date, start: Date | null, end: Date | null): boolean 
   return t > s && t < e;
 };
 
+function getPreviousMonthYear(month: number, year: number): { month: number; year: number } {
+  if (month === 0) return { month: 11, year: year - 1 };
+  return { month: month - 1, year };
+}
+
+function getNextMonthYear(month: number, year: number): { month: number; year: number } {
+  if (month === 11) return { month: 0, year: year + 1 };
+  return { month: month + 1, year };
+}
+
+function usePopoverOutsideClick(
+  isOpen: boolean,
+  triggerRef: React.RefObject<HTMLElement | null>,
+  popoverRef: React.RefObject<HTMLElement | null>,
+  onClose: () => void,
+  onUpdatePosition: () => void
+) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    const handleResize = () => onUpdatePosition();
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize, true);
+    };
+  }, [isOpen, triggerRef, popoverRef, onClose, onUpdatePosition]);
+}
+
 export interface DatePickerProps {
   label?: string;
   value?: Date | null;
@@ -54,6 +106,10 @@ export interface DatePickerProps {
   onDone?: () => void;
   className?: string;
   style?: React.CSSProperties;
+  name?: string;
+  id?: string;
+  required?: boolean;
+  container?: HTMLElement | null;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -71,11 +127,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onDone,
   className = '',
   style,
+  name,
+  id,
+  required,
+  container,
 }) => {
+  const { theme } = useThemeSafe();
   const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 280 });
+
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
 
   // Current calendar viewing month and year
   const initialView = value ? new Date(value) : new Date();
@@ -105,55 +168,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     setIsOpen(true);
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node) &&
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-
-    const handleResize = () => updatePosition();
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, true);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize, true);
-    };
-  }, [isOpen]);
+  usePopoverOutsideClick(isOpen, triggerRef, popoverRef, () => setIsOpen(false), updatePosition);
 
   const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear(y => y - 1);
-    } else {
-      setViewMonth(m => m - 1);
-    }
+    const prev = getPreviousMonthYear(viewMonth, viewYear);
+    setViewMonth(prev.month);
+    setViewYear(prev.year);
   };
 
   const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear(y => y + 1);
-    } else {
-      setViewMonth(m => m + 1);
-    }
+    const next = getNextMonthYear(viewMonth, viewYear);
+    setViewMonth(next.month);
+    setViewYear(next.year);
   };
 
   // Calendar cells generation
@@ -171,7 +197,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     });
   }
 
-  // Current month days
+  // Current month
   for (let i = 1; i <= daysInMonth; i++) {
     days.push({
       date: new Date(viewYear, viewMonth, i),
@@ -179,9 +205,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     });
   }
 
-  // Next month padding
-  const remainingCells = 42 - days.length;
-  for (let i = 1; i <= remainingCells; i++) {
+  // Next month padding to fill a complete 42-cell or 35-cell grid
+  const remaining = (7 - (days.length % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
     days.push({
       date: new Date(viewYear, viewMonth + 1, i),
       isCurrentMonth: false,
@@ -191,18 +217,35 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const today = new Date();
 
   return (
-    <div className={`field-datepicker ${disabled ? 'disabled' : ''} ${className}`} style={style}>
-      {label && <label className="field-datepicker-label">{label}</label>}
+    <div className={`field-datepicker-container ${disabled ? 'disabled' : ''} ${className}`}>
+      {name && (
+        <input
+          type="hidden"
+          name={name}
+          id={id ? `${id}-input` : undefined}
+          value={value ? value.toISOString() : ''}
+          required={required}
+        />
+      )}
+      {label && <label htmlFor={id} className="field-datepicker-label">{label}</label>}
 
-      <div
-        ref={triggerRef}
-        className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
-        onClick={handleOpen}
-      >
-        <CalendarIcon size={15} className="field-datepicker-icon" />
-        <span className={`field-datepicker-value ${!value ? 'placeholder' : ''}`}>
-          {value ? formatDisplayDate(value) : placeholder}
-        </span>
+      <div className="field-datepicker-trigger-wrapper" style={{ position: 'relative', display: 'inline-flex', width: '100%' }}>
+        <button
+          type="button"
+          ref={triggerRef}
+          id={id}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          disabled={disabled}
+          className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
+          onClick={handleOpen}
+          style={{ width: '100%', paddingRight: clearable && value && !disabled ? '32px' : undefined }}
+        >
+          <CalendarIcon size={15} className="field-datepicker-icon" />
+          <span className={`field-datepicker-value ${!value ? 'placeholder' : ''}`}>
+            {value ? formatDisplayDate(value) : placeholder}
+          </span>
+        </button>
 
         {clearable && value && !disabled && (
           <button
@@ -213,6 +256,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               onChange?.(null);
             }}
             aria-label="Clear date"
+            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={13} />
           </button>
@@ -220,11 +264,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       </div>
 
       {isOpen &&
-        typeof document !== 'undefined' &&
+        portalTarget &&
         createPortal(
           <div
             ref={popoverRef}
-            className="field-datepicker-popover"
+            className="field-datepicker-popover field-scope"
+            data-field-theme={theme.id}
+            data-theme={theme.mode}
             style={{
               position: 'fixed',
               top: coords.top,
@@ -254,7 +300,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
             {/* Days Grid */}
             <div className="field-datepicker-grid">
-              {days.map((item, idx) => {
+              {days.map((item) => {
                 const isSelected = isSameDay(item.date, value ?? null);
                 const isToday = isSameDay(item.date, today);
                 const isPastMin = minDate ? item.date < minDate : false;
@@ -263,7 +309,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
                 return (
                   <button
-                    key={idx}
+                    key={item.date.toISOString()}
                     type="button"
                     disabled={isDisabledDay}
                     className={`field-datepicker-day ${item.isCurrentMonth ? 'current-month' : 'other-month'} ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
@@ -331,7 +377,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               </div>
             </div>
           </div>,
-          document.body
+          portalTarget
         )}
     </div>
   );
@@ -349,6 +395,10 @@ export interface DateRangePickerProps {
   onDone?: () => void;
   className?: string;
   style?: React.CSSProperties;
+  name?: string;
+  id?: string;
+  required?: boolean;
+  container?: HTMLElement | null;
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
@@ -363,12 +413,19 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onDone,
   className = '',
   style,
+  name,
+  id,
+  required,
+  container,
 }) => {
+  const { theme } = useThemeSafe();
   const [isOpen, setIsOpen] = useState(false);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
 
   const initialDate = value.start || new Date();
   const [viewYear, setViewYear] = useState(initialDate.getFullYear());
@@ -396,55 +453,18 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     setIsOpen(true);
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node) &&
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-
-    const handleResize = () => updatePosition();
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, true);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize, true);
-    };
-  }, [isOpen]);
+  usePopoverOutsideClick(isOpen, triggerRef, popoverRef, () => setIsOpen(false), updatePosition);
 
   const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear(y => y - 1);
-    } else {
-      setViewMonth(m => m - 1);
-    }
+    const { month, year } = getPreviousMonthYear(viewMonth, viewYear);
+    setViewMonth(month);
+    setViewYear(year);
   };
 
   const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear(y => y + 1);
-    } else {
-      setViewMonth(m => m + 1);
-    }
+    const { month, year } = getNextMonthYear(viewMonth, viewYear);
+    setViewMonth(month);
+    setViewYear(year);
   };
 
   const handleDayClick = (date: Date) => {
@@ -513,17 +533,43 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   return (
     <div className={`field-datepicker ${disabled ? 'disabled' : ''} ${className}`} style={style}>
-      {label && <label className="field-datepicker-label">{label}</label>}
+      {name && (
+        <>
+          <input
+            type="hidden"
+            name={`${name}_start`}
+            id={id ? `${id}-start-input` : undefined}
+            value={value.start ? value.start.toISOString() : ''}
+            required={required}
+          />
+          <input
+            type="hidden"
+            name={`${name}_end`}
+            id={id ? `${id}-end-input` : undefined}
+            value={value.end ? value.end.toISOString() : ''}
+            required={required}
+          />
+        </>
+      )}
+      {label && <label htmlFor={id} className="field-datepicker-label">{label}</label>}
 
-      <div
-        ref={triggerRef}
-        className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
-        onClick={handleOpen}
-      >
-        <CalendarIcon size={15} className="field-datepicker-icon" />
-        <span className={`field-datepicker-value ${!value.start ? 'placeholder' : ''}`}>
-          {formatRangeLabel()}
-        </span>
+      <div className="field-datepicker-trigger-wrapper" style={{ position: 'relative', display: 'inline-flex', width: '100%' }}>
+        <button
+          type="button"
+          ref={triggerRef}
+          id={id}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          disabled={disabled}
+          className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
+          onClick={handleOpen}
+          style={{ width: '100%', paddingRight: value.start && !disabled ? '32px' : undefined }}
+        >
+          <CalendarIcon size={15} className="field-datepicker-icon" />
+          <span className={`field-datepicker-value ${!value.start ? 'placeholder' : ''}`}>
+            {formatRangeLabel()}
+          </span>
+        </button>
 
         {value.start && !disabled && (
           <button
@@ -534,6 +580,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               onChange?.({ start: null, end: null });
             }}
             aria-label="Clear date range"
+            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={13} />
           </button>
@@ -541,11 +588,13 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       </div>
 
       {isOpen &&
-        typeof document !== 'undefined' &&
+        portalTarget &&
         createPortal(
           <div
             ref={popoverRef}
-            className="field-datepicker-popover range-popover"
+            className="field-datepicker-popover range-popover field-scope"
+            data-field-theme={theme.id}
+            data-theme={theme.mode}
             style={{
               position: 'fixed',
               top: coords.top,
@@ -588,20 +637,20 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
             {/* Days Grid */}
             <div className="field-datepicker-grid">
-              {days.map((item, idx) => {
+              {days.map((item) => {
                 const isStart = isSameDay(item.date, value.start);
                 const isEnd = isSameDay(item.date, value.end);
                 const inRange = isBetween(item.date, value.start, value.end);
-                const inHoverRange =
-                  value.start && !value.end && hoverDate
-                    ? hoverDate >= value.start
-                      ? isBetween(item.date, value.start, hoverDate)
-                      : isBetween(item.date, hoverDate, value.start)
-                    : false;
+                let inHoverRange = false;
+                if (value.start && !value.end && hoverDate) {
+                  inHoverRange = hoverDate >= value.start
+                    ? isBetween(item.date, value.start, hoverDate)
+                    : isBetween(item.date, hoverDate, value.start);
+                }
 
                 return (
                   <button
-                    key={idx}
+                    key={item.date.toISOString()}
                     type="button"
                     className={`field-datepicker-day ${item.isCurrentMonth ? 'current-month' : 'other-month'} ${isStart ? 'range-start' : ''} ${isEnd ? 'range-end' : ''} ${inRange || inHoverRange ? 'in-range' : ''}`}
                     onClick={() => handleDayClick(item.date)}
@@ -649,7 +698,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               </div>
             </div>
           </div>,
-          document.body
+          portalTarget
         )}
     </div>
   );

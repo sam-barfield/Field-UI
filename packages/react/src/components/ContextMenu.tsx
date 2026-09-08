@@ -1,23 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useThemeSafe } from '../theme';
+import { renderPolymorphic } from '../utils/polymorphic';
 
 export interface ContextMenuItem {
   id: string;
-  label: string;
+  label: React.ReactNode;
   icon?: React.ReactNode;
   onSelect?: () => void;
   variant?: 'default' | 'danger';
   disabled?: boolean;
   divider?: boolean;
+  href?: string;
+  asChild?: boolean;
+  as?: React.ElementType;
 }
 
 export interface ContextMenuProps {
   children: React.ReactNode;
   items: ContextMenuItem[];
+  container?: HTMLElement | null;
   className?: string;
 }
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({ children, items, className = '' }) => {
+export const ContextMenu: React.FC<ContextMenuProps> = ({
+  children,
+  items,
+  container,
+  className = '',
+}) => {
+  const { theme } = useThemeSafe();
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
@@ -51,6 +63,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ children, items, class
     };
   }, [isOpen]);
 
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+
   return (
     <>
       <div onContextMenu={handleContextMenu} className={className} style={{ display: 'contents' }}>
@@ -58,39 +72,67 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ children, items, class
       </div>
 
       {isOpen &&
-        typeof document !== 'undefined' &&
+        portalTarget &&
         createPortal(
           <div
             ref={menuRef}
-            className="field-context-menu"
+            className="field-context-menu field-scope"
+            data-field-theme={theme.id}
+            data-theme={theme.mode}
             style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
             role="menu"
           >
             {items.map((item, idx) => {
               if (item.divider) {
-                return <div key={`div-${idx}`} className="field-dropdown-divider" role="separator" />;
+                return <hr key={item.id ?? `div-${idx}`} className="field-dropdown-divider" />;
               }
+
+              const itemClass = `field-dropdown-item ${item.variant === 'danger' ? 'variant-danger' : ''}`;
+              const handleClick = (e?: React.MouseEvent) => {
+                if (!item.disabled) {
+                  item.onSelect?.();
+                  setIsOpen(false);
+                }
+              };
+
+              if (item.asChild && React.isValidElement(item.label)) {
+                return (
+                  <React.Fragment key={item.id}>
+                    {renderPolymorphic('button', {
+                      asChild: true,
+                      role: 'menuitem',
+                      disabled: item.disabled,
+                      className: itemClass,
+                      onClick: handleClick,
+                      children: item.label,
+                    })}
+                  </React.Fragment>
+                );
+              }
+
+              const defaultTag = item.href && !item.disabled ? 'a' : 'button';
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="menuitem"
-                  disabled={item.disabled}
-                  className={`field-dropdown-item ${item.variant === 'danger' ? 'variant-danger' : ''}`}
-                  onClick={() => {
-                    if (!item.disabled) {
-                      item.onSelect?.();
-                      setIsOpen(false);
-                    }
-                  }}
-                >
-                  {item.icon && <span style={{ display: 'inline-flex' }}>{item.icon}</span>}
-                  <span>{item.label}</span>
-                </button>
+                <React.Fragment key={item.id}>
+                  {renderPolymorphic(defaultTag, {
+                    as: item.as,
+                    role: 'menuitem',
+                    href: item.disabled ? undefined : item.href,
+                    type: !item.href && (!item.as || item.as === 'button') ? 'button' : undefined,
+                    disabled: item.disabled,
+                    className: itemClass,
+                    onClick: handleClick,
+                    children: (
+                      <>
+                        {item.icon && <span style={{ display: 'inline-flex' }}>{item.icon}</span>}
+                        <span>{item.label}</span>
+                      </>
+                    ),
+                  })}
+                </React.Fragment>
               );
             })}
           </div>,
-          document.body
+          portalTarget
         )}
     </>
   );

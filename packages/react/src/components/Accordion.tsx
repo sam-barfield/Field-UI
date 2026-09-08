@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
+import { useThemeSafe } from '../theme';
 
 /* --- ACCORDION --- */
 export interface AccordionItem {
@@ -108,6 +109,7 @@ export interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactElement;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  container?: HTMLElement | null;
   className?: string;
 }
 
@@ -115,8 +117,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
   position = 'top',
+  container,
   className = '',
 }) => {
+  const { theme } = useThemeSafe();
   const [isVisible, setIsVisible] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -183,6 +187,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
     }
   };
 
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+
   return (
     <>
       <div
@@ -196,10 +202,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
         {children}
       </div>
       {isVisible &&
-        typeof document !== 'undefined' &&
+        portalTarget &&
         createPortal(
           <div
-            className={`field-tooltip ${className}`}
+            className={`field-tooltip field-scope ${className}`.trim()}
+            data-field-theme={theme.id}
+            data-theme={theme.mode}
             role="tooltip"
             style={{
               position: 'fixed',
@@ -212,7 +220,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           >
             {content}
           </div>,
-          document.body
+          portalTarget
         )}
     </>
   );

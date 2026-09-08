@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Skeleton } from './Primitives';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'interactive';
@@ -42,7 +43,7 @@ export const CardFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ chi
 
 export interface StatCardProps {
   label: string;
-  value: string | number;
+  value?: string | number;
   delta?: {
     value: string;
     trend: 'up' | 'down' | 'neutral';
@@ -51,16 +52,18 @@ export interface StatCardProps {
   subtitle?: string;
   chart?: React.ReactNode;
   className?: string;
+  isLoading?: boolean;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
   label,
-  value,
+  value = '',
   delta,
   icon,
   subtitle,
   chart,
   className = '',
+  isLoading = false,
 }) => {
   return (
     <div className={`field-stat-card ${className}`}>
@@ -69,13 +72,22 @@ export const StatCard: React.FC<StatCardProps> = ({
         {icon && <span className="field-stat-card-icon">{icon}</span>}
       </div>
       <div className="field-stat-card-body">
-        <span className="field-stat-value">{value}</span>
-        {delta && (
-          <span className={`field-stat-card-delta trend-${delta.trend}`}>
-            {delta.trend === 'up' && <ArrowUpRight size={14} />}
-            {delta.trend === 'down' && <ArrowDownRight size={14} />}
-            {delta.value}
-          </span>
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+            <Skeleton width="60%" height="28px" />
+            <Skeleton width="40%" height="16px" />
+          </div>
+        ) : (
+          <>
+            <span className="field-stat-value">{value}</span>
+            {delta && (
+              <span className={`field-stat-card-delta trend-${delta.trend}`}>
+                {delta.trend === 'up' && <ArrowUpRight size={14} />}
+                {delta.trend === 'down' && <ArrowDownRight size={14} />}
+                {delta.value}
+              </span>
+            )}
+          </>
         )}
       </div>
       {subtitle && <p className="field-stat-card-subtitle">{subtitle}</p>}

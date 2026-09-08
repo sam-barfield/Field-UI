@@ -9,7 +9,7 @@ import { motion } from './primitives/motion';
  * Generate CSS variable key-value pairs for a FieldTheme.
  */
 export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
-  const activeRadii = { ...radii, ...(theme.radiiOverrides || {}) };
+  const activeRadii = { ...radii, ...theme.radiiOverrides };
 
   const vars: Record<string, string> = {
     // Surfaces

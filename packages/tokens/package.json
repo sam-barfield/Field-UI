@@ -1,6 +1,6 @@
 {
   "name": "@sam.barfield/field-tokens",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Minimal, inheritable, multi-platform design tokens for Field Design System",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -9,13 +9,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./tailwind.css": "./dist/tailwind.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs = require('fs'); fs.copyFileSync('src/tailwind.css', 'dist/tailwind.css');\"",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2, ChevronRight } from 'lucide-react';
+import { renderPolymorphic } from '../utils/polymorphic';
 
 /* --- PROGRESS --- */
 export interface ProgressProps {
@@ -31,13 +32,15 @@ export const Progress: React.FC<ProgressProps> = ({
           )}
         </div>
       )}
-      <div
-        className="field-progress-track"
-        role="progressbar"
-        aria-valuenow={value}
-        aria-valuemin={0}
-        aria-valuemax={max}
+      <progress
+        value={value}
+        max={max}
+        aria-label={label}
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       >
+        {percentage}%
+      </progress>
+      <div className="field-progress-track">
         <div className="field-progress-bar" style={{ width: `${percentage}%` }} />
       </div>
     </div>
@@ -96,10 +99,12 @@ export const Divider: React.FC<DividerProps> = ({ orientation = 'horizontal', cl
 
 /* --- BREADCRUMB --- */
 export interface BreadcrumbItem {
-  label: string;
+  label: React.ReactNode;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   isCurrent?: boolean;
+  asChild?: boolean;
+  as?: React.ElementType;
 }
 
 export interface BreadcrumbProps {
@@ -114,16 +119,36 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
           const isCurrent = item.isCurrent || isLast;
-          const isInteractive = Boolean(item.href || item.onClick) && !isCurrent;
-          return (
-            <li key={idx} className="field-breadcrumb-item">
-              {isInteractive ? (
+          const isInteractive = Boolean(item.href || item.onClick || item.as || item.asChild) && !isCurrent;
+
+          const renderItemContent = () => {
+            if (item.asChild && React.isValidElement(item.label)) {
+              return renderPolymorphic('a', {
+                asChild: true,
+                className: 'field-breadcrumb-link',
+                href: item.href,
+                onClick: item.onClick,
+                children: item.label,
+              });
+            }
+
+            if (item.as) {
+              return renderPolymorphic(item.as, {
+                className: 'field-breadcrumb-link',
+                href: item.href,
+                onClick: item.onClick,
+                children: item.label,
+              });
+            }
+
+            if (isInteractive) {
+              return (
                 <a
                   href={item.href || '#'}
                   onClick={e => {
                     if (item.onClick) {
                       e.preventDefault();
-                      item.onClick();
+                      item.onClick(e);
                     }
                   }}
                   className="field-breadcrumb-link"
@@ -131,11 +156,21 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
                 >
                   {item.label}
                 </a>
-              ) : (
-                <span className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-static'}>
-                  {item.label}
-                </span>
-              )}
+              );
+            }
+
+            return (
+              <span className={isCurrent ? 'field-breadcrumb-current' : 'field-breadcrumb-static'}>
+                {item.label}
+              </span>
+            );
+          };
+
+          const itemKey = item.href || (typeof item.label === 'string' ? item.label : `breadcrumb-${idx}`);
+
+          return (
+            <li key={itemKey} className="field-breadcrumb-item">
+              {renderItemContent()}
               {!isLast && (
                 <span className="field-breadcrumb-separator">
                   <ChevronRight size={14} />

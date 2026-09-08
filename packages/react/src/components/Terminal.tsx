@@ -180,8 +180,9 @@ export const TerminalLine: React.FC<TerminalLineProps> = ({
   className = '',
   style,
 }) => {
+  const levelClass = level ? `level-${level}` : '';
   return (
-    <div className={`field-terminal-line ${level ? `level-${level}` : ''} ${className}`} style={style}>
+    <div className={`field-terminal-line ${levelClass} ${className}`.trim()} style={style}>
       {timestamp && <span className="field-terminal-time">{timestamp}</span>}
       {level && level !== 'cmd' && (
         <span className={`field-terminal-badge badge-${level}`}>
@@ -223,52 +224,62 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
   const [historyIdx, setHistoryIdx] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const value = controlledValue !== undefined ? controlledValue : internalValue;
+  const value = controlledValue ?? internalValue;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (controlledValue === undefined) setInternalValue(e.target.value);
     onChange?.(e.target.value);
   };
 
+  const updateValue = (val: string) => {
+    if (controlledValue === undefined) setInternalValue(val);
+    onChange?.(val);
+  };
+
+  const handleEnter = () => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    setHistory(prev => [...prev, trimmed]);
+    setHistoryIdx(-1);
+    onSubmit?.(trimmed);
+    if (controlledValue === undefined) setInternalValue('');
+  };
+
+  const handleArrowUp = () => {
+    if (history.length === 0) return;
+    const nextIdx = historyIdx === -1 ? history.length - 1 : Math.max(0, historyIdx - 1);
+    setHistoryIdx(nextIdx);
+    updateValue(history[nextIdx] || '');
+  };
+
+  const handleArrowDown = () => {
+    if (historyIdx === -1) return;
+    const nextIdx = historyIdx + 1;
+    if (nextIdx >= history.length) {
+      setHistoryIdx(-1);
+      updateValue('');
+    } else {
+      setHistoryIdx(nextIdx);
+      updateValue(history[nextIdx] || '');
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      const trimmed = value.trim();
-      if (trimmed) {
-        setHistory(prev => [...prev, trimmed]);
-        setHistoryIdx(-1);
-        onSubmit?.(trimmed);
-        if (controlledValue === undefined) setInternalValue('');
-      }
+      handleEnter();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      if (history.length === 0) return;
-      const nextIdx = historyIdx === -1 ? history.length - 1 : Math.max(0, historyIdx - 1);
-      setHistoryIdx(nextIdx);
-      const val = history[nextIdx] || '';
-      if (controlledValue === undefined) setInternalValue(val);
-      onChange?.(val);
+      handleArrowUp();
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (historyIdx === -1) return;
-      const nextIdx = historyIdx + 1;
-      if (nextIdx >= history.length) {
-        setHistoryIdx(-1);
-        if (controlledValue === undefined) setInternalValue('');
-        onChange?.('');
-      } else {
-        setHistoryIdx(nextIdx);
-        const val = history[nextIdx] || '';
-        if (controlledValue === undefined) setInternalValue(val);
-        onChange?.(val);
-      }
+      handleArrowDown();
     }
   };
 
   return (
-    <div
+    <label
       className={`field-terminal-prompt ${disabled ? 'disabled' : ''} ${className}`}
       style={style}
-      onClick={() => inputRef.current?.focus()}
     >
       <div className="field-terminal-prompt-label">
         <span className="user">{user}</span>
@@ -303,6 +314,6 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
       >
         <CornerDownLeft size={12} />
       </button>
-    </div>
+    </label>
   );
 };

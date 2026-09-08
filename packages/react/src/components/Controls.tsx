@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { Check, ChevronUp, ChevronDown, X } from 'lucide-react';
 
 
@@ -11,40 +11,75 @@ export interface SwitchProps {
   size?: 'sm' | 'md';
   description?: string;
   className?: string;
+  name?: string;
+  id?: string;
+  value?: string;
+  required?: boolean;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
-export const Switch: React.FC<SwitchProps> = ({
-  label,
-  checked,
-  onChange,
-  disabled = false,
-  description,
-  className = '',
-}) => {
-  return (
-    <label
-      className={`field-flex items-center gap-3 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-      style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '12px' }}
-    >
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        className={`field-switch ${checked ? 'checked' : ''}`}
-        onClick={() => !disabled && onChange(!checked)}
+export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
+  (
+    {
+      label,
+      checked,
+      onChange,
+      disabled = false,
+      size = 'md',
+      description,
+      className = '',
+      name,
+      id,
+      value,
+      required,
+      onBlur,
+    },
+    ref
+  ) => {
+    return (
+      <label
+        htmlFor={id}
+        className={`field-flex items-center gap-3 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+        style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '12px', position: 'relative' }}
       >
-        <span className="field-switch-thumb" />
-      </button>
-      {(label || description) && (
-        <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
-          {label && <span className="field-label" style={{ cursor: 'pointer', margin: 0 }}>{label}</span>}
-          {description && <span className="field-helper-text">{description}</span>}
-        </div>
-      )}
-    </label>
-  );
-};
+        <input
+          ref={ref}
+          type="checkbox"
+          role="switch"
+          name={name}
+          id={id}
+          value={value}
+          checked={checked}
+          required={required}
+          disabled={disabled}
+          onBlur={onBlur}
+          onChange={e => onChange(e.target.checked)}
+          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          disabled={disabled}
+          className={`field-switch ${size === 'sm' ? 'field-switch-sm' : ''} ${checked ? 'checked' : ''}`}
+          onClick={() => !disabled && onChange(!checked)}
+        >
+          <span className="field-switch-thumb" />
+        </button>
+        {(label || description) && (
+          <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
+            {label && <span className="field-label" style={{ cursor: 'pointer', margin: 0 }}>{label}</span>}
+            {description && <span className="field-helper-text">{description}</span>}
+          </div>
+        )}
+      </label>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';
 
 /* --- CHECKBOX --- */
 export interface CheckboxProps {
@@ -54,41 +89,81 @@ export interface CheckboxProps {
   disabled?: boolean;
   indeterminate?: boolean;
   className?: string;
+  name?: string;
+  id?: string;
+  value?: string;
+  required?: boolean;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
-  label,
-  checked,
-  onChange,
-  disabled = false,
-  className = '',
-}) => {
-  return (
-    <label
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        userSelect: 'none',
-      }}
-      className={className}
-    >
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={checked}
-        disabled={disabled}
-        className={`field-checkbox ${checked ? 'checked' : ''}`}
-        onClick={() => !disabled && onChange(!checked)}
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  (
+    {
+      label,
+      checked,
+      onChange,
+      disabled = false,
+      indeterminate = false,
+      className = '',
+      name,
+      id,
+      value,
+      required,
+      onBlur,
+    },
+    ref
+  ) => {
+    return (
+      <label
+        htmlFor={id}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.5 : 1,
+          userSelect: 'none',
+          position: 'relative',
+        }}
+        className={className}
       >
-        {checked && <Check size={13} strokeWidth={2.75} style={{ display: 'block', flexShrink: 0 }} />}
-      </button>
-      {label && <span className="field-text field-text-sm">{label}</span>}
-    </label>
-  );
-};
+        <input
+          ref={ref}
+          type="checkbox"
+          name={name}
+          id={id}
+          value={value}
+          checked={checked}
+          required={required}
+          disabled={disabled}
+          onBlur={onBlur}
+          onChange={e => onChange(e.target.checked)}
+          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
+        />
+        <span
+          className={`field-checkbox ${checked ? 'checked' : ''} ${indeterminate ? 'indeterminate' : ''}`}
+          aria-hidden="true"
+        >
+          {checked && !indeterminate && <Check size={13} strokeWidth={2.75} style={{ display: 'block', flexShrink: 0 }} />}
+          {indeterminate && (
+            <span
+              style={{
+                width: '8px',
+                height: '2px',
+                backgroundColor: 'var(--field-text-inverse, #fff)',
+                borderRadius: '1px',
+                display: 'block',
+              }}
+            />
+          )}
+        </span>
+        {label && <span className="field-text field-text-sm">{label}</span>}
+      </label>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';
 
 /* --- RADIO GROUP --- */
 export interface RadioOption<T extends string = string> {
@@ -105,16 +180,21 @@ export interface RadioGroupProps<T extends string = string> {
   onChange: (val: T) => void;
   disabled?: boolean;
   className?: string;
+  name?: string;
+  required?: boolean;
 }
 
-export function RadioGroup<T extends string = string>({
-  label,
-  options,
-  value,
-  onChange,
-  disabled = false,
-  className = '',
-}: RadioGroupProps<T>) {
+export function RadioGroup<T extends string = string>(props: Readonly<RadioGroupProps<T>>) {
+  const {
+    label,
+    options,
+    value,
+    onChange,
+    disabled = false,
+    className = '',
+    name,
+    required,
+  } = props;
   return (
     <div className={`field-form-item ${className}`} role="radiogroup" aria-label={label}>
       {label && <span className="field-label">{label}</span>}
@@ -126,7 +206,22 @@ export function RadioGroup<T extends string = string>({
             <label
               key={opt.value}
               className={`field-radio-item ${isDisabled ? 'disabled' : ''}`}
+              style={{ position: 'relative' }}
             >
+              {name && (
+                <input
+                  type="radio"
+                  name={name}
+                  value={opt.value}
+                  checked={isSelected}
+                  disabled={isDisabled}
+                  required={required}
+                  onChange={() => onChange(opt.value)}
+                  style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+              )}
               <button
                 type="button"
                 role="radio"
@@ -159,7 +254,7 @@ export function RadioGroup<T extends string = string>({
 export interface SliderZone {
   from?: number;
   to: number;
-  color?: 'success' | 'warning' | 'danger' | 'accent' | string;
+  color?: 'success' | 'warning' | 'danger' | 'accent' | (string & {});
   label?: string;
 }
 
@@ -178,6 +273,9 @@ export interface SliderProps {
   valueSuffix?: string;
   className?: string;
   style?: React.CSSProperties;
+  name?: string;
+  id?: string;
+  required?: boolean;
 }
 
 const resolveColor = (c?: string): string => {
@@ -206,6 +304,9 @@ export const Slider: React.FC<SliderProps> = ({
   valueSuffix = '',
   className = '',
   style,
+  name,
+  id,
+  required,
 }) => {
   const rangeSpan = Math.max(1, max - min);
   const clampedValue = Math.min(max, Math.max(min, value));
@@ -216,7 +317,7 @@ export const Slider: React.FC<SliderProps> = ({
     if (!zones || zones.length === 0) return null;
     let currentFrom = min;
     return zones.map((z) => {
-      const from = z.from !== undefined ? z.from : currentFrom;
+      const from = z.from ?? currentFrom;
       const to = Math.min(max, z.to);
       currentFrom = to;
       return {
@@ -233,7 +334,7 @@ export const Slider: React.FC<SliderProps> = ({
     if (!resolvedZones) return null;
     return (
       resolvedZones.find((z) => clampedValue >= z.from && clampedValue <= z.to) ||
-      resolvedZones[resolvedZones.length - 1]
+      resolvedZones.at(-1)
     );
   }, [resolvedZones, clampedValue]);
 
@@ -279,12 +380,12 @@ export const Slider: React.FC<SliderProps> = ({
         {/* Background track (shows colored zone levels if defined) */}
         <div className="field-slider-track-bg">
           {resolvedZones ? (
-            resolvedZones.map((zone, idx) => {
+            resolvedZones.map((zone) => {
               const left = ((zone.from - min) / rangeSpan) * 100;
               const width = ((zone.to - zone.from) / rangeSpan) * 100;
               return (
                 <div
-                  key={idx}
+                  key={`zone-${zone.from}-${zone.to}`}
                   className="field-slider-zone-segment"
                   style={{
                     left: `${left}%`,
@@ -313,12 +414,12 @@ export const Slider: React.FC<SliderProps> = ({
         {/* Threshold boundary divider lines layer (sits above track fill so reached lines remain visible) */}
         {resolvedZones && resolvedZones.length > 1 && (
           <div className="field-slider-threshold-lines">
-            {resolvedZones.slice(0, -1).map((zone, idx) => {
+            {resolvedZones.slice(0, -1).map((zone) => {
               const linePercent = ((zone.to - min) / rangeSpan) * 100;
               const isReached = clampedValue >= zone.to;
               return (
                 <div
-                  key={idx}
+                  key={`line-${zone.to}`}
                   className={`field-slider-threshold-line ${isReached ? 'reached' : 'unreached'}`}
                   style={{
                     left: `${linePercent}%`,
@@ -335,6 +436,9 @@ export const Slider: React.FC<SliderProps> = ({
         {/* Native range input layered on top for full accessibility */}
         <input
           type="range"
+          name={name}
+          id={id}
+          required={required}
           min={min}
           max={max}
           step={step}
@@ -356,11 +460,11 @@ export const Slider: React.FC<SliderProps> = ({
       {/* Marks / Level labels beneath track */}
       {showMarks && resolvedZones && (
         <div className="field-slider-marks">
-          {resolvedZones.map((zone, idx) => {
+          {resolvedZones.map((zone) => {
             const markPercent = ((zone.to - min) / rangeSpan) * 100;
             return (
               <span
-                key={idx}
+                key={`mark-${zone.to}`}
                 className="field-slider-mark"
                 style={{ left: `${markPercent}%` }}
               >
@@ -388,6 +492,10 @@ export interface NumberInputProps {
   error?: string;
   disabled?: boolean;
   className?: string;
+  name?: string;
+  id?: string;
+  required?: boolean;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
 export const NumberInput: React.FC<NumberInputProps> = ({
@@ -403,6 +511,10 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   error,
   disabled = false,
   className = '',
+  name,
+  id,
+  required,
+  onBlur,
 }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const isControlled = controlledValue !== undefined;
@@ -437,19 +549,23 @@ export const NumberInput: React.FC<NumberInputProps> = ({
 
   return (
     <div className={`field-form-item ${className}`}>
-      {label && <label className="field-label">{label}</label>}
+      {label && <label htmlFor={id} className="field-label">{label}</label>}
       <div className={`field-number-input-wrapper ${error ? 'error' : ''}`}>
         <input
           type="number"
+          name={name}
+          id={id}
+          required={required}
+          onBlur={onBlur}
           className="field-number-input"
-          value={isNaN(currentVal) ? '' : currentVal}
+          value={Number.isNaN(currentVal) ? '' : currentVal}
           min={min !== -Infinity ? min : undefined}
           max={max !== Infinity ? max : undefined}
           step={step}
           disabled={disabled}
           onChange={e => {
-            const parsed = parseFloat(e.target.value);
-            updateValue(isNaN(parsed) ? 0 : parsed);
+            const parsed = Number.parseFloat(e.target.value);
+            updateValue(Number.isNaN(parsed) ? 0 : parsed);
           }}
           onKeyDown={handleKeyDown}
         />
@@ -475,11 +591,8 @@ export const NumberInput: React.FC<NumberInputProps> = ({
           </button>
         </div>
       </div>
-      {error ? (
-        <span className="field-error-text">{error}</span>
-      ) : helperText ? (
-        <span className="field-helper-text">{helperText}</span>
-      ) : null}
+      {error && <span className="field-error-text">{error}</span>}
+      {!error && helperText && <span className="field-helper-text">{helperText}</span>}
     </div>
   );
 };
@@ -502,6 +615,9 @@ export interface ComboboxProps {
   error?: string;
   disabled?: boolean;
   className?: string;
+  name?: string;
+  id?: string;
+  required?: boolean;
 }
 
 export const Combobox: React.FC<ComboboxProps> = ({
@@ -515,6 +631,9 @@ export const Combobox: React.FC<ComboboxProps> = ({
   error,
   disabled = false,
   className = '',
+  name,
+  id,
+  required,
 }) => {
   const [internalValue, setInternalValue] = useState<string[]>(defaultValue);
   const [search, setSearch] = useState('');
@@ -559,13 +678,31 @@ export const Combobox: React.FC<ComboboxProps> = ({
     opt.label.toLowerCase().includes(search.toLowerCase())
   );
 
+  const generatedId = useId();
+  const comboboxId = id || generatedId;
+  const listboxId = `${comboboxId}-listbox`;
+
   return (
     <div ref={containerRef} className={`field-form-item ${className}`}>
-      {label && <label className="field-label">{label}</label>}
+      {name && currentValues.map(val => (
+        <input key={val} type="hidden" name={name} value={val} />
+      ))}
+      {label && <label htmlFor={id} className="field-label">{label}</label>}
       <div
         className={`field-combobox-container ${error ? 'error' : ''}`}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        aria-haspopup="listbox"
+        tabIndex={disabled ? -1 : 0}
         onClick={() => {
           if (!disabled) {
+            setIsOpen(true);
+            inputRef.current?.focus();
+          }
+        }}
+        onKeyDown={e => {
+          if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
             setIsOpen(true);
             inputRef.current?.focus();
           }
@@ -590,6 +727,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
           );
         })}
         <input
+          id={id}
           ref={inputRef}
           type="text"
           className="field-combobox-input"
@@ -606,7 +744,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
 
       {isOpen && (
         <div style={{ position: 'relative' }}>
-          <ul className="field-select-dropdown" role="listbox">
+          <ul id={listboxId} className="field-select-dropdown" role="listbox">
             {filteredOptions.length === 0 ? (
               <li style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--field-text-tertiary)' }}>
                 No options found
@@ -618,9 +756,16 @@ export const Combobox: React.FC<ComboboxProps> = ({
                   <li
                     key={opt.value}
                     role="option"
+                    tabIndex={opt.disabled ? -1 : 0}
                     aria-selected={isSelected}
                     className={`field-select-option ${isSelected ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
                     onClick={() => !opt.disabled && handleToggleOption(opt.value)}
+                    onKeyDown={e => {
+                      if (!opt.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        handleToggleOption(opt.value);
+                      }
+                    }}
                   >
                     <span>{opt.label}</span>
                     {isSelected && <Check size={14} color="var(--field-accent-primary)" />}
@@ -632,11 +777,8 @@ export const Combobox: React.FC<ComboboxProps> = ({
         </div>
       )}
 
-      {error ? (
-        <span className="field-error-text">{error}</span>
-      ) : helperText ? (
-        <span className="field-helper-text">{helperText}</span>
-      ) : null}
+      {error && <span className="field-error-text">{error}</span>}
+      {!error && helperText && <span className="field-helper-text">{helperText}</span>}
     </div>
   );
 };

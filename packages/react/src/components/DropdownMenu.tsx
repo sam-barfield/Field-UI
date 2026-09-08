@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, createContext, useContext } from 'react';
+import React, { useState, useRef, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
+import { renderPolymorphic } from '../utils/polymorphic';
 
 interface DropdownContextValue {
   close: () => void;
@@ -29,14 +30,14 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   const isControlled = controlledIsOpen !== undefined;
   const open = isControlled ? controlledIsOpen : internalIsOpen;
 
-  const setOpen = (val: boolean) => {
+  const setOpen = useCallback((val: boolean) => {
     if (!isControlled) {
       setInternalIsOpen(val);
     }
     onOpenChange?.(val);
-  };
+  }, [isControlled, onOpenChange]);
 
-  const close = () => setOpen(false);
+  const close = useCallback(() => setOpen(false), [setOpen]);
 
   // Click outside and escape handling
   useEffect(() => {
@@ -60,19 +61,41 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open]);
+  }, [open, close]);
+
+  const contextValue = useMemo(() => ({ close }), [close]);
 
   return (
-    <DropdownContext.Provider value={{ close }}>
+    <DropdownContext.Provider value={contextValue}>
       <div ref={containerRef} className={`field-dropdown-wrapper ${className}`}>
-        <div
-          onClick={() => setOpen(!open)}
-          aria-haspopup="true"
-          aria-expanded={open}
-          style={{ display: 'inline-flex' }}
-        >
-          {trigger}
-        </div>
+        {React.isValidElement(trigger) ? (
+          React.cloneElement(trigger as React.ReactElement<any>, {
+            onClick: (e: React.MouseEvent) => {
+              (trigger as React.ReactElement<any>).props?.onClick?.(e);
+              setOpen(!open);
+            },
+            'aria-haspopup': 'menu',
+            'aria-expanded': open,
+          })
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              color: 'inherit',
+              cursor: 'pointer',
+              display: 'inline-flex',
+            }}
+          >
+            {trigger}
+          </button>
+        )}
 
         {open && (
           <div
@@ -94,7 +117,7 @@ export interface DropdownGroupProps {
 }
 
 export const DropdownGroup: React.FC<DropdownGroupProps> = ({ label, children }) => (
-  <div className="field-dropdown-group" role="group">
+  <div className="field-dropdown-group">
     {label && <div className="field-dropdown-label">{label}</div>}
     {children}
   </div>
@@ -108,6 +131,10 @@ export interface DropdownItemProps {
   disabled?: boolean;
   shortcut?: string;
   className?: string;
+  asChild?: boolean;
+  as?: React.ElementType;
+  href?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const DropdownItem: React.FC<DropdownItemProps> = ({
@@ -118,6 +145,10 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   disabled = false,
   shortcut,
   className = '',
+  asChild = false,
+  as,
+  href,
+  onClick,
 }) => {
   const ctx = useContext(DropdownContext);
 
@@ -126,30 +157,71 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
       e.preventDefault();
       return;
     }
+    onClick?.(e);
     onSelect?.();
     ctx?.close();
   };
 
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      disabled={disabled}
-      onClick={handleClick}
-      className={`field-dropdown-item ${variant === 'danger' ? 'variant-danger' : ''} ${className}`}
-    >
-      {icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{icon}</span>}
-      <span style={{ flex: 1, textAlign: 'left' }}>{children}</span>
-      {shortcut && (
-        <span style={{ fontSize: '0.6875rem', color: 'var(--field-text-tertiary)', marginLeft: '8px' }}>
-          {shortcut}
-        </span>
-      )}
-    </button>
-  );
+  const itemClass = `field-dropdown-item ${variant === 'danger' ? 'variant-danger' : ''} ${className}`;
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+    const innerContent = (icon || shortcut) ? (
+      <>
+        {icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{icon}</span>}
+        <span style={{ flex: 1, textAlign: 'left' }}>{child.props.children}</span>
+        {shortcut && (
+          <span style={{ fontSize: '0.6875rem', color: 'var(--field-text-tertiary)', marginLeft: '8px' }}>
+            {shortcut}
+          </span>
+        )}
+      </>
+    ) : child.props.children;
+
+    return renderPolymorphic(
+      'button',
+      {
+        asChild: true,
+        className: itemClass,
+        role: 'menuitem',
+        'aria-disabled': disabled || undefined,
+        onClick: handleClick,
+        children: React.cloneElement(child, { children: innerContent }),
+      }
+    );
+  }
+
+  const defaultTag = href ? 'a' : 'button';
+  const elementProps: Record<string, any> = {
+    as,
+    role: 'menuitem',
+    className: itemClass,
+    onClick: handleClick,
+    children: (
+      <>
+        {icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{icon}</span>}
+        <span style={{ flex: 1, textAlign: 'left' }}>{children}</span>
+        {shortcut && (
+          <span style={{ fontSize: '0.6875rem', color: 'var(--field-text-tertiary)', marginLeft: '8px' }}>
+            {shortcut}
+          </span>
+        )}
+      </>
+    ),
+  };
+
+  if (href && !as) {
+    elementProps.href = disabled ? undefined : href;
+    elementProps['aria-disabled'] = disabled || undefined;
+  } else if (!as || as === 'button') {
+    elementProps.type = 'button';
+    elementProps.disabled = disabled;
+  }
+
+  return renderPolymorphic(defaultTag, elementProps);
 };
 
-export const DropdownDivider: React.FC = () => <div className="field-dropdown-divider" role="separator" />;
+export const DropdownDivider: React.FC = () => <hr className="field-dropdown-divider" />;
 
 export const DropdownLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="field-dropdown-label">{children}</div>

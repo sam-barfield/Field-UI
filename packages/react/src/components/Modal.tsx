@@ -2,6 +2,7 @@ import React, { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { IconButton } from './Button';
+import { useThemeSafe } from '../theme';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -12,6 +13,9 @@ export interface ModalProps {
   footer?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'full';
   showCloseButton?: boolean;
+  container?: HTMLElement | null;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -23,8 +27,12 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   size = 'md',
   showCloseButton = true,
+  container,
+  className = '',
+  style,
 }) => {
   const id = useId();
+  const { theme } = useThemeSafe();
 
   // Escape key handler
   useEffect(() => {
@@ -43,7 +51,8 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+  if (!isOpen || !portalTarget) return null;
 
   const maxWidths = {
     sm: '400px',
@@ -54,16 +63,25 @@ export const Modal: React.FC<ModalProps> = ({
 
   const modalNode = (
     <div
-      className="field-modal-backdrop"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? `${id}-title` : undefined}
-      aria-describedby={description ? `${id}-desc` : undefined}
+      className={`field-modal-wrapper field-scope ${className}`.trim()}
+      data-field-theme={theme.id}
+      data-theme={theme.mode}
+      style={style}
     >
-      <div className="field-modal-content" style={{ maxWidth: maxWidths[size] }}>
+      <button
+        type="button"
+        aria-label="Close modal"
+        className="field-modal-backdrop"
+        onClick={onClose}
+      />
+      <dialog
+        open
+        className="field-modal-content"
+        aria-label={!title ? 'Modal dialog' : undefined}
+        aria-labelledby={title ? `${id}-title` : undefined}
+        aria-describedby={description ? `${id}-desc` : undefined}
+        style={{ maxWidth: maxWidths[size] }}
+      >
         {(title || showCloseButton) && (
           <div className="field-modal-header">
             <div>
@@ -91,11 +109,11 @@ export const Modal: React.FC<ModalProps> = ({
         )}
         <div className="field-modal-body">{children}</div>
         {footer && <div className="field-modal-footer">{footer}</div>}
-      </div>
+      </dialog>
     </div>
   );
 
-  return createPortal(modalNode, document.body);
+  return createPortal(modalNode, portalTarget);
 };
 
 export interface DrawerProps {
@@ -105,6 +123,9 @@ export interface DrawerProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   width?: string;
+  container?: HTMLElement | null;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -114,7 +135,12 @@ export const Drawer: React.FC<DrawerProps> = ({
   children,
   footer,
   width = '420px',
+  container,
+  className = '',
+  style,
 }) => {
+  const { theme } = useThemeSafe();
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -131,12 +157,29 @@ export const Drawer: React.FC<DrawerProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+  if (!isOpen || !portalTarget) return null;
 
   const drawerNode = (
-    <>
-      <div className="field-drawer-backdrop" onClick={onClose} />
-      <div className="field-drawer-panel" style={{ maxWidth: width }} role="dialog" aria-modal="true">
+    <div
+      className={`field-scope ${className}`.trim()}
+      data-field-theme={theme.id}
+      data-theme={theme.mode}
+      style={style}
+    >
+      <button
+        type="button"
+        aria-label="Close drawer"
+        className="field-drawer-backdrop"
+        onClick={onClose}
+        style={{ border: 'none', padding: 0 }}
+      />
+      <dialog
+        open
+        className="field-drawer-panel"
+        style={{ maxWidth: width }}
+        aria-label={typeof title === 'string' ? title : 'Drawer'}
+      >
         <div className="field-modal-header">
           {title && <h3 className="field-heading field-heading-3">{title}</h3>}
           <IconButton
@@ -149,10 +192,9 @@ export const Drawer: React.FC<DrawerProps> = ({
         </div>
         <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>{children}</div>
         {footer && <div className="field-modal-footer">{footer}</div>}
-      </div>
-    </>
+      </dialog>
+    </div>
   );
 
-  return createPortal(drawerNode, document.body);
+  return createPortal(drawerNode, portalTarget);
 };
-

@@ -11,6 +11,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
 }
 
+const DOT_SIZES: Record<BadgeSize, string> = {
+  sm: '4px',
+  md: '6px',
+  lg: '8px',
+};
+
 export const Badge: React.FC<BadgeProps> = ({
   variant = 'default',
   size = 'md',
@@ -19,7 +25,7 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
   ...props
 }) => {
-  const dotSize = size === 'sm' ? '4px' : size === 'lg' ? '8px' : '6px';
+  const dotSize = DOT_SIZES[size];
   return (
     <span className={`field-badge field-badge-${variant} field-badge-${size} ${className}`} {...props}>
       {dot && (
@@ -85,18 +91,21 @@ export const AvatarGroup: React.FC<AvatarGroupProps> = ({ children, max = 4 }) =
 
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-      {visibleItems.map((child, idx) => (
-        <div
-          key={idx}
-          style={{
-            marginLeft: idx === 0 ? 0 : '-8px',
-            border: '2px solid var(--field-surface-base)',
-            borderRadius: 'var(--field-radius-full)',
-          }}
-        >
-          {child}
-        </div>
-      ))}
+      {visibleItems.map((child, idx) => {
+        const itemKey = React.isValidElement(child) && child.key ? child.key : `avatar-item-${idx}`;
+        return (
+          <div
+            key={itemKey}
+            style={{
+              marginLeft: idx === 0 ? 0 : '-8px',
+              border: '2px solid var(--field-surface-base)',
+              borderRadius: 'var(--field-radius-full)',
+            }}
+          >
+            {child}
+          </div>
+        );
+      })}
       {remaining > 0 && (
         <div
           className="field-avatar field-avatar-md"

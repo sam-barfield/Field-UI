@@ -5,6 +5,8 @@ export interface ThemeContextValue {
   theme: FieldTheme;
   mode: 'dark' | 'light';
   themePair?: FieldThemePair;
+  scope: 'root' | 'container';
+  containerRef?: React.RefObject<HTMLElement | null>;
   setTheme: (theme: FieldTheme) => void;
   setMode: (mode: 'dark' | 'light') => void;
   setThemePair: (pair: FieldThemePair) => void;
@@ -18,5 +20,18 @@ export interface ThemeProviderProps {
   themePair?: FieldThemePair;
   defaultMode?: 'dark' | 'light';
   injectGlobalStyles?: boolean;
+  scope?: 'root' | 'container';
+  as?: React.ElementType;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
+export interface ThemeScopeProps {
+  children: React.ReactNode;
+  theme?: FieldTheme;
+  themePair?: FieldThemePair;
+  mode?: 'dark' | 'light';
+  as?: React.ElementType;
+  className?: string;
+  style?: React.CSSProperties;
+}

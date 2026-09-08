@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Checkbox } from './Controls';
+import { Skeleton } from './Primitives';
 
 /* --- Compound Table Subcomponents --- */
 
@@ -41,13 +42,33 @@ export const TableRow: React.FC<TableRowProps> = ({
   </tr>
 );
 
+export type TableAlign = 'left' | 'center' | 'right';
+export type TableSortOrder = 'asc' | 'desc' | null;
+
+function getSortJustify(align?: TableAlign): 'flex-end' | 'center' | 'flex-start' {
+  if (align === 'right') return 'flex-end';
+  if (align === 'center') return 'center';
+  return 'flex-start';
+}
+
+function renderSortIcon(sortOrder: TableSortOrder) {
+  if (sortOrder === 'asc') {
+    return <ArrowUp size={13} color="var(--field-accent-primary)" />;
+  }
+  if (sortOrder === 'desc') {
+    return <ArrowDown size={13} color="var(--field-accent-primary)" />;
+  }
+  return <ArrowUpDown size={13} color="var(--field-text-tertiary)" />;
+}
+
 export interface TableHeadProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
   sortable?: boolean;
-  sortOrder?: 'asc' | 'desc' | null;
+  sortOrder?: TableSortOrder;
   onSort?: () => void;
+  align?: TableAlign;
 }
 export const TableHead: React.FC<TableHeadProps> = ({
   children,
@@ -56,18 +77,26 @@ export const TableHead: React.FC<TableHeadProps> = ({
   sortable = false,
   sortOrder = null,
   onSort,
+  align,
 }) => (
-  <th className={`field-table-head ${className}`} style={style}>
+  <th
+    className={`field-table-head ${className}`}
+    style={{
+      textAlign: align,
+      ...style,
+    }}
+  >
     {sortable ? (
-      <button type="button" className="field-table-sort-btn" onClick={onSort}>
+      <button
+        type="button"
+        className="field-table-sort-btn"
+        onClick={onSort}
+        style={{
+          justifyContent: getSortJustify(align),
+        }}
+      >
         <span>{children}</span>
-        {sortOrder === 'asc' ? (
-          <ArrowUp size={13} color="var(--field-accent-primary)" />
-        ) : sortOrder === 'desc' ? (
-          <ArrowDown size={13} color="var(--field-accent-primary)" />
-        ) : (
-          <ArrowUpDown size={13} color="var(--field-text-tertiary)" />
-        )}
+        {renderSortIcon(sortOrder)}
       </button>
     ) : (
       children
@@ -80,14 +109,23 @@ export interface TableCellProps {
   className?: string;
   style?: React.CSSProperties;
   colSpan?: number;
+  align?: TableAlign;
 }
 export const TableCell: React.FC<TableCellProps> = ({
   children,
   className = '',
   style,
   colSpan,
+  align,
 }) => (
-  <td className={`field-table-cell ${className}`} style={style} colSpan={colSpan}>
+  <td
+    className={`field-table-cell ${className}`}
+    style={{
+      textAlign: align,
+      ...style,
+    }}
+    colSpan={colSpan}
+  >
     {children}
   </td>
 );
@@ -98,6 +136,7 @@ export interface Column<T> {
   key: string;
   header: React.ReactNode;
   width?: string | number;
+  align?: TableAlign;
   sortable?: boolean;
   sortComparator?: (a: T, b: T) => number;
   render?: (row: T, index: number) => React.ReactNode;
@@ -110,6 +149,7 @@ export interface TableProps<T = any> {
   emptyMessage?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
+  isLoading?: boolean;
 
   // Sorting
   defaultSortKey?: string;
@@ -134,6 +174,7 @@ export function Table<T = any>({
   emptyMessage = 'No data available',
   className = '',
   children,
+  isLoading = false,
   defaultSortKey,
   defaultSortOrder = 'asc',
   onSortChange,
@@ -143,7 +184,7 @@ export function Table<T = any>({
   renderBulkActions,
   expandable = false,
   renderExpandedRow,
-}: TableProps<T>) {
+}: Readonly<TableProps<T>>) {
   if (children) {
     return (
       <div className={`field-table-container ${className}`}>
@@ -157,7 +198,7 @@ export function Table<T = any>({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder);
   const [expandedRowKeys, setExpandedRowKeys] = useState<Set<string | number>>(new Set());
 
-  const selectedKeys = controlledSelectedKeys !== undefined ? controlledSelectedKeys : internalSelectedKeys;
+  const selectedKeys = controlledSelectedKeys ?? internalSelectedKeys;
 
   const handleSelectAll = (checked: boolean) => {
     const allKeys = checked ? data.map((row, idx) => keyExtractor(row, idx)) : [];
@@ -237,18 +278,100 @@ export function Table<T = any>({
 
   const totalCols = columns.length + (selectable ? 1 : 0) + (expandable ? 1 : 0);
 
+  const renderTableBody = () => {
+    if (isLoading) {
+      return Array.from({ length: 5 }).map((_, rIdx) => (
+        <TableRow key={`skeleton-row-${rIdx}`}>
+          {expandable && (
+            <TableCell style={{ width: '40px', padding: '8px' }}>
+              <Skeleton width={16} height={16} />
+            </TableCell>
+          )}
+          {selectable && (
+            <TableCell style={{ width: '40px', padding: '8px 12px' }}>
+              <Skeleton width={16} height={16} />
+            </TableCell>
+          )}
+          {columns.map(col => (
+            <TableCell key={col.key} align={col.align}>
+              <Skeleton width="80%" height="16px" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    if (sortedData.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={totalCols} style={{ textAlign: 'center', padding: '36px' }}>
+            {typeof emptyMessage === 'string' ? (
+              <span style={{ color: 'var(--field-text-secondary)' }}>{emptyMessage}</span>
+            ) : (
+              emptyMessage
+            )}
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return sortedData.map((row, idx) => {
+      const rowKey = keyExtractor(row, idx);
+      const isSelected = selectedKeys.includes(rowKey);
+      const isExpanded = expandedRowKeys.has(rowKey);
+
+      return (
+        <React.Fragment key={rowKey}>
+          <TableRow isSelected={isSelected}>
+            {expandable && (
+              <TableCell style={{ width: '40px', padding: '8px' }}>
+                <button
+                  type="button"
+                  className="field-table-expand-btn"
+                  style={{ transform: isExpanded ? 'rotate(90deg)' : 'none' }}
+                  onClick={() => toggleExpand(rowKey)}
+                  aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </TableCell>
+            )}
+            {selectable && (
+              <TableCell style={{ width: '40px', padding: '8px 12px' }}>
+                <Checkbox
+                  checked={isSelected}
+                  onChange={chk => handleSelectRow(rowKey, chk)}
+                  aria-label={`Select row ${rowKey}`}
+                />
+              </TableCell>
+            )}
+            {columns.map(col => (
+              <TableCell key={col.key} align={col.align}>
+                {col.render ? col.render(row, idx) : (row as any)[col.key]}
+              </TableCell>
+            ))}
+          </TableRow>
+          {expandable && isExpanded && renderExpandedRow && (
+            <tr className="field-table-expanded-row">
+              <TableCell colSpan={totalCols} style={{ backgroundColor: 'var(--field-surface-sunken)', padding: '16px' }}>
+                {renderExpandedRow(row, idx)}
+              </TableCell>
+            </tr>
+          )}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <div className={`field-table-container ${className}`}>
       {selectable && renderBulkActions && selectedKeys.length > 0 && (
         <div className="field-table-bulk-bar">
           <div className="field-text-sm" style={{ fontWeight: 600, color: 'var(--field-accent-primary)' }}>
-            {selectedKeys.length} selected
+            {selectedKeys.length} item{selectedKeys.length > 1 ? 's' : ''} selected
           </div>
-          <div>
-            {renderBulkActions(selectedKeys, () => {
-              if (onSelectionChange) onSelectionChange([]);
-              else setInternalSelectedKeys([]);
-            })}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {renderBulkActions(selectedKeys, () => handleSelectAll(false))}
           </div>
         </div>
       )}
@@ -258,9 +381,10 @@ export function Table<T = any>({
           <TableRow>
             {expandable && <TableHead style={{ width: '40px' }}>{null}</TableHead>}
             {selectable && (
-              <TableHead style={{ width: '40px' }}>
+              <TableHead style={{ width: '40px', padding: '8px 12px' }}>
                 <Checkbox
-                  checked={allSelected || isPartiallySelected}
+                  checked={allSelected}
+                  indeterminate={isPartiallySelected}
                   onChange={handleSelectAll}
                   aria-label="Select all rows"
                 />
@@ -273,6 +397,7 @@ export function Table<T = any>({
                 sortable={col.sortable}
                 sortOrder={sortKey === col.key ? sortOrder : null}
                 onSort={() => handleSort(col.key)}
+                align={col.align}
               >
                 {col.header}
               </TableHead>
@@ -280,64 +405,7 @@ export function Table<T = any>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedData.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={totalCols} style={{ textAlign: 'center', padding: '36px' }}>
-                {typeof emptyMessage === 'string' ? (
-                  <span style={{ color: 'var(--field-text-secondary)' }}>{emptyMessage}</span>
-                ) : (
-                  emptyMessage
-                )}
-              </TableCell>
-            </TableRow>
-          ) : (
-            sortedData.map((row, idx) => {
-              const rowKey = keyExtractor(row, idx);
-              const isSelected = selectedKeys.includes(rowKey);
-              const isExpanded = expandedRowKeys.has(rowKey);
-
-              return (
-                <React.Fragment key={rowKey}>
-                  <TableRow isSelected={isSelected}>
-                    {expandable && (
-                      <TableCell style={{ width: '40px', padding: '8px' }}>
-                        <button
-                          type="button"
-                          className="field-table-expand-btn"
-                          style={{ transform: isExpanded ? 'rotate(90deg)' : 'none' }}
-                          onClick={() => toggleExpand(rowKey)}
-                          aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
-                        >
-                          <ChevronRight size={16} />
-                        </button>
-                      </TableCell>
-                    )}
-                    {selectable && (
-                      <TableCell style={{ width: '40px', padding: '8px 12px' }}>
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={chk => handleSelectRow(rowKey, chk)}
-                          aria-label={`Select row ${rowKey}`}
-                        />
-                      </TableCell>
-                    )}
-                    {columns.map(col => (
-                      <TableCell key={col.key}>
-                        {col.render ? col.render(row, idx) : (row as any)[col.key]}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {expandable && isExpanded && renderExpandedRow && (
-                    <tr className="field-table-expanded-row">
-                      <TableCell colSpan={totalCols} style={{ backgroundColor: 'var(--field-surface-sunken)', padding: '16px' }}>
-                        {renderExpandedRow(row, idx)}
-                      </TableCell>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })
-          )}
+          {renderTableBody()}
         </TableBody>
       </table>
     </div>

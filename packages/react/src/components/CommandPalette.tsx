@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Command, CornerDownLeft } from 'lucide-react';
+import { Search, Command } from 'lucide-react';
 import { Kbd } from './Typography';
+import { useThemeSafe } from '../theme';
 
 export interface CommandItemData {
   id: string;
@@ -21,6 +22,8 @@ export interface CommandPaletteProps {
   placeholder?: string;
   enableGlobalHotkey?: boolean;
   onOpen?: () => void;
+  container?: HTMLElement | null;
+  className?: string;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -30,7 +33,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   placeholder = 'Type a command or search resources...',
   enableGlobalHotkey = true,
   onOpen,
+  container,
+  className = '',
 }) => {
+  const { theme } = useThemeSafe();
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,8 +78,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const query = search.toLowerCase();
     return (
       item.title.toLowerCase().includes(query) ||
-      (item.category && item.category.toLowerCase().includes(query)) ||
-      (item.description && item.description.toLowerCase().includes(query))
+      item.category?.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query)
     );
   });
 
@@ -119,12 +125,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   const content = (
     <div
-      className="field-command-backdrop"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className={`field-command-wrapper field-scope ${className}`.trim()}
+      data-field-theme={theme.id}
+      data-theme={theme.mode}
     >
-      <div className="field-command-dialog" role="dialog" aria-modal="true">
+      <button
+        type="button"
+        aria-label="Close command palette"
+        className="field-command-backdrop"
+        onClick={onClose}
+      />
+      <dialog className="field-command-dialog" open aria-label="Command palette">
         <div className="field-command-search-bar">
           <Search size={18} color="var(--field-text-tertiary)" />
           <input
@@ -212,9 +223,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             <span>Field Omnibar</span>
           </div>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 
-  return createPortal(content, document.body);
+  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+  if (!portalTarget) return null;
+
+  return createPortal(content, portalTarget);
 };

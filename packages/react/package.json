@@ -1,6 +1,6 @@
 {
   "name": "@sam.barfield/field-react",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Smart, precision-crafted React component library for the Field Design System",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sam.barfield/field-tokens": "^0.2.2",
+    "@sam.barfield/field-tokens": "^0.2.4",
     "lucide-react": "^0.475.0"
   },
   "peerDependencies": {

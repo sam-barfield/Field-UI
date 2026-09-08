@@ -1,0 +1,57 @@
+/**
+ * Field Design System - Tailwind CSS v4 Theme Configuration
+ * Import directly into your CSS: @import "@sam.barfield/field-tokens/tailwind.css";
+ */
+@theme {
+  --color-field-surface-base: var(--field-surface-base);
+  --color-field-surface-raised: var(--field-surface-raised);
+  --color-field-surface-overlay: var(--field-surface-overlay);
+  --color-field-surface-sunken: var(--field-surface-sunken);
+  --color-field-surface-subtle: var(--field-surface-subtle);
+  --color-field-surface-active: var(--field-surface-active);
+
+  --color-field-border-subtle: var(--field-border-subtle);
+  --color-field-border-default: var(--field-border-default);
+  --color-field-border-strong: var(--field-border-strong);
+  --color-field-border-focus: var(--field-border-focus);
+  --color-field-border-highlight: var(--field-border-highlight);
+
+  --color-field-text-primary: var(--field-text-primary);
+  --color-field-text-secondary: var(--field-text-secondary);
+  --color-field-text-tertiary: var(--field-text-tertiary);
+  --color-field-text-inverse: var(--field-text-inverse);
+  --color-field-text-disabled: var(--field-text-disabled);
+
+  --color-field-accent: var(--field-accent-primary);
+  --color-field-accent-hover: var(--field-accent-hover);
+  --color-field-accent-active: var(--field-accent-active);
+  --color-field-accent-subtle: var(--field-accent-subtle);
+  --color-field-accent-contrast: var(--field-accent-contrast);
+
+  --color-field-status-success: var(--field-status-success-base);
+  --color-field-status-success-surface: var(--field-status-success-surface);
+  --color-field-status-warning: var(--field-status-warning-base);
+  --color-field-status-warning-surface: var(--field-status-warning-surface);
+  --color-field-status-danger: var(--field-status-danger-base);
+  --color-field-status-danger-surface: var(--field-status-danger-surface);
+  --color-field-status-info: var(--field-status-info-base);
+  --color-field-status-info-surface: var(--field-status-info-surface);
+
+  --radius-field-xs: var(--field-radius-xs);
+  --radius-field-sm: var(--field-radius-sm);
+  --radius-field-md: var(--field-radius-md);
+  --radius-field-lg: var(--field-radius-lg);
+  --radius-field-xl: var(--field-radius-xl);
+  --radius-field-full: var(--field-radius-full);
+
+  --shadow-field-xs: var(--field-shadow-xs);
+  --shadow-field-sm: var(--field-shadow-sm);
+  --shadow-field-md: var(--field-shadow-md);
+  --shadow-field-lg: var(--field-shadow-lg);
+  --shadow-field-xl: var(--field-shadow-xl);
+  --shadow-field-glow: var(--field-shadow-glow);
+
+  --font-field-sans: var(--field-font-sans);
+  --font-field-mono: var(--field-font-mono);
+  --font-field-display: var(--field-font-display);
+}

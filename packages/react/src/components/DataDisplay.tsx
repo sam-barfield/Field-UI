@@ -71,19 +71,39 @@ export const TreeView: React.FC<TreeViewProps> = ({
     return (
       <li key={node.id} style={{ listStyle: 'none' }}>
         <div
+          role="treeitem"
+          tabIndex={node.disabled ? -1 : 0}
+          aria-selected={isSelected}
+          aria-expanded={hasChildren ? isExpanded : undefined}
           className={`field-tree-node ${isSelected ? 'selected' : ''}`}
           onClick={() => {
             if (!node.disabled) onSelect?.(node);
           }}
+          onKeyDown={e => {
+            if (!node.disabled && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onSelect?.(node);
+            }
+          }}
         >
           {hasChildren ? (
-            <span
+            <button
+              type="button"
               className="field-tree-toggle-icon"
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
               onClick={e => toggleExpand(node.id, e)}
-              style={{ cursor: 'pointer', padding: '2px' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '2px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'inherit',
+              }}
             >
               {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </span>
+            </button>
           ) : (
             <span style={{ width: '14px', display: 'inline-block' }} />
           )}
@@ -140,10 +160,22 @@ export const Stepper: React.FC<StepperProps> = ({
 
         return (
           <React.Fragment key={step.id}>
-            <div
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isActive}
               className={`field-step-item ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}
               onClick={() => isClickable && onStepClick(idx)}
-              style={{ cursor: isClickable ? 'pointer' : 'default' }}
+              disabled={!isClickable}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                textAlign: 'left',
+                font: 'inherit',
+                color: 'inherit',
+                cursor: isClickable ? 'pointer' : 'default',
+              }}
             >
               <div className="field-step-circle">
                 {isCompleted ? <Check size={14} /> : idx + 1}
@@ -152,7 +184,7 @@ export const Stepper: React.FC<StepperProps> = ({
                 <span className="field-step-title">{step.title}</span>
                 {step.description && <span className="field-step-desc">{step.description}</span>}
               </div>
-            </div>
+            </button>
             {idx < steps.length - 1 && (
               <div className={`field-step-line ${isCompleted ? 'completed' : ''}`} />
             )}

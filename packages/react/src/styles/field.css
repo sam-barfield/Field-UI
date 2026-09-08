@@ -46,12 +46,10 @@
   background: var(--field-border-strong);
 }
 
-/* --- Focus Rings --- */
-.field-focus-ring:focus-visible,
-button:focus-visible,
-select:focus-visible,
-[role="button"]:focus-visible,
-[tabindex="0"]:focus-visible {
+/* --- Scoped Focus Rings --- */
+.field-scope :is(button, select, [role="button"], [tabindex="0"]):focus-visible,
+[data-field-theme] :is(button, select, [role="button"], [tabindex="0"]):focus-visible,
+.field-focus-ring:focus-visible {
   outline: 2px solid var(--field-border-focus);
   outline-offset: 2px;
 }
@@ -785,6 +783,16 @@ select:focus-visible,
 .field-avatar-lg { width: 48px; height: 48px; font-size: 1.125rem; }
 
 /* --- Modals & Drawers --- */
+.field-modal-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--field-space-4);
+}
+
 .field-modal-backdrop {
   position: fixed;
   top: 0;
@@ -800,7 +808,38 @@ select:focus-visible,
   padding: var(--field-space-4);
   animation: fieldFadeIn var(--field-duration-fast) var(--field-ease-out);
 }
+
+button.field-modal-backdrop,
+button.field-command-backdrop,
+button.field-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: default;
+  z-index: 0;
+}
+
+dialog.field-modal-content,
+dialog.field-drawer-panel,
+dialog.field-command-dialog {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+}
+dialog.field-popover-card {
+  margin: 0;
+  color: inherit;
+}
 .field-modal-content {
+  position: relative;
+  z-index: 1;
   background-color: var(--field-surface-overlay);
   border: 1px solid var(--field-border-strong);
   border-radius: var(--field-radius-xl);
@@ -1637,6 +1676,11 @@ select:focus-visible,
   box-sizing: border-box;
   user-select: none;
 }
+button.field-datepicker-trigger {
+  font-family: inherit;
+  text-align: left;
+  line-height: inherit;
+}
 .field-datepicker-trigger:hover {
   background-color: var(--field-surface-raised);
   border-color: var(--field-border-strong);
@@ -2227,12 +2271,23 @@ select:focus-visible,
   color: var(--field-status-danger-text);
 }
 .field-dropdown-divider {
+  border: none;
   height: 1px;
   background-color: var(--field-border-subtle);
   margin: 4px 0;
 }
 
 /* --- CommandPalette (⌘K Omnibar) --- */
+.field-command-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
 .field-command-backdrop {
   position: fixed;
   inset: 0;
@@ -2246,6 +2301,8 @@ select:focus-visible,
   animation: fieldFadeIn 0.15s ease;
 }
 .field-command-dialog {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 640px;
   background-color: var(--field-surface-overlay);
@@ -2348,7 +2405,7 @@ select:focus-visible,
   padding: 16px;
   max-width: min(calc(100vw - 24px), 320px);
   box-sizing: border-box;
-  word-break: break-word;
+  overflow-wrap: break-word;
   animation: fieldScaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .field-popover-card.align-start { left: 0; }
@@ -2896,10 +2953,12 @@ select:focus-visible,
   font-size: 0.875rem;
   color: var(--field-text-primary);
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 .field-number-input::-webkit-inner-spin-button,
 .field-number-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 .field-number-input-unit {

@@ -24,7 +24,7 @@ export const Popover: React.FC<PopoverProps> = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [effectiveAlign, setEffectiveAlign] = useState<'start' | 'center' | 'end'>(align);
   const containerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDialogElement>(null);
 
   const isControlled = controlledIsOpen !== undefined;
   const open = isControlled ? controlledIsOpen : internalIsOpen;
@@ -78,19 +78,45 @@ export const Popover: React.FC<PopoverProps> = ({
 
   return (
     <div ref={containerRef} className={`field-popover-wrapper ${className}`}>
-      <div onClick={() => setOpen(!open)} style={{ display: 'inline-flex' }}>
-        {trigger}
-      </div>
+      {React.isValidElement(trigger) ? (
+        React.cloneElement(trigger as React.ReactElement<any>, {
+          onClick: (e: React.MouseEvent) => {
+            (trigger as React.ReactElement<any>).props?.onClick?.(e);
+            setOpen(!open);
+          },
+          'aria-haspopup': 'dialog',
+          'aria-expanded': open,
+        })
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            font: 'inherit',
+            color: 'inherit',
+            cursor: 'pointer',
+            display: 'inline-flex',
+          }}
+        >
+          {trigger}
+        </button>
+      )}
 
       {open && (
-        <div
+        <dialog
           ref={cardRef}
+          open
           className={`field-popover-card align-${effectiveAlign} position-${position}`}
           style={{ width, maxWidth: 'min(calc(100vw - 24px), 320px)' }}
-          role="dialog"
+          aria-label="Popover details"
         >
           {content}
-        </div>
+        </dialog>
       )}
     </div>
   );

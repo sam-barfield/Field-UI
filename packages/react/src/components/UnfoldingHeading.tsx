@@ -4,6 +4,7 @@ export type UnfoldingVariant = 'modular' | 'faceted';
 export type UnfoldingTrigger = 'mount' | 'scroll' | 'manual';
 export type UnfoldingSize = 'sm' | 'md' | 'lg' | 'xl' | 'hero';
 export type UnfoldingSpeed = 'fast' | 'normal' | 'slow' | 'cinematic';
+export type UnfoldingIntensity = 'subtle' | 'medium' | 'vibrant';
 
 export const SPEED_PRESETS: Record<UnfoldingSpeed, number> = {
   fast: 14,
@@ -11,6 +12,39 @@ export const SPEED_PRESETS: Record<UnfoldingSpeed, number> = {
   slow: 55,
   cinematic: 90,
 };
+
+export interface IntensityPresetConfig {
+  strokeOpacity: number;
+  fillOpacity: number;
+  hasGlow: boolean;
+  glowRadius: number;
+  radius: number;
+}
+
+export const INTENSITY_PRESETS: Record<UnfoldingIntensity, IntensityPresetConfig> = {
+  subtle: {
+    strokeOpacity: 0.42,
+    fillOpacity: 0.03,
+    hasGlow: false,
+    glowRadius: 0,
+    radius: 1.0,
+  },
+  medium: {
+    strokeOpacity: 0.70,
+    fillOpacity: 0.07,
+    hasGlow: true,
+    glowRadius: 1.5,
+    radius: 1.0,
+  },
+  vibrant: {
+    strokeOpacity: 1.0,
+    fillOpacity: 0.14,
+    hasGlow: true,
+    glowRadius: 2.5,
+    radius: 1.25,
+  },
+};
+
 
 export interface UnfoldingHeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   /** The text string to unfold */
@@ -23,6 +57,10 @@ export interface UnfoldingHeadingProps extends React.HTMLAttributes<HTMLHeadingE
   variant?: UnfoldingVariant;
   /** Animation trigger mode: 'mount' (immediate), 'scroll' (on viewport entry), or 'manual' */
   trigger?: UnfoldingTrigger;
+  /** Visual wireframe prominence: 'subtle' (muted ghosted hairline), 'medium', or 'vibrant' (neon HUD) */
+  intensity?: UnfoldingIntensity;
+  /** Direct override for stroke opacity (0.0 to 1.0) */
+  wireframeOpacity?: number;
   /** Animation speed preset ('fast' | 'normal' | 'slow' | 'cinematic') or custom milliseconds per facet step */
   speed?: UnfoldingSpeed | number;
   /** Milliseconds per individual facet draw (overrides speed preset if specified, default: 28ms) */
@@ -181,6 +219,8 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   size = 'lg',
   variant = 'faceted',
   trigger = 'mount',
+  intensity = 'subtle',
+  wireframeOpacity,
   speed = 'normal',
   triangleSpeedMs,
   leadLetterLag = 2,
@@ -198,6 +238,17 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const hasTriggeredRef = useRef(false);
+
+  // Intensity & Opacity Configuration
+  const currentIntensity = intensity || 'subtle';
+  const intensitySettings = INTENSITY_PRESETS[currentIntensity] || INTENSITY_PRESETS.subtle;
+  const effectiveStrokeOpacity = typeof wireframeOpacity === 'number'
+    ? Math.max(0, Math.min(1, wireframeOpacity))
+    : intensitySettings.strokeOpacity;
+  const effectiveFillOpacity = intensitySettings.fillOpacity;
+  const effectiveRadius = intensitySettings.radius;
+  const hasGlow = intensitySettings.hasGlow;
+  const glowRadius = intensitySettings.glowRadius;
 
   // Stable unique filter ID per component instance
   const filterIdRef = useRef<string>('');
@@ -460,11 +511,11 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
             height="180%"
             colorInterpolationFilters="sRGB"
           >
-            {/* 1. Dilate the unified font alpha mask by 1.25px */}
+            {/* 1. Dilate the unified font alpha mask */}
             <feMorphology
               in="SourceAlpha"
               operator="dilate"
-              radius="1.25"
+              radius={effectiveRadius}
               result="dilated"
             />
             {/* 2. Subtract SourceAlpha from dilated: gives ONLY the outer perimeter outline */}
@@ -474,36 +525,42 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
               operator="out"
               result="outlineMask"
             />
-            {/* 3. Color the outer perimeter outline with wireframeColor */}
-            <feFlood floodColor={wireframeColor} result="strokeColor" />
+            {/* 3. Base color flood */}
+            <feFlood floodColor={wireframeColor} floodOpacity="1" result="baseColor" />
             <feComposite
-              in="strokeColor"
+              in="baseColor"
               in2="outlineMask"
               operator="in"
-              result="strokeOnly"
+              result="rawStroke"
             />
+            {/* 4. Stroke opacity adjustment */}
+            <feComponentTransfer in="rawStroke" result="strokeOnly">
+              <feFuncA type="linear" slope={effectiveStrokeOpacity} />
+            </feComponentTransfer>
 
-            {/* 4. Subtle neon bloom glow on the stroke */}
-            <feGaussianBlur
-              in="strokeOnly"
-              stdDeviation="2.5"
-              result="strokeGlow"
-            />
+            {/* 5. Optional glow */}
+            {hasGlow && (
+              <feGaussianBlur
+                in="strokeOnly"
+                stdDeviation={glowRadius}
+                result="strokeGlow"
+              />
+            )}
 
-            {/* 5. Translucent 14% blueprint wash fill for the interior */}
+            {/* 6. Translucent wash fill for the interior */}
             <feComponentTransfer in="SourceAlpha" result="dimmedMask">
-              <feFuncA type="linear" slope="0.14" />
+              <feFuncA type="linear" slope={effectiveFillOpacity} />
             </feComponentTransfer>
             <feComposite
-              in="strokeColor"
+              in="baseColor"
               in2="dimmedMask"
               operator="in"
               result="fillOnly"
             />
 
-            {/* 6. Merge fill + glow + crisp stroke */}
+            {/* 7. Merge fill + glow (if enabled) + crisp stroke */}
             <feMerge>
-              <feMergeNode in="strokeGlow" />
+              {hasGlow && <feMergeNode in="strokeGlow" />}
               <feMergeNode in="fillOnly" />
               <feMergeNode in="strokeOnly" />
             </feMerge>

@@ -3,6 +3,7 @@ import {
   UnfoldingHeading,
   UnfoldingVariant,
   UnfoldingSpeed,
+  UnfoldingIntensity,
   Button,
   Badge,
   Card,
@@ -39,6 +40,7 @@ export const LandingPageDemo: React.FC = () => {
   const [variant, setVariant] = useState<UnfoldingVariant>('faceted');
   const [wireframeColor, setWireframeColor] = useState<string>('#00d2ff');
   const [speed, setSpeed] = useState<UnfoldingSpeed>('normal');
+  const [intensity, setIntensity] = useState<UnfoldingIntensity>('subtle');
   const [replayKey, setReplayKey] = useState<number>(0);
 
   const handleReplay = () => {
@@ -139,6 +141,23 @@ export const LandingPageDemo: React.FC = () => {
             />
           </Flex>
 
+          {/* Visual Intensity Selector */}
+          <Flex align="center" gap="8px">
+            <Text size="xs" tone="secondary" weight="medium">
+              BRIGHTNESS:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={intensity}
+              onChange={(val) => setIntensity(val as UnfoldingIntensity)}
+              options={[
+                { value: 'subtle', label: 'Subtle' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'vibrant', label: 'Vibrant' },
+              ]}
+            />
+          </Flex>
+
           {/* Fold Style */}
           <Flex align="center" gap="8px">
             <Text size="xs" tone="secondary" weight="medium">
@@ -211,6 +230,7 @@ export const LandingPageDemo: React.FC = () => {
               highlightWords={['CRAFT', 'EXPERIENCES']}
               highlightColor="#2563eb"
               variant={variant}
+              intensity={intensity}
               trigger="mount"
               wireframeColor={wireframeColor}
               speed={speed}
@@ -281,6 +301,7 @@ export const LandingPageDemo: React.FC = () => {
                 size="lg"
                 text="01 / ARCHITECTURE"
                 variant={variant}
+                intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
                 speed={speed}
@@ -380,6 +401,7 @@ export const LandingPageDemo: React.FC = () => {
                 size="lg"
                 text="02 / MODULAR NETS"
                 variant={variant}
+                intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
                 speed={speed}
@@ -418,6 +440,7 @@ export const LandingPageDemo: React.FC = () => {
                       size="md"
                       text="BOX NET"
                       variant="modular"
+                      intensity={intensity}
                       trigger="scroll"
                       wireframeColor={wireframeColor}
                       speed={speed}
@@ -454,6 +477,7 @@ export const LandingPageDemo: React.FC = () => {
                       size="md"
                       text="ORIGAMI"
                       variant="faceted"
+                      intensity={intensity}
                       trigger="scroll"
                       wireframeColor={wireframeColor}
                       speed={speed}
@@ -487,6 +511,7 @@ export const LandingPageDemo: React.FC = () => {
                 size="lg"
                 text="03 / TACTILE CRAFT"
                 variant={variant}
+                intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
                 speed={speed}
@@ -572,6 +597,7 @@ export const LandingPageDemo: React.FC = () => {
               size="md"
               text="READY FOR FIELD"
               variant={variant}
+              intensity={intensity}
               trigger="scroll"
               wireframeColor={wireframeColor}
               speed={speed}

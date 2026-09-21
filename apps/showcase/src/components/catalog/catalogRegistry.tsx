@@ -69,6 +69,7 @@ import {
   UnfoldingVariant,
   UnfoldingSize,
   UnfoldingSpeed,
+  UnfoldingIntensity,
 } from '@sam.barfield/field-react';
 import {
   Play,
@@ -398,6 +399,7 @@ const UnfoldingHeadingInteractiveDemo = () => {
   const [size, setSize] = useState<UnfoldingSize>('xl');
   const [wireframeColor, setWireframeColor] = useState<string>('#00d2ff');
   const [speed, setSpeed] = useState<UnfoldingSpeed>('normal');
+  const [intensity, setIntensity] = useState<UnfoldingIntensity>('subtle');
   const [replayKey, setReplayKey] = useState(0);
 
   return (
@@ -499,6 +501,22 @@ const UnfoldingHeadingInteractiveDemo = () => {
               />
             </Flex>
 
+            <Flex align="center" gap="10px">
+              <Text size="xs" tone="secondary" weight="medium">
+                Intensity:
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={intensity}
+                onChange={(val) => setIntensity(val as UnfoldingIntensity)}
+                options={[
+                  { value: 'subtle', label: 'Subtle' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'vibrant', label: 'Vibrant' },
+                ]}
+              />
+            </Flex>
+
             <Button
               size="sm"
               variant="primary"
@@ -528,12 +546,13 @@ const UnfoldingHeadingInteractiveDemo = () => {
       >
         <UnfoldingHeading
           as="h1"
-          key={`${replayKey}-${text}-${variant}-${size}-${wireframeColor}-${speed}`}
+          key={`${replayKey}-${text}-${variant}-${size}-${wireframeColor}-${speed}-${intensity}`}
           text={text || 'WE CRAFT DIGITAL EXPERIENCES'}
           highlightWords={['CRAFT', 'EXPERIENCES']}
           highlightColor="#2563eb"
           size={size}
           variant={variant}
+          intensity={intensity}
           trigger="mount"
           wireframeColor={wireframeColor}
           speed={speed}

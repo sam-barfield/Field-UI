@@ -392,13 +392,16 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
     let isCancelled = false;
     let currentCharIdx = 0;
     let currentStepIdx = 0;
+    let flushInterval: any = null;
+    let finishTimer: any = null;
+    let stepTimer: any = null;
 
     const runSequence = () => {
       if (isCancelled) return;
 
       // 1. If lead wave finished all characters, flush trailing letters to styled font
       if (currentCharIdx >= allChars.length) {
-        const flushInterval = setInterval(() => {
+        flushInterval = setInterval(() => {
           if (isCancelled) {
             clearInterval(flushInterval);
             return;
@@ -407,8 +410,13 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
             const next = prev + 1;
             if (next >= allChars.length - 1) {
               clearInterval(flushInterval);
-              setIsFinished(true);
-              if (onComplete) onComplete();
+              // Allow the final trailing letters time to finish their 0.42s smooth materialization transition
+              finishTimer = setTimeout(() => {
+                if (!isCancelled) {
+                  setIsFinished(true);
+                  if (onComplete) onComplete();
+                }
+              }, 480);
               return allChars.length - 1;
             }
             return next;
@@ -438,7 +446,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
         currentStepIdx = 0;
       }
 
-      setTimeout(runSequence, resolvedSpeedMs);
+      stepTimer = setTimeout(runSequence, resolvedSpeedMs);
     };
 
     const startTimeout = setTimeout(runSequence, 80);
@@ -446,6 +454,9 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
     return () => {
       isCancelled = true;
       clearTimeout(startTimeout);
+      if (stepTimer) clearTimeout(stepTimer);
+      if (flushInterval) clearInterval(flushInterval);
+      if (finishTimer) clearTimeout(finishTimer);
     };
   }, [shouldAnimate, allChars, resolvedSpeedMs, leadLetterLag, prefersReducedMotion, once, onComplete]);
 
@@ -705,20 +716,49 @@ const LetterPolygonalCell: React.FC<LetterPolygonalCellProps> = ({
         verticalAlign: 'baseline',
       }}
     >
-      {/* Real Typographic Font Glyph:
-             Uses the SVG unified silhouette filter in wireframe mode to eliminate 100% of internal
-             overlapping component contours (like the crossbar box in 'A' or the arm boxes in 'F' and 'E').
-             Transitions smoothly to solid text on materialization. */}
+      {/* 1. Solid Materialized Typography Layer:
+             Natively colored with `color` (e.g. #2563eb for highlight words, primary text color for others).
+             Smoothly fades and settles into place without any white color flash. */}
       <span
-        className="field-unfolding-glyph"
+        className="field-unfolding-solid-glyph"
         style={{
           display: 'inline-block',
           position: 'relative',
+          verticalAlign: 'baseline',
+          color,
+          opacity: isMaterialized ? 1 : 0,
+          transform: isMaterialized
+            ? 'translateZ(0) scale(1)'
+            : 'translateZ(0) scale(0.96)',
+          transition:
+            'opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1), transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'opacity, transform',
+        }}
+      >
+        {char}
+      </span>
+
+      {/* 2. Architectural Blueprint Wireframe Layer:
+             Superimposed over the solid glyph with pixel-perfect vector alignment.
+             Uses the unified silhouette SVG filter (dilated stroke + ghosted wash).
+             Smoothly dissolves away as the solid typography materializes. */}
+      <span
+        className="field-unfolding-wireframe-glyph"
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          display: 'inline-block',
+          verticalAlign: 'baseline',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          color,
           clipPath: clipPath !== 'none' ? clipPath : undefined,
-          color: isWireframe ? '#ffffff' : color,
-          filter: isWireframe ? `url(#${filterId})` : 'none',
-          transition: 'color 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-          transform: 'translateZ(0)',
+          filter: `url(#${filterId})`,
+          opacity: isMaterialized ? 0 : 1,
+          transition: 'opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'opacity',
         }}
       >
         {char}

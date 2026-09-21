@@ -66,7 +66,6 @@ import {
   NumberInput,
   Combobox,
   UnfoldingHeading,
-  UnfoldingVariant,
   UnfoldingSize,
   UnfoldingSpeed,
   UnfoldingIntensity,
@@ -395,7 +394,6 @@ const WIREFRAME_PRESET_COLORS = [
 
 const UnfoldingHeadingInteractiveDemo = () => {
   const [text, setText] = useState('WE CRAFT DIGITAL EXPERIENCES');
-  const [variant, setVariant] = useState<UnfoldingVariant>('faceted');
   const [size, setSize] = useState<UnfoldingSize>('xl');
   const [wireframeColor, setWireframeColor] = useState<string>('#00d2ff');
   const [speed, setSpeed] = useState<UnfoldingSpeed>('normal');
@@ -413,20 +411,6 @@ const UnfoldingHeadingInteractiveDemo = () => {
                 value={text}
                 onChange={(e) => setText(e.target.value.toUpperCase())}
                 placeholder="ENTER TEXT"
-              />
-            </div>
-            <div>
-              <Text size="xs" tone="secondary" style={{ marginBottom: '6px' }}>
-                Style Variant
-              </Text>
-              <SegmentedControl
-                size="sm"
-                value={variant}
-                onChange={(val) => setVariant(val as UnfoldingVariant)}
-                options={[
-                  { value: 'modular', label: 'Scorecard Net' },
-                  { value: 'faceted', label: 'Origami Crease' },
-                ]}
               />
             </div>
             <div>
@@ -546,12 +530,11 @@ const UnfoldingHeadingInteractiveDemo = () => {
       >
         <UnfoldingHeading
           as="h1"
-          key={`${replayKey}-${text}-${variant}-${size}-${wireframeColor}-${speed}-${intensity}`}
+          key={`${replayKey}-${text}-${size}-${wireframeColor}-${speed}-${intensity}`}
           text={text || 'WE CRAFT DIGITAL EXPERIENCES'}
           highlightWords={['CRAFT', 'EXPERIENCES']}
           highlightColor="#2563eb"
           size={size}
-          variant={variant}
           intensity={intensity}
           trigger="mount"
           wireframeColor={wireframeColor}
@@ -1468,41 +1451,41 @@ export const componentRegistry: ComponentDoc[] = [
     id: 'unfolding-heading',
     name: 'UnfoldingHeading',
     category: 'Typography',
-    description: 'Mechanical 3D scorecard and origami flap typography that flips along precision hinge lines into crisp, high-craft headings matching real design system typography.',
+    description: 'Precision typographic wireframe heading that unfolds letter-by-letter in calligraphic stroke order with a trailing materialization wave that solidifies into styled typography.',
     importCode: `import { UnfoldingHeading } from "@sam.barfield/field-react";`,
-    usageCode: `<UnfoldingHeading\n  as="h1"\n  size="hero"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  variant="modular"\n  trigger="mount"\n/>`,
-    compositionTree: `UnfoldingHeading\n├── Accessible Semantic Tag (Screen Reader & SEO)\n└── 3D Scorecard Flaps (Clipped Real Font & Blueprint Wireframe)`,
+    usageCode: `<UnfoldingHeading\n  as="h1"\n  size="hero"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  intensity="subtle"\n  trigger="mount"\n/>`,
+    compositionTree: `UnfoldingHeading\n├── Accessible Semantic Tag (Screen Reader & SEO)\n└── Dual-Layer Typographic Vector Cells\n    ├── Architectural Blueprint Wireframe (SVG Silhouette Dilation)\n    └── Solid Materialized Typography (Native Color Crossfade & Scale Settle)`,
     primaryDemo: {
       render: () => <UnfoldingHeadingInteractiveDemo />,
-      code: `<UnfoldingHeading\n  as="h1"\n  size="xl"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  variant="modular"\n  trigger="mount"\n/>`,
+      code: `<UnfoldingHeading\n  as="h1"\n  size="xl"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  intensity="subtle"\n  trigger="mount"\n/>`,
     },
     variants: [
       {
-        id: 'unfold-modular',
-        name: 'Scorecard Net',
-        description: 'Hinged horizontal flaps that flip over like mechanical scorecards or split-flap boards.',
+        id: 'unfold-mount',
+        name: 'Mount Reveal (Hero Heading)',
+        description: 'Unfolds automatically upon component mount with top-down calligraphic stroke order.',
         render: () => (
           <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
-            <UnfoldingHeading as="h2" size="lg" text="SCORECARD NET" variant="modular" trigger="mount" />
+            <UnfoldingHeading as="h2" size="lg" text="MOUNT REVEAL" trigger="mount" />
           </div>
         ),
-        code: `<UnfoldingHeading as="h2" size="lg" text="SCORECARD NET" variant="modular" trigger="mount" />`,
+        code: `<UnfoldingHeading as="h2" size="lg" text="MOUNT REVEAL" trigger="mount" />`,
       },
       {
-        id: 'unfold-faceted',
-        name: 'Origami Crease Net',
-        description: 'Triangular origami facets meeting at the center crease, uncreasing into the letter.',
+        id: 'unfold-highlight',
+        name: 'Accent Word Highlighting',
+        description: 'Highlights specific terms with native brand color crossfades and zero white color flash.',
         render: () => (
           <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
-            <UnfoldingHeading as="h2" size="lg" text="ORIGAMI CREASE" variant="faceted" trigger="mount" />
+            <UnfoldingHeading as="h2" size="lg" text="PRECISION CRAFT" highlightWords={['CRAFT']} highlightColor="#2563eb" trigger="mount" />
           </div>
         ),
-        code: `<UnfoldingHeading as="h2" size="lg" text="ORIGAMI CREASE" variant="faceted" trigger="mount" />`,
+        code: `<UnfoldingHeading as="h2" size="lg" text="PRECISION CRAFT" highlightWords={["CRAFT"]} highlightColor="#2563eb" trigger="mount" />`,
       },
       {
         id: 'unfold-scroll',
         name: 'Scroll Triggered',
-        description: 'Uses IntersectionObserver to trigger as the user scrolls into view.',
+        description: 'Uses IntersectionObserver to trigger animation as the heading enters the viewport.',
         render: () => (
           <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
             <UnfoldingHeading as="h3" size="md" text="SCROLL REVEAL" trigger="scroll" />
@@ -1513,25 +1496,30 @@ export const componentRegistry: ComponentDoc[] = [
     ],
     props: [
       { name: 'text', type: 'string', required: true, description: 'The text string to unfold' },
-      { name: 'as', type: "'h1' | 'h2' | 'h3' | 'h4' | 'span' | 'div'", default: "'h2'", description: 'Semantic heading tag level' },
+      { name: 'as', type: "'h1' | 'h2' | 'h3' | 'h4' | 'span' | 'div'", default: "'h2'", description: 'Semantic heading tag level for DOM & screen readers' },
       { name: 'size', type: "'sm' | 'md' | 'lg' | 'xl' | 'hero'", default: "'lg'", description: 'Typographic dimensions' },
-      { name: 'variant', type: "'modular' | 'faceted'", default: "'modular'", description: 'Flap folding style: modular (scorecard) or faceted (origami)' },
-      { name: 'trigger', type: "'mount' | 'scroll' | 'manual'", default: "'scroll'", description: 'Animation trigger mode' },
-      { name: 'once', type: 'boolean', default: 'true', description: 'Whether the unfold animation plays once' },
-      { name: 'duration', type: 'number', default: '0.75', description: 'Flap flip duration in seconds' },
-      { name: 'charStagger', type: 'number', default: '0.05', description: 'Stagger delay between characters' },
-      { name: 'perspective', type: 'number', default: '900', description: '3D perspective depth in pixels' },
-      { name: 'wireframeColor', type: 'string', default: "'#00d2ff'", description: 'Blueprint wireframe border color during motion' },
-      { name: 'fillColor', type: 'string', description: 'Custom final solid fill color for text' },
-      { name: 'highlightWords', type: 'string[]', description: 'Array of words to render in highlight accent color' },
+      { name: 'variant', type: "'faceted' | 'modular'", default: "'faceted'", description: 'Optional / Deprecated: The component now uses a unified calligraphic facet drafting architecture.' },
+      { name: 'trigger', type: "'mount' | 'scroll' | 'manual'", default: "'mount'", description: 'Animation trigger mode' },
+      { name: 'intensity', type: "'subtle' | 'medium' | 'vibrant'", default: "'subtle'", description: 'Wireframe prominence: subtle (muted ghosted hairline), medium, or vibrant (neon HUD)' },
+      { name: 'wireframeOpacity', type: 'number', description: 'Direct numeric override for wireframe stroke opacity (0.0 to 1.0)' },
+      { name: 'speed', type: "'fast' | 'normal' | 'slow' | 'cinematic' | number", default: "'normal'", description: 'Animation speed preset or custom ms per facet step' },
+      { name: 'triangleSpeedMs', type: 'number', default: '28', description: 'Milliseconds per facet step draw (overrides speed preset)' },
+      { name: 'leadLetterLag', type: 'number', default: '2', description: 'Number of letters the wireframe leads ahead before trailing letters materialize' },
+      { name: 'wireframeColor', type: 'string', default: "'#00d2ff'", description: 'Wireframe hairline and interior wash color' },
+      { name: 'fillColor', type: 'string', default: "'var(--field-text-primary)'", description: 'Solid fill color for standard words' },
+      { name: 'highlightWords', type: 'string[]', default: '[]', description: 'Array of words to render in highlight accent color' },
       { name: 'highlightColor', type: 'string', default: "'#2563eb'", description: 'Color for highlighted words' },
+      { name: 'once', type: 'boolean', default: 'true', description: 'Whether the unfold animation plays once' },
+      { name: 'isUnfolded', type: 'boolean', description: 'Manual unfold trigger control (when trigger="manual")' },
+      { name: 'onComplete', type: '() => void', description: 'Callback fired when the entire heading animation finishes' },
     ],
     usefulNotes: [
-      'Renders the real design system font with 100% precision: no distorted block approximations.',
-      'Mechanical scorecard flip physics: snappier, tactile spring flip with dampening on landing.',
-      'Supports dual-tone accent coloring: highlight specific words with accent color just like Image 1.',
-      'Zero external 3D dependencies: hardware-accelerated 3D CSS transforms with zero runtime CPU once resting.',
-      'Full screen reader and SEO accessibility via semantic heading tag with prefers-reduced-motion support.',
+      'Renders the exact typography of the design system: zero box seam overlap, using unified SVG dilation filters.',
+      'Top-down calligraphic stroke order: letters like W, M, N, A unfold in their natural stroke directions.',
+      'Dual-layer coordinated crossfade: solid text fades in natively with zero white color flash, while wireframes dissolve seamlessly.',
+      'Adjustable wireframe prominence: subtle mode delivers an understated architectural drafting watermark without neon glare.',
+      'Zero resting CPU/GPU overhead: unmounts animated layers upon completion and renders pure static semantic typography.',
+      'Built-in accessibility: hidden accessible heading tag ensures 100% screen reader compatibility and copy-paste support.',
     ],
   },
 ];

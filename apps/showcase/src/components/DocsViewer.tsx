@@ -235,7 +235,7 @@ export function ExampleWidget() {
               <pre style={{ margin: 0, maxHeight: '350px', overflowY: 'auto' }}>
 {`{
   "name": "Field Design System",
-  "version": "0.2.0",
+  "version": "0.2.4",
   "packages": [
     "@sam.barfield/field-tokens",
     "@sam.barfield/field-react"
@@ -250,7 +250,7 @@ export function ExampleWidget() {
     "Tabs", "Table", "TableHeader", "TableBody", "TableRow", "TableCell", "TableHead", "EmptyState", "TreeView", "Timeline", "Accordion", "Tooltip", "Alert", "ToastProvider", "Progress", "Spinner", "Skeleton",
     "CodeBlock", "DiffViewer", "CopyButton", "StatusDot", "Sparkline", "Meter",
     "Breadcrumb", "Pagination", "Stepper",
-    "Heading", "Text", "Kbd", "Code", "Box", "Flex", "Stack", "Grid", "Container", "Divider"
+    "Heading", "UnfoldingHeading", "Text", "Kbd", "Code", "Box", "Flex", "Stack", "Grid", "Container", "Divider"
   ],
   "accessibility": "WAI-ARIA 1.2 AA compliant",
   "tokenSpecification": "W3C DTCG Format"

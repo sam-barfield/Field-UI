@@ -38,7 +38,9 @@ import {
   Cpu,
   Radio,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
+import { LandingPageDemo } from './LandingPageDemo';
 
 const INITIAL_LOGS: LogLine[] = [
   { id: '1', timestamp: '14:20:01.102', level: 'info', content: 'Connecting to cluster control plane wss://control.field.internal:8443...' },
@@ -55,7 +57,7 @@ const INITIAL_LOGS: LogLine[] = [
 
 export const RealWorldDemos: React.FC = () => {
   const { showToast } = useToast();
-  const [activeView, setActiveView] = useState<'dashboard' | 'settings' | 'terminal'>('terminal');
+  const [activeView, setActiveView] = useState<'dashboard' | 'settings' | 'terminal' | 'landing'>('terminal');
 
   // Dashboard filter state
   const [regionFilter, setRegionFilter] = useState('all');
@@ -254,11 +256,25 @@ export const RealWorldDemos: React.FC = () => {
           >
             Security & Access Policy
           </Button>
+          <Button
+            size="sm"
+            variant={activeView === 'landing' ? 'primary' : 'secondary'}
+            leftIcon={<Sparkles size={14} />}
+            onClick={() => setActiveView('landing')}
+          >
+            Landing Page & Typography
+          </Button>
         </div>
 
-        <Badge variant={isStreaming ? 'success' : 'default'} dot>
-          {isStreaming ? 'Telemetry Stream Active' : 'Stream Paused'}
-        </Badge>
+        {activeView === 'landing' ? (
+          <Badge variant="accent" dot>
+            Scroll & Viewport Trigger Active
+          </Badge>
+        ) : (
+          <Badge variant={isStreaming ? 'success' : 'default'} dot>
+            {isStreaming ? 'Telemetry Stream Active' : 'Stream Paused'}
+          </Badge>
+        )}
       </div>
 
       {/* --- 1. TERMINAL & CLOUD SHELL COMPOSITE --- */}
@@ -636,6 +652,13 @@ export const RealWorldDemos: React.FC = () => {
               </Flex>
             </CardFooter>
           </Card>
+        </div>
+      )}
+
+      {/* --- 4. MARKETING & LANDING PAGE COMPOSITE --- */}
+      {activeView === 'landing' && (
+        <div>
+          <LandingPageDemo />
         </div>
       )}
     </div>

@@ -130,6 +130,7 @@ import {
   
   // Typography
   Heading,
+  UnfoldingHeading,
   Text,
   Kbd,
   Code,
@@ -328,10 +329,26 @@ const columns: Column<EC2Instance>[] = [
 <SidebarTrigger isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
 ```
 
+### Recipe H: Unfolding Architectural Heading (Hero / Viewport Reveal)
+```tsx
+<UnfoldingHeading
+  as="h1"
+  size="hero"
+  text="WE CRAFT DIGITAL EXPERIENCES"
+  highlightWords={['CRAFT', 'EXPERIENCES']}
+  highlightColor="#2563eb"
+  intensity="subtle"
+  trigger="mount"
+  wireframeColor="#00d2ff"
+  speed="normal"
+/>
+```
+
 ---
 
 ## 5. Recent Prop Guidelines & Patterns
 
+- **`UnfoldingHeading`**: Architectural SVG vector typography heading that draws facet-by-facet wireframes in calligraphic stroke order, followed by a synchronized dual-layer crossfade into solid typography with zero white flashing. Uses a unified calligraphic facet drafting engine. Supports `intensity="subtle" | "medium" | "vibrant"`, `trigger="mount" | "scroll" | "manual"`, and `highlightWords`. Unmounts animated layers upon resting for 0% idle CPU overhead.
 - **`Badge`**: Supports `size="sm" | "md" | "lg"` (default `"md"`). Use `size="sm"` for compact inline status indicators inside tables or cards.
 - **`Breadcrumb`**: Items support `onClick` handlers directly without requiring dummy `href="#"` attributes, enabling native client-side routing.
 - **`SidebarFooter`**: Supports `collapsedChildren?: React.ReactNode` to provide an alternative compact view when the sidebar is minimized.

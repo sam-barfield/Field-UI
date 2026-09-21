@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   UnfoldingHeading,
-  UnfoldingVariant,
   UnfoldingSpeed,
   UnfoldingIntensity,
   Button,
@@ -37,7 +36,6 @@ const WIREFRAME_COLORS = [
 ];
 
 export const LandingPageDemo: React.FC = () => {
-  const [variant, setVariant] = useState<UnfoldingVariant>('faceted');
   const [wireframeColor, setWireframeColor] = useState<string>('#00d2ff');
   const [speed, setSpeed] = useState<UnfoldingSpeed>('normal');
   const [intensity, setIntensity] = useState<UnfoldingIntensity>('subtle');
@@ -158,22 +156,6 @@ export const LandingPageDemo: React.FC = () => {
             />
           </Flex>
 
-          {/* Fold Style */}
-          <Flex align="center" gap="8px">
-            <Text size="xs" tone="secondary" weight="medium">
-              STYLE:
-            </Text>
-            <SegmentedControl
-              size="sm"
-              value={variant}
-              onChange={(val) => setVariant(val as UnfoldingVariant)}
-              options={[
-                { value: 'modular', label: 'Scorecard Net' },
-                { value: 'faceted', label: 'Faceted Origami' },
-              ]}
-            />
-          </Flex>
-
           <Button
             size="sm"
             variant="secondary"
@@ -229,7 +211,6 @@ export const LandingPageDemo: React.FC = () => {
               text="WE CRAFT DIGITAL EXPERIENCES"
               highlightWords={['CRAFT', 'EXPERIENCES']}
               highlightColor="#2563eb"
-              variant={variant}
               intensity={intensity}
               trigger="mount"
               wireframeColor={wireframeColor}
@@ -264,17 +245,17 @@ export const LandingPageDemo: React.FC = () => {
             <StatCard
               label="Zero Extra Dependencies"
               value="0 KB"
-              subtitle="Internal Rodrigues 3D solver without heavy WebGL bloat"
+              subtitle="Pure SVG vector dilation & CSS GPU compositing"
             />
             <StatCard
               label="Render Performance"
               value="120 FPS"
-              subtitle="Micro-batch canvas with retina DPR scaling"
+              subtitle="Hardware-accelerated opacity dissolves with 0% resting CPU"
             />
             <StatCard
               label="Accessibility"
               value="100%"
-              subtitle="Screen reader headings & reduced-motion fallbacks"
+              subtitle="Semantic heading tags & prefers-reduced-motion support"
             />
           </Grid>
         </div>
@@ -300,7 +281,6 @@ export const LandingPageDemo: React.FC = () => {
                 as="h2"
                 size="lg"
                 text="01 / ARCHITECTURE"
-                variant={variant}
                 intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
@@ -308,7 +288,7 @@ export const LandingPageDemo: React.FC = () => {
               />
             </div>
             <Text size="base" tone="secondary" style={{ marginTop: '8px' }}>
-              This section heading triggered its 3D wireframe unfold when it entered the viewport.
+              This section heading triggered its wireframe unfold when it entered the viewport.
             </Text>
           </div>
 
@@ -316,21 +296,20 @@ export const LandingPageDemo: React.FC = () => {
             <Card>
               <CardHeader>
                 <div>
-                  <Text size="base" weight="semibold">Hinge Kinematics</Text>
-                  <Text size="xs" tone="secondary">Rigid planar folding along shared edges</Text>
+                  <Text size="base" weight="semibold">Silhouette Vector Dilation</Text>
+                  <Text size="xs" tone="secondary">Zero overlapping box frame seams</Text>
                 </div>
               </CardHeader>
               <CardContent>
                 <Flex align="center" gap="12px" style={{ marginBottom: '12px' }}>
                   <Box size={24} style={{ color: 'var(--field-border-focus)' }} />
                   <Text size="sm" weight="semibold">
-                    Rodrigues Rotation Formula
+                    Unified Typographic Mask
                   </Text>
                 </Flex>
                 <Text size="sm" tone="secondary">
-                  Each character is decomposed into an adjacency tree of polygonal plates. Child
-                  facets rotate around the 3D unit vector of the hinge line connecting them to their
-                  parent.
+                  Uses SVG dilation and exclusion filters to trace the exact outer perimeter of the
+                  typeface, eliminating internal box joints on letters like A, E, F, and H.
                 </Text>
               </CardContent>
             </Card>
@@ -338,20 +317,20 @@ export const LandingPageDemo: React.FC = () => {
             <Card>
               <CardHeader>
                 <div>
-                  <Text size="base" weight="semibold">Micro Projection Engine</Text>
-                  <Text size="xs" tone="secondary">Zero WebGL runtime overhead</Text>
+                  <Text size="base" weight="semibold">Calligraphic Stroke Order</Text>
+                  <Text size="xs" tone="secondary">Sequential top-down facet assembly</Text>
                 </div>
               </CardHeader>
               <CardContent>
                 <Flex align="center" gap="12px" style={{ marginBottom: '12px' }}>
                   <Cpu size={24} style={{ color: 'var(--field-accent-primary)' }} />
                   <Text size="sm" weight="semibold">
-                    Lightweight Vector Engine
+                    Sequential Wireframe Drafting
                   </Text>
                 </Flex>
                 <Text size="sm" tone="secondary">
-                  No Three.js or Babylon.js required. The entire 3D calculation runs in under 4KB of
-                  pure TypeScript math, executing inside a standard 2D canvas context.
+                  Letters assemble facet-by-facet following their natural pen stroke paths, followed
+                  by a trailing wave that solidifies completed wireframe characters into styled typography.
                 </Text>
               </CardContent>
             </Card>
@@ -359,20 +338,20 @@ export const LandingPageDemo: React.FC = () => {
             <Card>
               <CardHeader>
                 <div>
-                  <Text size="base" weight="semibold">Theme Integration</Text>
-                  <Text size="xs" tone="secondary">Synchronized with Field design tokens</Text>
+                  <Text size="base" weight="semibold">Dual-Layer Zero-Flash</Text>
+                  <Text size="xs" tone="secondary">Synchronized color crossfading</Text>
                 </div>
               </CardHeader>
               <CardContent>
                 <Flex align="center" gap="12px" style={{ marginBottom: '12px' }}>
                   <Zap size={24} style={{ color: 'var(--field-status-warning-base)' }} />
                   <Text size="sm" weight="semibold">
-                    Dynamic Color Mapping
+                    Native Color Preservation
                   </Text>
                 </Flex>
                 <Text size="sm" tone="secondary">
-                  Wireframe hairline edges automatically pull from <code>--field-border-focus</code> and
-                  solid text fills resolve smoothly to <code>--field-text-primary</code>.
+                  Highlighted words like <code>CRAFT</code> and <code>EXPERIENCES</code> fade in with
+                  native brand colors from frame 0, with zero white flashing or abrupt snaps.
                 </Text>
               </CardContent>
             </Card>
@@ -381,7 +360,7 @@ export const LandingPageDemo: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: MODULAR NETS (trigger="scroll")
+          SECTION 2: CALLIGRAPHIC DRAFTING (trigger="scroll")
           ========================================================================= */}
       <section
         id="section-nets"
@@ -399,8 +378,7 @@ export const LandingPageDemo: React.FC = () => {
               <UnfoldingHeading
                 as="h2"
                 size="lg"
-                text="02 / MODULAR NETS"
-                variant={variant}
+                text="02 / CALLIGRAPHIC PRECISION"
                 intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
@@ -408,7 +386,7 @@ export const LandingPageDemo: React.FC = () => {
               />
             </div>
             <Text size="base" tone="secondary" style={{ marginTop: '8px' }}>
-              Notice how the letterforms start as folded wireframe prisms and unfold flat on scroll.
+              Letterforms draft in natural pen-stroke order, followed by a trailing wave that solidifies into styled typography.
             </Text>
           </div>
 
@@ -416,16 +394,15 @@ export const LandingPageDemo: React.FC = () => {
             <Card style={{ backgroundColor: 'var(--field-surface-raised)' }}>
               <CardHeader>
                 <div>
-                  <Text size="base" weight="semibold">Modular Box Net Variant</Text>
-                  <Text size="xs" tone="secondary">Architectural plates with 90° box-fold seams</Text>
+                  <Text size="base" weight="semibold">Top-Down Stroke Sequencing</Text>
+                  <Text size="xs" tone="secondary">Authentic typographical stroke directions</Text>
                 </div>
               </CardHeader>
               <CardContent>
                 <Stack gap="12px">
                   <Text size="sm" tone="secondary">
-                    Inspired by cardboard carton packaging nets and technical drafting. Characters
-                    are built from rectangular and chamfered facets that wrap into compact 3D blocks
-                    and unfold flat like architectural blueprints.
+                    Letters unfold facet-by-facet following real pen-stroke order. Stems start at the top
+                    and descend, diagonals route to interior valleys, and crossbars resolve last.
                   </Text>
                   <div
                     style={{
@@ -438,8 +415,7 @@ export const LandingPageDemo: React.FC = () => {
                     <UnfoldingHeading
                       as="h3"
                       size="md"
-                      text="BOX NET"
-                      variant="modular"
+                      text="CALLIGRAPHY"
                       intensity={intensity}
                       trigger="scroll"
                       wireframeColor={wireframeColor}
@@ -453,16 +429,15 @@ export const LandingPageDemo: React.FC = () => {
             <Card style={{ backgroundColor: 'var(--field-surface-raised)' }}>
               <CardHeader>
                 <div>
-                  <Text size="base" weight="semibold">Faceted Origami Variant</Text>
-                  <Text size="xs" tone="secondary">Triangulated low-poly mesh lattice</Text>
+                  <Text size="base" weight="semibold">Trailing Materialization Wave</Text>
+                  <Text size="xs" tone="secondary">Zero-flash native color crossfade</Text>
                 </div>
               </CardHeader>
               <CardContent>
                 <Stack gap="12px">
                   <Text size="sm" tone="secondary">
-                    Decomposes character silhouettes into connected triangular meshes with
-                    alternating mountain and valley fold angles. Collapses into crystalline shards
-                    and uncreases into smooth typography.
+                    The leading wireframe wave drafts ahead while trailing letters dissolve their wireframe
+                    mesh and smoothly crossfade into final styled typography with zero white flashes.
                   </Text>
                   <div
                     style={{
@@ -475,8 +450,9 @@ export const LandingPageDemo: React.FC = () => {
                     <UnfoldingHeading
                       as="h3"
                       size="md"
-                      text="ORIGAMI"
-                      variant="faceted"
+                      text="MATERIALISE"
+                      highlightWords={['MATERIALISE']}
+                      highlightColor="#2563eb"
                       intensity={intensity}
                       trigger="scroll"
                       wireframeColor={wireframeColor}
@@ -510,7 +486,6 @@ export const LandingPageDemo: React.FC = () => {
                 as="h2"
                 size="lg"
                 text="03 / TACTILE CRAFT"
-                variant={variant}
                 intensity={intensity}
                 trigger="scroll"
                 wireframeColor={wireframeColor}
@@ -518,7 +493,7 @@ export const LandingPageDemo: React.FC = () => {
               />
             </div>
             <Text size="base" tone="secondary" style={{ marginTop: '8px' }}>
-              Blueprint node anchors, edge glow, and seamless fusion to solid typography.
+              Subtle drafting watermark, calibrated facet folds, and zero-flash fusion to solid typography.
             </Text>
           </div>
 
@@ -528,12 +503,12 @@ export const LandingPageDemo: React.FC = () => {
                 <Flex align="center" gap="12px" style={{ marginBottom: '12px' }}>
                   <Layers size={20} style={{ color: 'var(--field-accent-primary)' }} />
                   <Text size="base" weight="semibold">
-                    Hairline Edge Glow
+                    Tunable Intensity Modes
                   </Text>
                 </Flex>
                 <Text size="sm" tone="secondary">
-                  Wireframe edges feature subtle cyan/accent bloom during motion, giving the
-                  tactile feeling of an illuminated HUD or laser-scribed cad model.
+                  Choose between <code>subtle</code> (42% stroke watermark, zero bloom), <code>medium</code>,
+                  and <code>vibrant</code> brightness presets to complement light and dark backgrounds.
                 </Text>
               </CardContent>
             </Card>
@@ -596,7 +571,6 @@ export const LandingPageDemo: React.FC = () => {
               as="h2"
               size="md"
               text="READY FOR FIELD"
-              variant={variant}
               intensity={intensity}
               trigger="scroll"
               wireframeColor={wireframeColor}

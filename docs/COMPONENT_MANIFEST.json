@@ -1787,6 +1787,82 @@
           "type": "HTMLElement | null"
         }
       }
+    },
+    "UnfoldingHeading": {
+      "description": "Precision typographic wireframe heading that unfolds letter-by-letter in calligraphic stroke order with a trailing materialization wave that solidifies into styled typography",
+      "props": {
+        "text": {
+          "type": "string",
+          "required": true
+        },
+        "as": {
+          "type": "string",
+          "enum": ["h1", "h2", "h3", "h4", "span", "div"],
+          "default": "h2"
+        },
+        "size": {
+          "type": "string",
+          "enum": ["sm", "md", "lg", "xl", "hero"],
+          "default": "lg"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["faceted", "modular"],
+          "default": "faceted"
+        },
+        "trigger": {
+          "type": "string",
+          "enum": ["mount", "scroll", "manual"],
+          "default": "mount"
+        },
+        "intensity": {
+          "type": "string",
+          "enum": ["subtle", "medium", "vibrant"],
+          "default": "subtle"
+        },
+        "wireframeOpacity": {
+          "type": "number"
+        },
+        "speed": {
+          "type": "string | number",
+          "default": "normal"
+        },
+        "triangleSpeedMs": {
+          "type": "number",
+          "default": 28
+        },
+        "leadLetterLag": {
+          "type": "number",
+          "default": 2
+        },
+        "wireframeColor": {
+          "type": "string",
+          "default": "#00d2ff"
+        },
+        "fillColor": {
+          "type": "string",
+          "default": "var(--field-text-primary)"
+        },
+        "highlightWords": {
+          "type": "string[]",
+          "default": []
+        },
+        "highlightColor": {
+          "type": "string",
+          "default": "#2563eb"
+        },
+        "once": {
+          "type": "boolean",
+          "default": true
+        },
+        "isUnfolded": {
+          "type": "boolean"
+        },
+        "onComplete": {
+          "type": "() => void"
+        }
+      }
     }
   }
 }
+

@@ -53,7 +53,7 @@ export interface UnfoldingHeadingProps extends React.HTMLAttributes<HTMLHeadingE
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'span' | 'div';
   /** Typographic size preset */
   size?: UnfoldingSize;
-  /** Style variant: 'modular' (clean scorecard flips) or 'faceted' (origami creases) */
+  /** Style variant. The component now uses a unified calligraphic facet drafting architecture. */
   variant?: UnfoldingVariant;
   /** Animation trigger mode: 'mount' (immediate), 'scroll' (on viewport entry), or 'manual' */
   trigger?: UnfoldingTrigger;
@@ -104,7 +104,7 @@ function getGlyphFoldState(
   char: string,
   step: number,
   totalSteps: number,
-  variant: UnfoldingVariant = 'faceted'
+  _variant?: UnfoldingVariant
 ): string {
   if (step <= 0) {
     return 'polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)';
@@ -139,9 +139,9 @@ function getGlyphFoldState(
       case 1:
         return 'polygon(0% 0%, 30% 0%, 30% 100%, 0% 100%)';
       case 2:
-        return 'polygon(0% 0%, 56% 0%, 56% 100%, 0% 100%)';
+        return 'polygon(0% 0%, 54% 0%, 54% 100%, 0% 100%)';
       case 3:
-        return 'polygon(0% 0%, 78% 0%, 78% 100%, 0% 100%)';
+        return 'polygon(0% 0%, 75% 0%, 75% 100%, 0% 100%)';
       case 4:
         return 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)';
       default:
@@ -149,13 +149,13 @@ function getGlyphFoldState(
     }
   }
 
-  // N: Left stem down -> diagonal down to bottom-right -> right stem
+  // N: Left stem down -> diagonal descent -> right stem up
   if (upper === 'N') {
     switch (step) {
       case 1:
-        return 'polygon(0% 0%, 34% 0%, 34% 100%, 0% 100%)';
+        return 'polygon(0% 0%, 36% 0%, 36% 100%, 0% 100%)';
       case 2:
-        return 'polygon(0% 0%, 76% 0%, 76% 100%, 0% 100%)';
+        return 'polygon(0% 0%, 70% 0%, 70% 100%, 0% 100%)';
       case 3:
         return 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)';
       default:
@@ -175,14 +175,7 @@ function getGlyphFoldState(
     }
   }
 
-  // Modular style: Clean scorecard perpendicular horizontal folds
-  if (variant === 'modular') {
-    const fraction = step / totalSteps;
-    const pct = Math.round(fraction * 100);
-    return `polygon(0% 0%, 100% 0%, 100% ${pct}%, 0% ${pct}%)`;
-  }
-
-  // Faceted style (Default): Top-down alternating origami diagonal creases
+  // Unified top-down alternating origami diagonal creases
   switch (step) {
     case 1:
       return 'polygon(0% 0%, 100% 0%, 100% 26%, 0% 16%)';

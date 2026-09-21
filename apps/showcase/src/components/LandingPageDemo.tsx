@@ -199,7 +199,7 @@ export const LandingPageDemo: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '880px' }}>
           <Flex justify="center" style={{ marginBottom: '16px' }}>
             <Badge variant="default" dot>
-              FIELD DESIGN SYSTEM v0.2.4
+              FIELD DESIGN SYSTEM v0.2.6
             </Badge>
           </Flex>
 

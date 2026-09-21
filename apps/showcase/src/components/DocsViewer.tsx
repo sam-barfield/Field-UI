@@ -235,7 +235,7 @@ export function ExampleWidget() {
               <pre style={{ margin: 0, maxHeight: '350px', overflowY: 'auto' }}>
 {`{
   "name": "Field Design System",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "packages": [
     "@sam.barfield/field-tokens",
     "@sam.barfield/field-react"

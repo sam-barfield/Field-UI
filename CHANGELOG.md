@@ -2,6 +2,20 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [0.2.6] - 2026-09-21
+
+### Quality Assurance & Animation Engine Hardening
+- **UnfoldingHeading Architecture**:
+  - Unified character folding mechanism, eliminating legacy origami/scorecard split in favour of a responsive, unified folding glyph engine.
+  - Eliminated infinite re-render loops by persisting `onComplete` in mutable refs.
+  - Stabilized animation lifecycle against arbitrary parent re-renders by decoupling character parsing from render-time mutation.
+  - Hardened unmount and timer cleanups across sequence timeouts and intersection observers.
+  - Scoped CSS variables (`--field-unfold-speed`, `--field-unfold-color`, etc.) and cleaned up global CSS leaks.
+  - Added strict accessibility attributes (`aria-label`, `aria-hidden`) ensuring screen readers read unbroken textual copy.
+- **Showcase Integration**:
+  - Integrated full Landing Page Demo into the Live Composites tab suite.
+  - Updated component docs, interactive demos, and machine-readable manifests.
+
 ---
 
 ## [0.2.4] - 2026-09-06

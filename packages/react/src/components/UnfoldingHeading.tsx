@@ -217,18 +217,22 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   speed = 'normal',
   triangleSpeedMs,
   leadLetterLag = 2,
-  wireframeColor = '#00d2ff',
+  wireframeColor = 'var(--field-accent-primary, #00d2ff)',
   fillColor,
   highlightWords = [],
-  highlightColor = '#2563eb',
+  highlightColor = 'var(--field-accent-primary, #2563eb)',
   once = true,
+  duration: _duration,
+  charStagger: _charStagger,
   isUnfolded: controlledIsUnfolded,
   onComplete,
   className = '',
   style,
   ...props
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<any>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
   const [inView, setInView] = useState(false);
   const hasTriggeredRef = useRef(false);
 
@@ -319,11 +323,23 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
     return inView;
   }, [prefersReducedMotion, trigger, controlledIsUnfolded, inView]);
 
-  // Stable highlight set based on joined string
-  const highlightKey = useMemo(() => (highlightWords || []).join(','), [highlightWords]);
+  // Stable primitive key based on highlightWords to prevent recreation on parent re-renders
+  const serializedHighlights = (highlightWords || []).map((w) => w.toUpperCase().trim()).join('|');
   const highlightSet = useMemo(() => {
-    return new Set((highlightWords || []).map((w) => w.toUpperCase().trim()));
-  }, [highlightKey]);
+    const set = new Set<string>();
+    (highlightWords || []).forEach((w) => {
+      const upper = w.toUpperCase().trim();
+      if (!upper) return;
+      set.add(upper);
+      // Strip outer punctuation so (CRAFT) or "CRAFT," matches
+      const stripped = upper.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+      if (stripped) set.add(stripped);
+      // Also alphanumeric-only variant for maximum tolerance
+      const alpha = upper.replace(/[^A-Za-z0-9]/g, '');
+      if (alpha) set.add(alpha);
+    });
+    return set;
+  }, [serializedHighlights]);
 
   // Words & Characters decomposition with strict sequence indexing
   const { wordsData, allChars } = useMemo(() => {
@@ -338,8 +354,13 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
     }> = [];
 
     const words = rawWords.map((word, wordIdx) => {
-      const cleanWord = word.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-      const isHighlighted = highlightSet.has(cleanWord);
+      const rawUpper = word.toUpperCase();
+      const trimmedWord = rawUpper.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+      const alphaWord = rawUpper.replace(/[^A-Za-z0-9]/g, '');
+      const isHighlighted =
+        highlightSet.has(rawUpper) ||
+        highlightSet.has(trimmedWord) ||
+        highlightSet.has(alphaWord);
 
       const chars = word.split('').map((char) => {
         const charSeqIdx = globalCharSeqIdx++;
@@ -359,6 +380,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   useEffect(() => {
     if (prefersReducedMotion) {
       setIsFinished(true);
+      onCompleteRef.current?.();
       return;
     }
 
@@ -374,6 +396,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
 
     if (allChars.length === 0) {
       setIsFinished(true);
+      onCompleteRef.current?.();
       return;
     }
 
@@ -407,7 +430,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
               finishTimer = setTimeout(() => {
                 if (!isCancelled) {
                   setIsFinished(true);
-                  if (onComplete) onComplete();
+                  onCompleteRef.current?.();
                 }
               }, 480);
               return allChars.length - 1;
@@ -428,9 +451,12 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
       setActiveStepCount(currentStepIdx);
 
       // 3. Trailing wave: materialize completed letters that are leadLetterLag behind
-      if (currentCharIdx >= leadLetterLag) {
-        const targetMatIdx = currentCharIdx - leadLetterLag;
-        setMaxMaterializedIdx((prev) => Math.max(prev, targetMatIdx));
+      // Only letters that have strictly finished their wireframe draw can ever be materialized
+      if (currentCharIdx > 0 && currentCharIdx > leadLetterLag) {
+        const targetMatIdx = currentCharIdx - 1 - leadLetterLag;
+        if (targetMatIdx >= 0) {
+          setMaxMaterializedIdx((prev) => Math.max(prev, targetMatIdx));
+        }
       }
 
       // 4. When current character's facet steps are complete, advance to next letter
@@ -451,12 +477,12 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
       if (flushInterval) clearInterval(flushInterval);
       if (finishTimer) clearTimeout(finishTimer);
     };
-  }, [shouldAnimate, allChars, resolvedSpeedMs, leadLetterLag, prefersReducedMotion, once, onComplete]);
+  }, [shouldAnimate, allChars, resolvedSpeedMs, leadLetterLag, prefersReducedMotion, once]);
 
-  const Tag = Component as React.ElementType;
+  const ComponentTag = Component as React.ElementType;
 
   return (
-    <div
+    <ComponentTag
       ref={containerRef}
       className={`field-unfolding-container field-unfolding-${size} ${className}`}
       style={{
@@ -471,14 +497,14 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
         lineHeight: 1.1,
         letterSpacing: '-0.03em',
         textTransform: 'uppercase',
-        userSelect: 'none',
+        margin: 0,
+        userSelect: isFinished ? 'text' : 'none',
         ...style,
       }}
       {...props}
     >
-      {/* Semantic Accessible Tag for Screen Readers & SEO */}
-      <Tag
-        aria-label={text}
+      {/* Semantic Accessible Text for Screen Readers & SEO */}
+      <span
         className="field-unfolding-accessible-text"
         style={{
           position: 'absolute',
@@ -493,7 +519,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
         }}
       >
         {text}
-      </Tag>
+      </span>
 
       {/* Dynamic SVG Filter for 100% Unified Typographic Wireframe (Zero Overlapping Seams) */}
       <svg
@@ -572,66 +598,68 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
         </defs>
       </svg>
 
-      {/* Render Words */}
-      {wordsData.map((wordObj, wordIdx) => {
-        const wordColor = wordObj.isHighlighted
-          ? highlightColor
-          : fillColor || 'var(--field-text-primary, #0f172a)';
+      {/* Visual Animated Typographic Layer (Hidden from Assistive Tech to prevent duplicate announcements) */}
+      <span aria-hidden="true" style={{ display: 'contents' }}>
+        {wordsData.map((wordObj, wordIdx) => {
+          const wordColor = wordObj.isHighlighted
+            ? highlightColor
+            : fillColor || 'var(--field-text-primary, #0f172a)';
 
-        return (
-          <span
-            key={wordIdx}
-            className="field-unfolding-word"
-            style={{
-              display: 'inline-block',
-              whiteSpace: 'nowrap',
-              color: wordColor,
-            }}
-          >
-            {wordObj.chars.map(({ char, charSeqIdx, totalSteps }) => {
-              let visibleStepCount = 0;
-              let isMaterialized = false;
-              let isActive = false;
+          return (
+            <span
+              key={wordIdx}
+              className="field-unfolding-word"
+              style={{
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+                color: wordColor,
+              }}
+            >
+              {wordObj.chars.map(({ char, charSeqIdx, totalSteps }) => {
+                let visibleStepCount = 0;
+                let isMaterialized = false;
+                let isActive = false;
 
-              if (isFinished) {
-                isMaterialized = true;
-              } else if (charSeqIdx <= maxMaterializedIdx) {
-                // Trailing materialization wave has reached this character
-                isMaterialized = true;
-              } else if (charSeqIdx < activeCharSeqIdx) {
-                // Completed wireframe waiting for materialization wave
-                visibleStepCount = totalSteps;
-                isMaterialized = false;
-              } else if (charSeqIdx === activeCharSeqIdx) {
-                // Actively unfolding facet by facet
-                visibleStepCount = activeStepCount;
-                isActive = true;
-                isMaterialized = false;
-              } else {
-                // Upcoming letter
-                visibleStepCount = 0;
-                isMaterialized = false;
-              }
+                if (isFinished) {
+                  isMaterialized = true;
+                } else if (charSeqIdx <= maxMaterializedIdx) {
+                  // Trailing materialization wave has reached this character
+                  isMaterialized = true;
+                } else if (charSeqIdx < activeCharSeqIdx) {
+                  // Completed wireframe waiting for materialization wave
+                  visibleStepCount = totalSteps;
+                  isMaterialized = false;
+                } else if (charSeqIdx === activeCharSeqIdx) {
+                  // Actively unfolding facet by facet
+                  visibleStepCount = activeStepCount;
+                  isActive = true;
+                  isMaterialized = false;
+                } else {
+                  // Upcoming letter
+                  visibleStepCount = 0;
+                  isMaterialized = false;
+                }
 
-              return (
-                <LetterPolygonalCell
-                  key={charSeqIdx}
-                  char={char}
-                  color={wordColor}
-                  filterId={filterId}
-                  visibleStepCount={visibleStepCount}
-                  totalSteps={totalSteps}
-                  variant={variant}
-                  isMaterialized={isMaterialized}
-                  isFinished={isFinished}
-                  isActive={isActive}
-                />
-              );
-            })}
-          </span>
-        );
-      })}
-    </div>
+                return (
+                  <LetterPolygonalCell
+                    key={charSeqIdx}
+                    char={char}
+                    color={wordColor}
+                    filterId={filterId}
+                    visibleStepCount={visibleStepCount}
+                    totalSteps={totalSteps}
+                    variant={variant}
+                    isMaterialized={isMaterialized}
+                    isFinished={isFinished}
+                    isActive={isActive}
+                  />
+                );
+              })}
+            </span>
+          );
+        })}
+      </span>
+    </ComponentTag>
   );
 };
 
@@ -759,3 +787,10 @@ const LetterPolygonalCell: React.FC<LetterPolygonalCellProps> = ({
     </span>
   );
 };
+
+// ---------------------------------------------------------------------------
+// Component Aliases
+// ---------------------------------------------------------------------------
+
+export const UnfoldingHeader = UnfoldingHeading;
+export type UnfoldingHeaderProps = UnfoldingHeadingProps;

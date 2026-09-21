@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "Field Design System Component Manifest",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "components": {
     "Button": {
       "description": "Interactive action button with tactile elevation and loading state",

@@ -3022,3 +3022,47 @@ button.field-datepicker-trigger {
 .field-meter-fill.warning { background-color: var(--field-status-warning-base); }
 .field-meter-fill.danger { background-color: var(--field-status-danger-base); }
 
+/* ==========================================================================
+   UNFOLDING HEADING
+   ========================================================================== */
+.field-unfolding-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  user-select: none;
+  font-family: var(--field-font-sans, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-weight: 800;
+  text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.field-unfolding-word {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.field-unfolding-char-cell {
+  display: inline-block;
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-unfolding-char-cell > div {
+    display: none !important;
+  }
+  .field-unfolding-container .field-unfolding-accessible-text {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    font-size: inherit;
+    font-weight: 800;
+    color: var(--field-text-primary);
+  }
+}
+

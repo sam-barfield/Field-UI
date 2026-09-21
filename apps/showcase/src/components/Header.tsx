@@ -18,11 +18,12 @@ import {
   LayoutDashboard,
   Bot,
   Component,
+  Sparkles,
 } from 'lucide-react';
 
 export interface HeaderProps {
-  activeTab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'docs';
-  onTabChange: (tab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'docs') => void;
+  activeTab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'landing' | 'docs';
+  onTabChange: (tab: 'catalog' | 'stickersheet' | 'theme-editor' | 'demos' | 'landing' | 'docs') => void;
   viewport: 'desktop' | 'tablet' | 'mobile';
   onViewportChange: (vp: 'desktop' | 'tablet' | 'mobile') => void;
 }
@@ -129,6 +130,14 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => onTabChange('demos')}
           >
             Live Composites
+          </Button>
+          <Button
+            size="sm"
+            variant={activeTab === 'landing' ? 'primary' : 'ghost'}
+            leftIcon={<Sparkles size={14} />}
+            onClick={() => onTabChange('landing')}
+          >
+            Landing Page Demo
           </Button>
           <Button
             size="sm"

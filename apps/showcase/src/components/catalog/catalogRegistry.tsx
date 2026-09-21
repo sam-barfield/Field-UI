@@ -65,6 +65,10 @@ import {
   Meter,
   NumberInput,
   Combobox,
+  UnfoldingHeading,
+  UnfoldingVariant,
+  UnfoldingSize,
+  UnfoldingSpeed,
 } from '@sam.barfield/field-react';
 import {
   Play,
@@ -377,6 +381,165 @@ const TerminalInteractiveDemo = () => {
         </TerminalBody>
       </Terminal>
     </div>
+  );
+};
+
+const WIREFRAME_PRESET_COLORS = [
+  { label: 'Cyan', value: '#00d2ff', bg: '#00d2ff' },
+  { label: 'Emerald', value: '#10b981', bg: '#10b981' },
+  { label: 'Violet', value: '#a855f7', bg: '#a855f7' },
+  { label: 'Amber', value: '#f59e0b', bg: '#f59e0b' },
+  { label: 'White', value: '#f8fafc', bg: '#f8fafc' },
+];
+
+const UnfoldingHeadingInteractiveDemo = () => {
+  const [text, setText] = useState('WE CRAFT DIGITAL EXPERIENCES');
+  const [variant, setVariant] = useState<UnfoldingVariant>('faceted');
+  const [size, setSize] = useState<UnfoldingSize>('xl');
+  const [wireframeColor, setWireframeColor] = useState<string>('#00d2ff');
+  const [speed, setSpeed] = useState<UnfoldingSpeed>('normal');
+  const [replayKey, setReplayKey] = useState(0);
+
+  return (
+    <Stack gap="20px" align="center" style={{ width: '100%', maxWidth: '880px' }}>
+      <Card style={{ width: '100%', padding: '16px' }}>
+        <Stack gap="16px">
+          <Flex gap="16px" wrap="wrap" align="center" justify="space-between">
+            <div style={{ flex: '1 1 240px' }}>
+              <TextInput
+                label="Heading Text"
+                value={text}
+                onChange={(e) => setText(e.target.value.toUpperCase())}
+                placeholder="ENTER TEXT"
+              />
+            </div>
+            <div>
+              <Text size="xs" tone="secondary" style={{ marginBottom: '6px' }}>
+                Style Variant
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={variant}
+                onChange={(val) => setVariant(val as UnfoldingVariant)}
+                options={[
+                  { value: 'modular', label: 'Scorecard Net' },
+                  { value: 'faceted', label: 'Origami Crease' },
+                ]}
+              />
+            </div>
+            <div>
+              <Text size="xs" tone="secondary" style={{ marginBottom: '6px' }}>
+                Size
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={size}
+                onChange={(val) => setSize(val as UnfoldingSize)}
+                options={[
+                  { value: 'md', label: 'MD' },
+                  { value: 'lg', label: 'LG' },
+                  { value: 'xl', label: 'XL' },
+                  { value: 'hero', label: 'HERO' },
+                ]}
+              />
+            </div>
+          </Flex>
+
+          <Flex gap="16px" wrap="wrap" align="center" justify="space-between" style={{ borderTop: '1px solid var(--field-border-subtle)', paddingTop: '12px' }}>
+            <Flex align="center" gap="10px">
+              <Text size="xs" tone="secondary" weight="medium">
+                Wireframe Color:
+              </Text>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {WIREFRAME_PRESET_COLORS.map((c) => {
+                  const isSelected = wireframeColor === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      title={c.label}
+                      onClick={() => setWireframeColor(c.value)}
+                      style={{
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        backgroundColor: c.bg,
+                        border: isSelected
+                          ? '2px solid #ffffff'
+                          : '1px solid rgba(255,255,255,0.25)',
+                        boxShadow: isSelected
+                          ? `0 0 10px ${c.value}`
+                          : 'none',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        padding: 0,
+                        transform: isSelected ? 'scale(1.18)' : 'scale(1)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </Flex>
+
+            <Flex align="center" gap="10px">
+              <Text size="xs" tone="secondary" weight="medium">
+                Speed:
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={speed}
+                onChange={(val) => setSpeed(val as UnfoldingSpeed)}
+                options={[
+                  { value: 'fast', label: 'Fast (14ms)' },
+                  { value: 'normal', label: 'Normal (28ms)' },
+                  { value: 'slow', label: 'Slow (55ms)' },
+                  { value: 'cinematic', label: 'Cinematic (90ms)' },
+                ]}
+              />
+            </Flex>
+
+            <Button
+              size="sm"
+              variant="primary"
+              leftIcon={<RotateCcw size={14} />}
+              onClick={() => setReplayKey((k) => k + 1)}
+            >
+              Replay Fold
+            </Button>
+          </Flex>
+        </Stack>
+      </Card>
+
+      <div
+        key={replayKey}
+        style={{
+          width: '100%',
+          minHeight: '220px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'var(--field-surface-sunken)',
+          border: '1px solid var(--field-border-subtle)',
+          borderRadius: 'var(--field-radius-md)',
+          padding: '48px 24px',
+          overflow: 'hidden',
+        }}
+      >
+        <UnfoldingHeading
+          as="h1"
+          key={`${replayKey}-${text}-${variant}-${size}-${wireframeColor}-${speed}`}
+          text={text || 'WE CRAFT DIGITAL EXPERIENCES'}
+          highlightWords={['CRAFT', 'EXPERIENCES']}
+          highlightColor="#2563eb"
+          size={size}
+          variant={variant}
+          trigger="mount"
+          wireframeColor={wireframeColor}
+          speed={speed}
+        />
+      </div>
+    </Stack>
   );
 };
 
@@ -1278,6 +1441,78 @@ export const componentRegistry: ComponentDoc[] = [
     props: [
       { name: 'level', type: '1 | 2 | 3 | 4 | 5 | 6', default: '2', description: 'Heading level' },
       { name: 'tone', type: "'primary' | 'secondary' | 'tertiary' | 'danger' | 'success'", default: "'primary'", description: 'Text color tone' },
+    ],
+  },
+
+  // 26. UNFOLDING HEADING
+  {
+    id: 'unfolding-heading',
+    name: 'UnfoldingHeading',
+    category: 'Typography',
+    description: 'Mechanical 3D scorecard and origami flap typography that flips along precision hinge lines into crisp, high-craft headings matching real design system typography.',
+    importCode: `import { UnfoldingHeading } from "@sam.barfield/field-react";`,
+    usageCode: `<UnfoldingHeading\n  as="h1"\n  size="hero"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  variant="modular"\n  trigger="mount"\n/>`,
+    compositionTree: `UnfoldingHeading\n├── Accessible Semantic Tag (Screen Reader & SEO)\n└── 3D Scorecard Flaps (Clipped Real Font & Blueprint Wireframe)`,
+    primaryDemo: {
+      render: () => <UnfoldingHeadingInteractiveDemo />,
+      code: `<UnfoldingHeading\n  as="h1"\n  size="xl"\n  text="WE CRAFT DIGITAL EXPERIENCES"\n  highlightWords={["CRAFT", "EXPERIENCES"]}\n  highlightColor="#2563eb"\n  variant="modular"\n  trigger="mount"\n/>`,
+    },
+    variants: [
+      {
+        id: 'unfold-modular',
+        name: 'Scorecard Net',
+        description: 'Hinged horizontal flaps that flip over like mechanical scorecards or split-flap boards.',
+        render: () => (
+          <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
+            <UnfoldingHeading as="h2" size="lg" text="SCORECARD NET" variant="modular" trigger="mount" />
+          </div>
+        ),
+        code: `<UnfoldingHeading as="h2" size="lg" text="SCORECARD NET" variant="modular" trigger="mount" />`,
+      },
+      {
+        id: 'unfold-faceted',
+        name: 'Origami Crease Net',
+        description: 'Triangular origami facets meeting at the center crease, uncreasing into the letter.',
+        render: () => (
+          <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
+            <UnfoldingHeading as="h2" size="lg" text="ORIGAMI CREASE" variant="faceted" trigger="mount" />
+          </div>
+        ),
+        code: `<UnfoldingHeading as="h2" size="lg" text="ORIGAMI CREASE" variant="faceted" trigger="mount" />`,
+      },
+      {
+        id: 'unfold-scroll',
+        name: 'Scroll Triggered',
+        description: 'Uses IntersectionObserver to trigger as the user scrolls into view.',
+        render: () => (
+          <div style={{ padding: '24px', backgroundColor: 'var(--field-surface-sunken)', borderRadius: 'var(--field-radius-sm)' }}>
+            <UnfoldingHeading as="h3" size="md" text="SCROLL REVEAL" trigger="scroll" />
+          </div>
+        ),
+        code: `<UnfoldingHeading as="h3" size="md" text="SCROLL REVEAL" trigger="scroll" />`,
+      },
+    ],
+    props: [
+      { name: 'text', type: 'string', required: true, description: 'The text string to unfold' },
+      { name: 'as', type: "'h1' | 'h2' | 'h3' | 'h4' | 'span' | 'div'", default: "'h2'", description: 'Semantic heading tag level' },
+      { name: 'size', type: "'sm' | 'md' | 'lg' | 'xl' | 'hero'", default: "'lg'", description: 'Typographic dimensions' },
+      { name: 'variant', type: "'modular' | 'faceted'", default: "'modular'", description: 'Flap folding style: modular (scorecard) or faceted (origami)' },
+      { name: 'trigger', type: "'mount' | 'scroll' | 'manual'", default: "'scroll'", description: 'Animation trigger mode' },
+      { name: 'once', type: 'boolean', default: 'true', description: 'Whether the unfold animation plays once' },
+      { name: 'duration', type: 'number', default: '0.75', description: 'Flap flip duration in seconds' },
+      { name: 'charStagger', type: 'number', default: '0.05', description: 'Stagger delay between characters' },
+      { name: 'perspective', type: 'number', default: '900', description: '3D perspective depth in pixels' },
+      { name: 'wireframeColor', type: 'string', default: "'#00d2ff'", description: 'Blueprint wireframe border color during motion' },
+      { name: 'fillColor', type: 'string', description: 'Custom final solid fill color for text' },
+      { name: 'highlightWords', type: 'string[]', description: 'Array of words to render in highlight accent color' },
+      { name: 'highlightColor', type: 'string', default: "'#2563eb'", description: 'Color for highlighted words' },
+    ],
+    usefulNotes: [
+      'Renders the real design system font with 100% precision: no distorted block approximations.',
+      'Mechanical scorecard flip physics: snappier, tactile spring flip with dampening on landing.',
+      'Supports dual-tone accent coloring: highlight specific words with accent color just like Image 1.',
+      'Zero external 3D dependencies: hardware-accelerated 3D CSS transforms with zero runtime CPU once resting.',
+      'Full screen reader and SEO accessibility via semantic heading tag with prefers-reduced-motion support.',
     ],
   },
 ];

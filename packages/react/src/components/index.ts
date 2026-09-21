@@ -21,4 +21,5 @@ export * from './ContextMenu';
 export * from './DataDisplay';
 export * from './CodeBlock';
 export * from './Metrics';
+export * from './UnfoldingHeading';
 

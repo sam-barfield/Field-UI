@@ -78,6 +78,7 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   shadow?: NavbarShadow;
   scrollBehavior?: NavbarScrollBehavior;
   scrollThreshold?: number;
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
   transparentOnTop?: boolean;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | number | string;
   isMenuOpen?: boolean;
@@ -110,6 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   shadow = 'none',
   scrollBehavior = 'none',
   scrollThreshold = 20,
+  scrollContainerRef,
   transparentOnTop = false,
   maxWidth = 'full',
   isMenuOpen: controlledOpen,
@@ -128,16 +130,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   useEffect(() => {
     if (scrollBehavior === 'none' && !transparentOnTop) return;
 
+    const target: EventTarget = scrollContainerRef?.current || window;
+    const getScrollY = () =>
+      scrollContainerRef?.current ? scrollContainerRef.current.scrollTop : window.scrollY;
+
     const handleScroll = () => {
-      const scrolled = window.scrollY > scrollThreshold;
+      const scrolled = getScrollY() > scrollThreshold;
       setIsScrolled(scrolled);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    target.addEventListener('scroll', handleScroll as EventListener, { passive: true });
     handleScroll();
 
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [scrollBehavior, scrollThreshold, transparentOnTop]);
+    return () => target.removeEventListener('scroll', handleScroll as EventListener);
+  }, [scrollBehavior, scrollThreshold, transparentOnTop, scrollContainerRef]);
 
   const setIsMenuOpen = useCallback(
     (open: boolean) => {
@@ -466,10 +472,13 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
 
       if (activeEl) {
         const containerRect = containerRef.current.getBoundingClientRect();
+        const flyoutTrigger = activeEl.closest('.field-navbar-flyout-trigger') as HTMLElement | null;
+        const measurementEl = flyoutTrigger || activeEl;
+
         const itemWidthAttr = activeEl.getAttribute('data-indicator-width');
         const effectiveWidth = itemWidthAttr || indicatorWidth || underlineWidth || 'full';
         const { left: nextLeft, width: nextWidth } = computeTargetDimensions(
-          activeEl,
+          measurementEl,
           containerRect,
           effectiveWidth
         );
@@ -559,11 +568,19 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!hoverGlider || !containerRef.current) return;
-      const target = (e.target as HTMLElement).closest(
+      const flyoutTrigger = (e.target as HTMLElement).closest(
+        '.field-navbar-flyout-trigger'
+      ) as HTMLElement | null;
+      const navItem = (e.target as HTMLElement).closest(
         '.field-navbar-item'
       ) as HTMLElement | null;
+      const target = (flyoutTrigger && containerRef.current.contains(flyoutTrigger))
+        ? flyoutTrigger
+        : (navItem && containerRef.current.contains(navItem))
+        ? navItem
+        : null;
 
-      if (target && containerRef.current.contains(target)) {
+      if (target) {
         const targetRect = target.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
         setHoverIndicator({
@@ -604,6 +621,8 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
     ...style,
   };
 
+  const isLineVariant = variant === 'underline' || variant === 'elastic';
+
   return (
     <NavbarContentContext.Provider value={contextValue}>
       <div
@@ -639,7 +658,7 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
             style={{
               transform: `translateX(${activeIndicator.left}px)`,
               width: `${activeIndicator.width}px`,
-              ...(effectiveThickness !== undefined
+              ...(isLineVariant && effectiveThickness !== undefined
                 ? {
                     height:
                       typeof effectiveThickness === 'number'
@@ -692,6 +711,16 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
 }) => {
   const { variant: contextVariant } = useContext(NavbarContentContext);
   const variant = propVariant || contextVariant || 'underline';
+  const { isInMenu } = useNavbarMenu();
+  const { setIsMenuOpen } = useNavbar();
+
+  const handleClick = (e: React.MouseEvent<any>) => {
+    if (disabled) return;
+    onClick?.(e);
+    if (isInMenu && !e.defaultPrevented) {
+      setIsMenuOpen(false);
+    }
+  };
 
   const classNames = [
     'field-navbar-item',
@@ -717,7 +746,7 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
       'aria-disabled': disabled ? 'true' : undefined,
       'data-active': isActive ? 'true' : undefined,
       'data-indicator-width': indicatorWidth || underlineWidth,
-      onClick: disabled ? undefined : onClick,
+      onClick: disabled ? undefined : handleClick,
       className: classNames,
       style,
       children,
@@ -801,26 +830,40 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
       (trigger.props as any)?.as === 'button' ||
       (!(trigger.props as any)?.as && !(trigger.props as any)?.href && (trigger.type as any)?.displayName === 'NavbarItem'));
 
+  const clonedTrigger =
+    React.isValidElement(trigger) && isTriggerButton
+      ? React.cloneElement(trigger as React.ReactElement<any>, {
+          'aria-haspopup': 'menu',
+          'aria-expanded': open,
+        })
+      : trigger;
+
   if (isInMenu) {
     return (
       <div ref={containerRef} className={classNames} style={style}>
         <div
           className="field-navbar-flyout-trigger"
           onClick={() => setOpen(!open)}
-          aria-expanded={open}
           role={isTriggerButton ? undefined : 'button'}
           tabIndex={isTriggerButton ? undefined : 0}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setOpen(!open);
-            }
-          }}
+          aria-haspopup={isTriggerButton ? undefined : 'menu'}
+          aria-expanded={isTriggerButton ? undefined : open}
+          onKeyDown={
+            isTriggerButton
+              ? undefined
+              : e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setOpen(!open);
+                  }
+                }
+          }
         >
-          {trigger}
+          {clonedTrigger}
           <ChevronDown
             size={16}
             className={`field-navbar-flyout-chevron ${open ? 'rotated' : ''}`}
+            aria-hidden="true"
           />
         </div>
 
@@ -838,20 +881,26 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
       <div
         className="field-navbar-flyout-trigger"
         onClick={() => setOpen(!open)}
-        aria-expanded={open}
         role={isTriggerButton ? undefined : 'button'}
         tabIndex={isTriggerButton ? undefined : 0}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setOpen(!open);
-          }
-        }}
+        aria-haspopup={isTriggerButton ? undefined : 'menu'}
+        aria-expanded={isTriggerButton ? undefined : open}
+        onKeyDown={
+          isTriggerButton
+            ? undefined
+            : e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setOpen(!open);
+                }
+              }
+        }
       >
-        {trigger}
+        {clonedTrigger}
         <ChevronDown
           size={14}
           className={`field-navbar-flyout-chevron ${open ? 'rotated' : ''}`}
+          aria-hidden="true"
         />
       </div>
 
@@ -933,7 +982,17 @@ export const NavbarFlyoutItem: React.FC<NavbarFlyoutItemProps> = ({
   style,
   ...props
 }) => {
-  const defaultTag = href ? 'a' : 'div';
+  const { isInMenu } = useNavbarMenu();
+  const { setIsMenuOpen } = useNavbar();
+
+  const handleClick = (e: React.MouseEvent<any>) => {
+    onClick?.(e);
+    if (isInMenu && !e.defaultPrevented) {
+      setIsMenuOpen(false);
+    }
+  };
+
+  const defaultTag = href ? 'a' : onClick ? 'button' : 'div';
   const classNames = ['field-navbar-flyout-item', className].filter(Boolean).join(' ');
 
   const content = (
@@ -957,7 +1016,8 @@ export const NavbarFlyoutItem: React.FC<NavbarFlyoutItemProps> = ({
       asChild,
       as,
       href,
-      onClick,
+      type: defaultTag === 'button' && (!as || as === 'button') ? 'button' : undefined,
+      onClick: handleClick,
       className: classNames,
       style,
       children: content,

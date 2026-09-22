@@ -3403,12 +3403,27 @@ button.field-datepicker-trigger {
   transition: background-color var(--field-transition-fast), border-color var(--field-transition-fast), box-shadow var(--field-transition-fast);
 }
 
+.field-navbar-scroll-elevate.field-navbar-scrolled {
+  box-shadow: var(--field-shadow-md);
+  background-color: var(--field-surface-raised);
+}
+
 .field-navbar-scroll-shrink {
   transition: height var(--field-transition-fast), background-color var(--field-transition-fast), border-color var(--field-transition-fast), box-shadow var(--field-transition-fast);
 }
 
 .field-navbar-scroll-shrink.field-navbar-scrolled {
   height: 48px;
+}
+
+.field-navbar-scroll-blur {
+  transition: background-color var(--field-transition-fast), backdrop-filter var(--field-transition-fast), -webkit-backdrop-filter var(--field-transition-fast);
+}
+
+.field-navbar-scroll-blur.field-navbar-scrolled {
+  background-color: color-mix(in srgb, var(--field-surface-raised) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* --- Architectural Megamenu / Flyout --- */
@@ -3475,6 +3490,11 @@ button.field-datepicker-trigger {
   border: 1px solid transparent;
   transition: all var(--field-transition-fast);
   cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
 }
 
 .field-navbar-flyout-item:hover {
@@ -3681,7 +3701,6 @@ button.field-datepicker-trigger {
     display: inline-flex;
   }
 
-  .field-navbar-content-center,
   .field-navbar-hide-mobile {
     display: none !important;
   }
@@ -3722,7 +3741,6 @@ button.field-datepicker-trigger {
     display: inline-flex;
   }
 
-  .field-navbar-content-center,
   .field-navbar-hide-mobile {
     display: none !important;
   }

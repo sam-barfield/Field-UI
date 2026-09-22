@@ -1894,6 +1894,9 @@
           "type": "number",
           "default": 20
         },
+        "scrollContainerRef": {
+          "type": "RefObject<HTMLElement | null>"
+        },
         "transparentOnTop": {
           "type": "boolean",
           "default": false

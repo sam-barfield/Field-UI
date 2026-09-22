@@ -3058,3 +3058,703 @@ button.field-datepicker-trigger {
   }
 }
 
+/* ==========================================================================
+   Navbar & Top Navigation Components
+   ========================================================================== */
+
+.field-navbar {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  background-color: var(--field-surface-raised);
+  border-bottom: 1px solid var(--field-border-subtle);
+  color: var(--field-text-primary);
+  font-family: var(--field-font-sans);
+  transition: background-color var(--field-transition-fast), border-color var(--field-transition-fast);
+  box-sizing: border-box;
+  container-type: inline-size;
+  container-name: field-navbar;
+}
+
+.field-navbar-compact {
+  height: 48px;
+}
+
+.field-navbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.field-navbar-blurred {
+  background-color: color-mix(in srgb, var(--field-surface-raised) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.field-navbar-bordered {
+  border-bottom: 1px solid var(--field-border-default);
+}
+
+.field-navbar-container {
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--field-space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.field-navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-space-3);
+  text-decoration: none;
+  color: var(--field-text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+
+.field-navbar-brand:focus-visible {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--field-radius-sm);
+}
+
+/* --- Content Sections --- */
+.field-navbar-content {
+  display: flex;
+  align-items: center;
+  gap: var(--field-space-2);
+  height: 100%;
+  position: relative;
+}
+
+.field-navbar-content-start {
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.field-navbar-content-center {
+  justify-content: center;
+}
+
+.field-navbar-content-end {
+  justify-content: flex-end;
+}
+
+/* Variant: Rail Container */
+.field-navbar-content-rail {
+  background-color: var(--field-surface-sunken);
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  padding: 3px 4px;
+  gap: 2px;
+  height: auto;
+  align-self: center;
+}
+
+/* --- Nav Items --- */
+.field-navbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-space-2);
+  background: transparent;
+  border: none;
+  color: var(--field-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--field-transition-fast), background-color var(--field-transition-fast);
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+
+.field-navbar-item:hover:not(.disabled) {
+  color: var(--field-text-primary);
+}
+
+.field-navbar-item.active {
+  color: var(--field-text-primary);
+  font-weight: 600;
+}
+
+.field-navbar-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.field-navbar-item:focus-visible {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--field-radius-sm);
+}
+
+/* Item Variant: Underline & Elastic (Flush with bottom border) */
+.field-navbar-item-underline,
+.field-navbar-item-elastic {
+  height: 100%;
+  padding: 0 var(--field-space-3);
+  border-radius: 0;
+}
+
+.field-navbar-item-underline:hover:not(.disabled),
+.field-navbar-item-elastic:hover:not(.disabled) {
+  color: var(--field-text-primary);
+}
+
+/* Fallback non-animated underline & elastic */
+.field-navbar-content:not(.field-navbar-content-animated) .field-navbar-item-underline.active,
+.field-navbar-content:not(.field-navbar-content-animated) .field-navbar-item-elastic.active {
+  border-bottom: 2px solid var(--field-accent-primary);
+  margin-bottom: -1px;
+}
+
+/* Item Variant: Pill (Soft capsule) */
+.field-navbar-item-pill {
+  padding: 6px 14px;
+  border-radius: var(--field-radius-sm);
+}
+
+.field-navbar-item-pill:hover:not(.disabled):not(.active) {
+  background-color: var(--field-surface-subtle);
+}
+
+/* Fallback non-animated pill */
+.field-navbar-content:not(.field-navbar-content-animated) .field-navbar-item-pill.active {
+  background-color: var(--field-surface-active);
+  border: 1px solid var(--field-border-subtle);
+}
+
+/* Item Variant: Rail (Encapsulated dock item) */
+.field-navbar-item-rail {
+  padding: 5px 12px;
+  font-size: 0.8125rem;
+  border-radius: calc(var(--field-radius-md) - 2px);
+}
+
+.field-navbar-item-rail:hover:not(.disabled):not(.active) {
+  background-color: var(--field-surface-subtle);
+}
+
+/* Fallback non-animated rail */
+.field-navbar-content:not(.field-navbar-content-animated) .field-navbar-item-rail.active {
+  background-color: var(--field-surface-raised);
+  border: 1px solid var(--field-border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Item Variant: Ghost */
+.field-navbar-item-ghost {
+  padding: 6px 12px;
+  border-radius: var(--field-radius-sm);
+}
+
+.field-navbar-item-ghost:hover:not(.disabled) {
+  background-color: var(--field-surface-subtle);
+}
+
+/* --- Animated Indicators (120fps Layout Glider) --- */
+.field-navbar-indicator {
+  position: absolute;
+  pointer-events: none;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              width 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 150ms ease;
+  will-change: transform, width;
+}
+
+/* Indicator: Underline Glider */
+.field-navbar-indicator-underline {
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background-color: var(--field-accent-primary);
+  border-radius: 2px 2px 0 0;
+  z-index: 2;
+}
+
+.field-navbar-indicator-underline.glow {
+  box-shadow: 0 0 10px var(--field-accent-primary), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.field-navbar-indicator-underline.matte {
+  box-shadow: none;
+}
+
+/* Indicator: Elastic / Spongy Glider (Rubber-band stretch with spring overshoot physics) */
+.field-navbar-indicator-elastic {
+  bottom: -1px;
+  left: 0;
+  height: 2.5px;
+  background-color: var(--field-accent-primary);
+  border-radius: var(--field-radius-full);
+  z-index: 2;
+  transform-origin: center bottom;
+  transition: opacity 150ms ease;
+  will-change: transform, width;
+}
+
+.field-navbar-indicator-elastic.glow {
+  box-shadow: 0 0 10px var(--field-accent-primary), 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.field-navbar-indicator-elastic.matte {
+  box-shadow: none;
+}
+
+/* Indicator: Pill Glider */
+.field-navbar-indicator-pill {
+  top: 50%;
+  left: 0;
+  height: 32px;
+  margin-top: -16px;
+  background-color: var(--field-surface-active);
+  border: 1px solid var(--field-border-subtle);
+  border-radius: var(--field-radius-sm);
+  z-index: 0;
+}
+
+/* Indicator: Rail Glider */
+.field-navbar-indicator-rail {
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  background-color: var(--field-surface-raised);
+  border: 1px solid var(--field-border-subtle);
+  border-radius: calc(var(--field-radius-md) - 2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 0;
+}
+
+/* Magnetic Hover Spotlight Glider */
+.field-navbar-hover-glider {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 32px;
+  margin-top: -16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: var(--field-radius-sm);
+  pointer-events: none;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              width 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 150ms ease;
+  z-index: 0;
+}
+
+[data-field-theme='light'] .field-navbar-hover-glider {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Suppress individual static item hover backgrounds when hoverGlider is active */
+.field-navbar-content-hover-glider .field-navbar-item:hover:not(.disabled) {
+  background-color: transparent !important;
+}
+
+/* Floating Island Mode */
+.field-navbar.field-navbar-floating {
+  position: sticky;
+  top: 16px;
+  width: calc(100% - 32px);
+  max-width: 1240px;
+  margin: 16px auto;
+  border-radius: var(--field-radius-lg);
+  border: 1px solid var(--field-border-strong);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+/* Elevation Shadows */
+.field-navbar-shadow-sm {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.field-navbar-shadow-md {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.field-navbar-shadow-lg {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+/* Scroll Dynamics */
+.field-navbar.field-navbar-transparent {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.field-navbar-scroll-elevate {
+  transition: background-color var(--field-transition-fast), border-color var(--field-transition-fast), box-shadow var(--field-transition-fast);
+}
+
+.field-navbar-scroll-shrink {
+  transition: height var(--field-transition-fast), background-color var(--field-transition-fast), border-color var(--field-transition-fast), box-shadow var(--field-transition-fast);
+}
+
+.field-navbar-scroll-shrink.field-navbar-scrolled {
+  height: 48px;
+}
+
+/* --- Architectural Megamenu / Flyout --- */
+.field-navbar-flyout-container {
+  position: relative;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+
+.field-navbar-flyout-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-space-1);
+  height: 100%;
+  cursor: pointer;
+  outline: none;
+}
+
+.field-navbar-flyout-chevron {
+  color: var(--field-text-tertiary);
+  transition: transform var(--field-transition-fast);
+}
+
+.field-navbar-flyout-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.field-navbar-flyout-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 100;
+  background-color: var(--field-surface-overlay);
+  border: 1px solid var(--field-border-strong);
+  border-radius: var(--field-radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  padding: var(--field-space-4);
+  animation: fieldFadeIn 0.15s ease-out;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.field-navbar-flyout-align-start {
+  left: 0;
+}
+
+.field-navbar-flyout-align-center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.field-navbar-flyout-align-end {
+  right: 0;
+}
+
+.field-navbar-flyout-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--field-space-3);
+  padding: var(--field-space-3);
+  border-radius: var(--field-radius-sm);
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all var(--field-transition-fast);
+  cursor: pointer;
+}
+
+.field-navbar-flyout-item:hover {
+  background-color: var(--field-surface-subtle);
+  border-color: var(--field-border-subtle);
+}
+
+.field-navbar-flyout-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--field-radius-sm);
+  background-color: var(--field-surface-raised);
+  border: 1px solid var(--field-border-default);
+  color: var(--field-accent-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.field-navbar-flyout-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.field-navbar-flyout-item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--field-space-2);
+}
+
+.field-navbar-flyout-item-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--field-text-primary);
+  font-family: var(--field-font-sans);
+}
+
+.field-navbar-flyout-item-desc {
+  font-size: 0.8125rem;
+  color: var(--field-text-secondary);
+  margin: 3px 0 0 0;
+  line-height: 1.4;
+  font-family: var(--field-font-sans);
+}
+
+/* --- Mobile Drawer Accordion Submenu --- */
+.field-navbar-flyout-container.in-menu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+}
+
+.field-navbar-flyout-container.in-menu .field-navbar-flyout-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--field-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--field-transition-fast);
+  color: var(--field-text-secondary);
+}
+
+.field-navbar-flyout-container.in-menu .field-navbar-flyout-trigger:hover {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-primary);
+}
+
+.field-navbar-flyout-container.in-menu .field-navbar-flyout-trigger .field-navbar-item {
+  padding: 0;
+  height: auto;
+  width: auto;
+}
+
+.field-navbar-flyout-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-2);
+  margin-left: 14px;
+  padding-left: 14px;
+  border-left: 2px solid var(--field-border-subtle);
+  margin-top: 4px;
+  margin-bottom: 8px;
+  animation: fieldFadeIn 0.2s ease-out;
+}
+
+.field-navbar-flyout-accordion .field-navbar-flyout-grid {
+  grid-template-columns: 1fr !important;
+  gap: 6px !important;
+}
+
+.field-navbar-flyout-accordion .field-navbar-flyout-item {
+  padding: 8px 10px;
+  background-color: var(--field-surface-base);
+  border: 1px solid var(--field-border-subtle);
+  border-radius: var(--field-radius-sm);
+}
+
+.field-navbar-flyout-accordion .field-navbar-flyout-item:hover {
+  background-color: var(--field-surface-subtle);
+  border-color: var(--field-border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-navbar-indicator,
+  .field-navbar-hover-glider {
+    transition: none !important;
+  }
+}
+
+.field-navbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-space-2);
+}
+
+.field-navbar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--field-radius-sm);
+  background: transparent;
+  border: 1px solid var(--field-border-default);
+  color: var(--field-text-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--field-transition-fast);
+}
+
+.field-navbar-toggle.field-navbar-toggle-always {
+  display: inline-flex !important;
+}
+
+.field-navbar-toggle.field-navbar-toggle-never {
+  display: none !important;
+}
+
+.field-navbar-toggle:hover {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-text-primary);
+  border-color: var(--field-border-strong);
+}
+
+.field-navbar-toggle:focus-visible {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 2px;
+}
+
+.field-navbar-toggle.open {
+  background-color: var(--field-surface-subtle);
+  color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
+}
+
+.field-navbar-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--field-surface-raised);
+  border-bottom: 1px solid var(--field-border-default);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  padding: var(--field-space-3) var(--field-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-2);
+  z-index: 49;
+  animation: fieldFadeIn 0.15s ease-out;
+}
+
+.field-navbar-menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-2);
+}
+
+.field-navbar-menu .field-navbar-item {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  border-radius: var(--field-radius-sm);
+}
+
+.field-navbar-menu .field-navbar-item.active {
+  background-color: var(--field-surface-active);
+  color: var(--field-accent-primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Responsive Navbar Behavior (Container Queries + Media Queries)
+   ========================================================================== */
+
+@container field-navbar (max-width: 768px) {
+  .field-navbar-toggle:not(.field-navbar-toggle-never) {
+    display: inline-flex;
+  }
+
+  .field-navbar-content-center,
+  .field-navbar-hide-mobile {
+    display: none !important;
+  }
+
+  .field-navbar.field-navbar-floating {
+    top: 8px;
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    border-radius: var(--field-radius-md);
+  }
+
+  .field-navbar.field-navbar-floating .field-navbar-menu {
+    top: calc(100% + 6px);
+    border-radius: var(--field-radius-md);
+    border: 1px solid var(--field-border-strong);
+  }
+
+  .field-navbar-flyout-panel {
+    position: fixed;
+    left: 12px !important;
+    right: 12px !important;
+    top: 64px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: none !important;
+    max-height: calc(85vh - 64px);
+    overflow-y: auto;
+  }
+
+  .field-navbar-flyout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .field-navbar-toggle:not(.field-navbar-toggle-never) {
+    display: inline-flex;
+  }
+
+  .field-navbar-content-center,
+  .field-navbar-hide-mobile {
+    display: none !important;
+  }
+
+  .field-navbar.field-navbar-floating {
+    top: 8px;
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    border-radius: var(--field-radius-md);
+  }
+
+  .field-navbar.field-navbar-floating .field-navbar-menu {
+    top: calc(100% + 6px);
+    border-radius: var(--field-radius-md);
+    border: 1px solid var(--field-border-strong);
+  }
+
+  .field-navbar-flyout-panel {
+    position: fixed;
+    left: 12px !important;
+    right: 12px !important;
+    top: 64px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: none !important;
+    max-height: calc(85vh - 64px);
+    overflow-y: auto;
+  }
+
+  .field-navbar-flyout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+}
+

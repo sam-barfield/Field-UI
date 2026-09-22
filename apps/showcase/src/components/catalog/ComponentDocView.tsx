@@ -23,12 +23,16 @@ interface ComponentDocViewProps {
   doc: ComponentDoc;
   allComponents: ComponentDoc[];
   onSelectComponent: (id: string) => void;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
+  onViewportChange?: (vp: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
 export const ComponentDocView: React.FC<ComponentDocViewProps> = ({
   doc,
   allComponents,
   onSelectComponent,
+  viewport = 'desktop',
+  onViewportChange,
 }) => {
   const { showToast } = useToast();
   const [copiedUsage, setCopiedUsage] = useState(false);
@@ -241,7 +245,12 @@ ${doc.compositionTree}
       {(() => {
         const PrimaryDemo = doc.primaryDemo.render;
         return (
-          <ComponentPreviewCard code={doc.primaryDemo.code} align="center">
+          <ComponentPreviewCard
+            code={doc.primaryDemo.code}
+            align="center"
+            viewport={viewport}
+            onViewportChange={onViewportChange}
+          >
             <PrimaryDemo />
           </ComponentPreviewCard>
         );

@@ -45,6 +45,16 @@ import {
   SidebarItem,
   SidebarDropdown,
   SidebarSubItem,
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarActions,
+  NavbarToggle,
+  NavbarMenu,
+  NavbarFlyout,
+  NavbarFlyoutGrid,
+  NavbarFlyoutItem,
   Terminal,
   TerminalHeader,
   TerminalBody,
@@ -323,6 +333,431 @@ const ControlsInteractiveDemo = () => {
         ]}
       />
     </Stack>
+  );
+};
+
+const NavbarInteractiveDemo = () => {
+  const [activeTab, setActiveTab] = useState('capabilities');
+  const [shellMode, setShellMode] = useState<'standard' | 'floating'>('standard');
+  const [variant, setVariant] = useState<'underline' | 'elastic' | 'pill' | 'rail'>('underline');
+  const [shadow, setShadow] = useState<'none' | 'sm' | 'md' | 'lg'>('md');
+  const [glow, setGlow] = useState(true);
+  const [hoverGlider, setHoverGlider] = useState(true);
+  const [density, setDensity] = useState<'default' | 'compact'>('default');
+  const [indicatorWidth, setIndicatorWidth] = useState<'full' | 'content' | '70%' | '36px'>('full');
+  const [indicatorThickness, setIndicatorThickness] = useState<2 | 3 | 4>(2);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [simulatedWidth, setSimulatedWidth] = useState<'full' | 'tablet' | 'mobile'>('full');
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: '880px',
+        border: '1px solid var(--field-border-default)',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        backgroundColor: 'var(--field-surface-base)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Live Preview Area */}
+      <div
+        style={{
+          minHeight: '260px',
+          padding: shellMode === 'floating' ? '24px 16px' : simulatedWidth !== 'full' ? '24px 16px' : '0',
+          backgroundColor: 'var(--field-surface-sunken)',
+          backgroundImage:
+            'radial-gradient(var(--field-border-subtle) 1px, transparent 1px)',
+          backgroundSize: '16px 16px',
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          transition: 'padding 0.2s ease',
+        }}
+      >
+        <div
+          style={{
+            width: simulatedWidth === 'mobile' ? '390px' : simulatedWidth === 'tablet' ? '768px' : '100%',
+            maxWidth: '100%',
+            transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: simulatedWidth !== 'full' ? '1px solid var(--field-border-strong)' : 'none',
+            borderRadius: simulatedWidth !== 'full' ? '14px' : '0',
+            boxShadow: simulatedWidth !== 'full' ? '0 10px 30px rgba(0,0,0,0.5)' : 'none',
+            position: 'relative',
+            backgroundColor: 'var(--field-surface-base)',
+          }}
+        >
+          <Navbar
+            floating={shellMode === 'floating'}
+            density={density}
+            shadow={shadow}
+            bordered
+            isMenuOpen={isMenuOpen}
+            onMenuOpenChange={setIsMenuOpen}
+          >
+            <NavbarContent align="start">
+              <NavbarBrand>
+                <div
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: 'var(--field-radius-sm)',
+                    backgroundColor: 'var(--field-accent-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <Zap size={16} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 700, letterSpacing: '0.02em' }}>
+                    APEX
+                  </span>
+                  <StatusDot status="success" pulse label="Available for Q4" />
+                </div>
+              </NavbarBrand>
+            </NavbarContent>
+
+            <NavbarContent
+              align="center"
+              variant={variant}
+              indicatorWidth={indicatorWidth}
+              indicatorThickness={indicatorThickness}
+              animated
+              glow={glow}
+              hoverGlider={hoverGlider}
+              hideOnMobile={simulatedWidth === 'mobile'}
+            >
+              {/* Architectural Services Megamenu */}
+              <NavbarFlyout
+                width={580}
+                trigger={
+                  <NavbarItem as="span" isActive={activeTab === 'capabilities'}>
+                    Capabilities
+                  </NavbarItem>
+                }
+              >
+                <Stack gap="16px">
+                  <Flex justify="space-between" align="center">
+                    <div>
+                      <Heading level={4} style={{ fontSize: '0.95rem' }}>
+                        Engineering & Consulting Services
+                      </Heading>
+                      <Text size="xs" tone="secondary">
+                        Bespoke enterprise digital architecture & full-stack development
+                      </Text>
+                    </div>
+                    <Badge variant="accent">High Reliability</Badge>
+                  </Flex>
+
+                  <NavbarFlyoutGrid columns={2} gap={12}>
+                    <NavbarFlyoutItem
+                      icon={<Cpu size={16} />}
+                      title="Distributed Cloud Infra"
+                      description="Multi-region Kubernetes, AWS/GCP terraform, and zero-downtime failover."
+                      onClick={() => setActiveTab('capabilities')}
+                    />
+                    <NavbarFlyoutItem
+                      icon={<Shield size={16} />}
+                      title="Product Architecture"
+                      description="Mission-critical React 19, TypeScript, and high-performance APIs."
+                      onClick={() => setActiveTab('capabilities')}
+                    />
+                    <NavbarFlyoutItem
+                      icon={<Zap size={16} />}
+                      title="AI & Agentic Systems"
+                      description="Enterprise RAG pipelines, vector memory, and autonomous workflows."
+                      onClick={() => setActiveTab('capabilities')}
+                    />
+                    <NavbarFlyoutItem
+                      icon={<Activity size={16} />}
+                      title="Performance & Audits"
+                      description="Sub-50ms p99 tuning, SOC2 security audits, and scale stress tests."
+                      onClick={() => setActiveTab('capabilities')}
+                    />
+                  </NavbarFlyoutGrid>
+                </Stack>
+              </NavbarFlyout>
+
+              <NavbarItem
+                isActive={activeTab === 'work'}
+                onClick={() => setActiveTab('work')}
+              >
+                Case Studies
+              </NavbarItem>
+              <NavbarItem
+                isActive={activeTab === 'methodology'}
+                onClick={() => setActiveTab('methodology')}
+              >
+                Methodology
+              </NavbarItem>
+              <NavbarItem
+                isActive={activeTab === 'insights'}
+                onClick={() => setActiveTab('insights')}
+              >
+                Insights
+              </NavbarItem>
+            </NavbarContent>
+
+            <NavbarContent align="end">
+              <NavbarActions gap="8px">
+                {simulatedWidth !== 'mobile' && (
+                  <IconButton
+                    icon={<Search size={14} />}
+                    aria-label="Search capabilities"
+                    size="sm"
+                    variant="ghost"
+                  />
+                )}
+                <Button size="sm" variant="primary">
+                  Inquire
+                </Button>
+              </NavbarActions>
+              <NavbarToggle display={simulatedWidth === 'mobile' ? 'always' : 'auto'} />
+            </NavbarContent>
+
+            <NavbarMenu>
+              <NavbarFlyout
+                trigger={
+                  <NavbarItem as="span" isActive={activeTab === 'capabilities'}>
+                    Capabilities
+                  </NavbarItem>
+                }
+              >
+                <NavbarFlyoutGrid columns={1} gap={8}>
+                  <NavbarFlyoutItem
+                    icon={<Cpu size={16} />}
+                    title="Distributed Cloud Infra"
+                    description="Multi-region Kubernetes & zero-downtime failover."
+                    onClick={() => {
+                      setActiveTab('capabilities');
+                      setIsMenuOpen(false);
+                    }}
+                  />
+                  <NavbarFlyoutItem
+                    icon={<Shield size={16} />}
+                    title="Product Architecture"
+                    description="React 19, TypeScript, and high-performance APIs."
+                    onClick={() => {
+                      setActiveTab('capabilities');
+                      setIsMenuOpen(false);
+                    }}
+                  />
+                  <NavbarFlyoutItem
+                    icon={<Zap size={16} />}
+                    title="AI & Agentic Systems"
+                    description="Enterprise RAG pipelines & autonomous agents."
+                    onClick={() => {
+                      setActiveTab('capabilities');
+                      setIsMenuOpen(false);
+                    }}
+                  />
+                  <NavbarFlyoutItem
+                    icon={<Activity size={16} />}
+                    title="Performance & Audits"
+                    description="Sub-50ms p99 latency & security audits."
+                    onClick={() => {
+                      setActiveTab('capabilities');
+                      setIsMenuOpen(false);
+                    }}
+                  />
+                </NavbarFlyoutGrid>
+              </NavbarFlyout>
+
+              <NavbarItem
+                isActive={activeTab === 'work'}
+                onClick={() => {
+                  setActiveTab('work');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Case Studies
+              </NavbarItem>
+              <NavbarItem
+                isActive={activeTab === 'methodology'}
+                onClick={() => {
+                  setActiveTab('methodology');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Methodology
+              </NavbarItem>
+              <NavbarItem
+                isActive={activeTab === 'insights'}
+                onClick={() => {
+                  setActiveTab('insights');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Insights
+              </NavbarItem>
+            </NavbarMenu>
+          </Navbar>
+        </div>
+      </div>
+
+      {/* Interactive Controls Panel */}
+      <div
+        style={{
+          padding: '20px 24px',
+          backgroundColor: 'var(--field-surface-raised)',
+          borderTop: '1px solid var(--field-border-default)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+        }}
+      >
+        <Flex justify="space-between" align="center" wrap="wrap" gap="16px">
+          {/* Simulated Screen Width */}
+          <Flex align="center" gap="10px">
+            <Text size="xs" tone="secondary" weight="medium">
+              Device Viewport:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={simulatedWidth}
+              onChange={val => setSimulatedWidth(val as 'full' | 'tablet' | 'mobile')}
+              options={[
+                { value: 'full', label: 'Desktop' },
+                { value: 'tablet', label: 'Tablet (768px)' },
+                { value: 'mobile', label: 'Mobile (390px)' },
+              ]}
+            />
+          </Flex>
+
+          {/* Shell Mode */}
+          <Flex align="center" gap="10px">
+            <Text size="xs" tone="secondary" weight="medium">
+              Layout Shell:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={shellMode}
+              onChange={val => setShellMode(val as 'standard' | 'floating')}
+              options={[
+                { value: 'standard', label: 'Full-Width' },
+                { value: 'floating', label: 'Floating Island' },
+              ]}
+            />
+          </Flex>
+
+          {/* Glider Style */}
+          <Flex align="center" gap="10px">
+            <Text size="xs" tone="secondary" weight="medium">
+              Indicator Glider:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={variant}
+              onChange={val => setVariant(val as 'underline' | 'elastic' | 'pill' | 'rail')}
+              options={[
+                { value: 'underline', label: 'Underline' },
+                { value: 'elastic', label: 'Elastic' },
+                { value: 'pill', label: 'Pill' },
+                { value: 'rail', label: 'Rail' },
+              ]}
+            />
+          </Flex>
+        </Flex>
+
+        <Flex justify="space-between" align="center" wrap="wrap" gap="16px" style={{ borderTop: '1px solid var(--field-border-subtle)', paddingTop: '14px' }}>
+          {/* Shadow Elevation */}
+          <Flex align="center" gap="10px">
+            <Text size="xs" tone="secondary" weight="medium">
+              Shadow:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={shadow}
+              onChange={val => setShadow(val as 'none' | 'sm' | 'md' | 'lg')}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'sm', label: 'SM' },
+                { value: 'md', label: 'MD' },
+                { value: 'lg', label: 'LG' },
+              ]}
+            />
+          </Flex>
+
+          {/* Toggles: Glow & Hover Follower */}
+          <Flex align="center" gap="20px">
+            <Switch
+              size="sm"
+              label="Indicator Glow"
+              checked={glow}
+              onChange={setGlow}
+            />
+            <Switch
+              size="sm"
+              label="Hover Glider"
+              checked={hoverGlider}
+              onChange={setHoverGlider}
+            />
+          </Flex>
+
+          {/* Density */}
+          <Flex align="center" gap="10px">
+            <Text size="xs" tone="secondary" weight="medium">
+              Height Density:
+            </Text>
+            <SegmentedControl
+              size="sm"
+              value={density}
+              onChange={val => setDensity(val as 'default' | 'compact')}
+              options={[
+                { value: 'default', label: 'Default (56px)' },
+                { value: 'compact', label: 'Compact (48px)' },
+              ]}
+            />
+          </Flex>
+        </Flex>
+
+        {(variant === 'underline' || variant === 'elastic') && (
+          <Flex justify="flex-start" align="center" wrap="wrap" gap="24px" style={{ borderTop: '1px solid var(--field-border-subtle)', paddingTop: '14px' }}>
+            {/* Underline Width */}
+            <Flex align="center" gap="10px">
+              <Text size="xs" tone="secondary" weight="medium">
+                Underline Width:
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={indicatorWidth}
+                onChange={val => setIndicatorWidth(val as any)}
+                options={[
+                  { value: 'full', label: 'Full Tab' },
+                  { value: 'content', label: 'Snug Text' },
+                  { value: '70%', label: '70% Inset' },
+                  { value: '36px', label: '36px Fixed' },
+                ]}
+              />
+            </Flex>
+
+            {/* Line Thickness */}
+            <Flex align="center" gap="10px">
+              <Text size="xs" tone="secondary" weight="medium">
+                Thickness:
+              </Text>
+              <SegmentedControl
+                size="sm"
+                value={String(indicatorThickness)}
+                onChange={val => setIndicatorThickness(Number(val) as 2 | 3 | 4)}
+                options={[
+                  { value: '2', label: '2px' },
+                  { value: '3', label: '3px' },
+                  { value: '4', label: '4px' },
+                ]}
+              />
+            </Flex>
+          </Flex>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -994,7 +1429,33 @@ export const componentRegistry: ComponentDoc[] = [
     ],
   },
 
-  // 12. SIDEBAR
+  // 12. NAVBAR
+  {
+    id: 'navbar',
+    name: 'Navbar',
+    category: 'Navigation',
+    description: 'Header navigation bar with support for sticky positioning, backdrop blur, borders, and responsive mobile drawers.',
+    importCode: `import {\n  Navbar,\n  NavbarBrand,\n  NavbarContent,\n  NavbarItem,\n  NavbarActions,\n  NavbarToggle,\n  NavbarMenu\n} from "@sam.barfield/field-react";`,
+    usageCode: `<Navbar sticky blurred bordered>\n  <NavbarContent align="start">\n    <NavbarBrand href="/dashboard">Field Cloud</NavbarBrand>\n  </NavbarContent>\n  <NavbarContent align="center">\n    <NavbarItem href="/overview" isActive>Overview</NavbarItem>\n    <NavbarItem href="/deployments">Deployments</NavbarItem>\n  </NavbarContent>\n  <NavbarContent align="end">\n    <NavbarActions>\n      <Button size="sm">Action</Button>\n    </NavbarActions>\n    <NavbarToggle />\n  </NavbarContent>\n  <NavbarMenu>\n    <NavbarItem href="/overview">Overview</NavbarItem>\n  </NavbarMenu>\n</Navbar>`,
+    compositionTree: `Navbar\n├── NavbarContent (align="start")\n│   └── NavbarBrand (Logo, Title, Badge)\n├── NavbarContent (align="center")\n│   └── NavbarItem (Active Underline / Pill)\n├── NavbarContent (align="end")\n│   ├── NavbarActions (Search, Theme, Avatar)\n│   └── NavbarToggle (Mobile Hamburger Button)\n└── NavbarMenu (Mobile Drawer Dropdown)`,
+    primaryDemo: {
+      render: () => <NavbarInteractiveDemo />,
+      code: `<Navbar density={density} bordered isMenuOpen={isMenuOpen} onMenuOpenChange={setIsMenuOpen}>\n  <NavbarContent align="start">\n    <NavbarBrand>...</NavbarBrand>\n  </NavbarContent>\n  <NavbarContent align="center">\n    <NavbarItem isActive>Overview</NavbarItem>\n  </NavbarContent>\n  <NavbarContent align="end">\n    <NavbarActions>...</NavbarActions>\n    <NavbarToggle />\n  </NavbarContent>\n  <NavbarMenu>...</NavbarMenu>\n</Navbar>`,
+    },
+    props: [
+      { name: 'density', type: "'default' | 'compact'", default: "'default'", description: 'Vertical height: 56px default or 48px compact' },
+      { name: 'variant', type: "'underline' | 'pill' | 'rail' | 'ghost'", default: "'underline'", description: 'Visual and animated layout style on NavbarContent / NavbarItem' },
+      { name: 'animated', type: 'boolean', default: 'true', description: 'Enables 120fps hardware-accelerated sliding glider indicator' },
+      { name: 'sticky', type: 'boolean', default: 'false', description: 'Pins navbar to top of viewport with z-index 50' },
+      { name: 'blurred', type: 'boolean', default: 'false', description: 'Translucent background with 12px backdrop-filter blur' },
+      { name: 'bordered', type: 'boolean', default: 'true', description: 'Subtle 1px micro-border along bottom edge' },
+      { name: 'maxWidth', type: "'sm' | 'md' | 'lg' | 'xl' | 'full' | number", default: "'full'", description: 'Constrains inner container width' },
+      { name: 'isMenuOpen', type: 'boolean', description: 'Controlled mobile drawer open state' },
+      { name: 'onMenuOpenChange', type: '(open: boolean) => void', description: 'Callback fired when mobile drawer toggles' },
+    ],
+  },
+
+  // 13. SIDEBAR
   {
     id: 'sidebar',
     name: 'Sidebar',

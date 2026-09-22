@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Code as CodeIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Copy, Check, Code as CodeIcon, ChevronDown, ChevronUp, Smartphone, Tablet } from 'lucide-react';
 
 interface ComponentPreviewCardProps {
   children: React.ReactNode;
@@ -7,6 +7,8 @@ interface ComponentPreviewCardProps {
   defaultExpanded?: boolean;
   align?: 'center' | 'start' | 'stretch';
   minHeight?: string;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
+  onViewportChange?: (vp: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
 export const ComponentPreviewCard: React.FC<ComponentPreviewCardProps> = ({
@@ -15,6 +17,8 @@ export const ComponentPreviewCard: React.FC<ComponentPreviewCardProps> = ({
   defaultExpanded = false,
   align = 'center',
   minHeight = '240px',
+  viewport = 'desktop',
+  onViewportChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
@@ -36,6 +40,9 @@ export const ComponentPreviewCard: React.FC<ComponentPreviewCardProps> = ({
   const previewLines = lines.slice(0, 3);
   const displayedLines = isExpanded ? lines : previewLines;
 
+  const isDeviceFrame = viewport !== 'desktop';
+  const targetFrameWidth = viewport === 'mobile' ? '390px' : viewport === 'tablet' ? '768px' : '100%';
+
   return (
     <div
       style={{
@@ -51,18 +58,79 @@ export const ComponentPreviewCard: React.FC<ComponentPreviewCardProps> = ({
       <div
         style={{
           minHeight,
-          padding: '36px 24px',
+          padding: isDeviceFrame ? '44px 16px 36px 16px' : '36px 24px',
           display: 'flex',
-          alignItems: align === 'stretch' ? 'stretch' : 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
           justifyContent: align === 'start' ? 'flex-start' : 'center',
           backgroundColor: 'var(--field-surface-base)',
           backgroundImage:
             'radial-gradient(circle at 1px 1px, var(--field-border-subtle) 1px, transparent 0)',
           backgroundSize: '24px 24px',
           position: 'relative',
+          transition: 'padding 0.2s ease',
         }}
       >
-        <div style={{ width: align === 'stretch' ? '100%' : 'auto', maxWidth: '100%' }}>
+        {/* Device Viewport Indicator Pill */}
+        {isDeviceFrame && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '3px 10px',
+              borderRadius: '999px',
+              backgroundColor: 'var(--field-surface-raised)',
+              border: '1px solid var(--field-border-strong)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              color: 'var(--field-accent-primary)',
+              letterSpacing: '0.02em',
+              zIndex: 10,
+            }}
+          >
+            {viewport === 'mobile' ? <Smartphone size={12} /> : <Tablet size={12} />}
+            <span>{viewport === 'mobile' ? 'Mobile Viewport (390px)' : 'Tablet Viewport (768px)'}</span>
+            {onViewportChange && (
+              <button
+                type="button"
+                onClick={() => onViewportChange('desktop')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--field-text-tertiary)',
+                  cursor: 'pointer',
+                  marginLeft: '4px',
+                  padding: '0 2px',
+                  fontSize: '0.7rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+                title="Reset to full width desktop"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Dynamic Width Canvas */}
+        <div
+          style={{
+            width: isDeviceFrame ? targetFrameWidth : align === 'stretch' ? '100%' : 'auto',
+            maxWidth: '100%',
+            transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: isDeviceFrame ? '1px solid var(--field-border-strong)' : 'none',
+            borderRadius: isDeviceFrame ? '16px' : '0',
+            boxShadow: isDeviceFrame ? '0 12px 36px rgba(0, 0, 0, 0.55)' : 'none',
+            overflow: 'hidden',
+            backgroundColor: 'var(--field-surface-base)',
+            position: 'relative',
+          }}
+        >
           {children}
         </div>
       </div>

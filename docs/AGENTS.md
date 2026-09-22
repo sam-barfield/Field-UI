@@ -59,6 +59,14 @@ import {
   DateRangePicker,
   
   // Navigation & Shell
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarActions,
+  NavbarToggle,
+  NavbarMenu,
+  useNavbar,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -344,10 +352,46 @@ const columns: Column<EC2Instance>[] = [
 />
 ```
 
+### Recipe I: Sticky Application Top Nav (`<Navbar>`)
+```tsx
+<Navbar sticky blurred bordered>
+  <NavbarContent align="start">
+    <SidebarTrigger />
+    <NavbarBrand href="/dashboard">
+      <Layers size={18} />
+      <span>ACME CLOUD</span>
+      <Badge variant="accent">PROD</Badge>
+    </NavbarBrand>
+  </NavbarContent>
+
+  <NavbarContent align="center">
+    <NavbarItem href="/overview" isActive>Overview</NavbarItem>
+    <NavbarItem href="/deployments">Deployments</NavbarItem>
+    <NavbarItem href="/monitoring">Monitoring</NavbarItem>
+  </NavbarContent>
+
+  <NavbarContent align="end">
+    <NavbarActions>
+      <Button size="sm" variant="outline" leftIcon={<Search size={14} />}>Search</Button>
+      <IconButton icon={<Sun size={16} />} aria-label="Toggle theme" variant="ghost" size="sm" />
+      <Avatar name="Sam Barfield" size="sm" />
+    </NavbarActions>
+    <NavbarToggle />
+  </NavbarContent>
+
+  <NavbarMenu>
+    <NavbarItem href="/overview" isActive>Overview</NavbarItem>
+    <NavbarItem href="/deployments">Deployments</NavbarItem>
+    <NavbarItem href="/monitoring">Monitoring</NavbarItem>
+  </NavbarMenu>
+</Navbar>
+```
+
 ---
 
 ## 5. Recent Prop Guidelines & Patterns
 
+- **`Navbar`**: Compound application top navigation suite (`Navbar`, `NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarActions`, `NavbarToggle`, `NavbarMenu`). Supports `sticky`, `blurred`, `bordered`, `density="default" | "compact"`, and `maxWidth`. Includes built-in mobile hamburger drawer state via `useNavbar()`.
 - **`UnfoldingHeading`**: Architectural SVG vector typography heading that draws facet-by-facet wireframes in calligraphic stroke order, followed by a synchronized dual-layer crossfade into solid typography with zero white flashing. Uses a unified calligraphic facet drafting engine. Supports `intensity="subtle" | "medium" | "vibrant"`, `trigger="mount" | "scroll" | "manual"`, and `highlightWords`. Unmounts animated layers upon resting for 0% idle CPU overhead.
 - **`Badge`**: Supports `size="sm" | "md" | "lg"` (default `"md"`). Use `size="sm"` for compact inline status indicators inside tables or cards.
 - **`Breadcrumb`**: Items support `onClick` handlers directly without requiring dummy `href="#"` attributes, enabling native client-side routing.

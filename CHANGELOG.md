@@ -2,6 +2,41 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [0.2.7] - 2026-09-22
+
+### Top Navigation (`Navbar`) & Fluid Motion Engine
+- **New Component Suite `<Navbar>`**:
+  - Added full compound Top Navigation suite: `Navbar`, `NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarFlyout`, `NavbarFlyoutGrid`, `NavbarFlyoutItem`, `NavbarActions`, `NavbarToggle`, and `NavbarMenu`.
+  - Built-in `NavbarContext` (`useNavbar`) for managing responsive mobile menu drawer state.
+  - Supports `floating` (floating detached island navbar with rounded pill borders), `sticky`, `blurred` (12px backdrop blur), `bordered`, `density` (`default` | `compact`), and container `maxWidth`.
+  - **Togglable Shadow Elevation**: Configurable `shadow?: 'none' | 'sm' | 'md' | 'lg' | boolean` utilizing design token surface elevations.
+  - **Scroll-Aware Dynamics**: Integrated `scrollBehavior="elevate" | "shrink" | "blur"` and `transparentOnTop` morphing dynamically as the user scrolls.
+  - **High-Polish Animated Gliders**:
+    - `NavbarContent variant="underline"`: Smooth Cobalt accent glider sliding beneath the active nav link with optional specular glow (`glow?: boolean`).
+    - `NavbarContent variant="elastic"`: Continuous 40-step fluid boundary-impact glider powered by native Web Animations API. Features in-flight stream stretching, viscous trailing lag, boundary-wall impact compression ($\approx 52\%$ width compaction against destination barrier), fluid volume conservation (`scaleY` splash surge), and damped surface tension rebound.
+    - `NavbarContent variant="pill"`: Floating translucent magnetic capsule glider smoothly gliding between active destinations.
+    - `NavbarContent variant="rail"`: Encapsulated sunken dock rail with elevated active indicator.
+    - **Magnetic Hover Spotlight (`hoverGlider`)**: Magnetic follower spotlight that previews hover states seamlessly.
+  - **Customizable Indicator Dimensions**:
+    - `indicatorWidth` / `underlineWidth`: Supports `'full'` (default), `'content'` (snug text fit subtracting item padding), percentage insets (e.g. `'70%'`), and fixed pixels (e.g. `36px`).
+    - `indicatorThickness` / `underlineThickness`: Configurable stroke height (e.g. `2`, `3`, `4px`).
+    - Supported globally on `<NavbarContent>` and as per-tab overrides on `<NavbarItem>`.
+  - **Architectural Megamenu Flyout Suite**:
+    - `NavbarFlyout`: Anchored popover megamenu on desktop with click-outside and escape-key handling, custom alignment (`start` | `center` | `end`), and customizable width.
+    - **Mobile Drawer Accordion Mode**: Automatically detects `NavbarMenuContext` inside mobile drawers and adapts into an inline collapsible accordion with a $180^\circ$ rotating chevron and single-column stacked cards.
+    - Accessible trigger architecture preventing redundant nested interactive button semantics.
+    - `NavbarFlyoutGrid`: Multi-column layout grid for technical capabilities.
+    - `NavbarFlyoutItem`: High-polish service card with icon receptacle, title, badge indicator, description, and polymorphic routing.
+  - First-class polymorphic client-side router support (`asChild`, `as`, `href`) on `NavbarBrand`, `NavbarItem`, and `NavbarFlyoutItem`.
+  - Dedicated token-based CSS classes in `field.css` with zero raw color hexes or hardcoded spacing.
+- **Agent Guidelines & Lifecycle Enforcement**:
+  - Added root-level `GEMINI.md` and `CLAUDE.md` providing instant component matrices and shell architecture guides for AI assistants.
+  - Added `.agents/rules/component-lifecycle.md` enforcing the mandatory 7-step component checklist whenever components are added or modified.
+- **Showcase & Manifest**:
+  - Registered all `Navbar` components, props, and types in `docs/COMPONENT_MANIFEST.json`.
+  - Updated showcase `Header.tsx` to dogfood `<Navbar>`, `<NavbarBrand>`, `<NavbarContent variant="underline" animated>`, and `<NavbarActions>`.
+  - Built comprehensive interactive catalog demo in `catalogRegistry.tsx` featuring live toggles for full-width vs floating island, glider styles (underline/elastic/pill/rail), underline width (full/content/70%/36px), thickness (2/3/4px), shadow elevation levels, glow aura, hover spotlight, density, and live digital services megamenu.
+
 ## [0.2.6] - 2026-09-21
 
 ### Quality Assurance & Animation Engine Hardening

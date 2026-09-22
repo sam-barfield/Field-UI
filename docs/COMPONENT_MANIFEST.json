@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "Field Design System Component Manifest",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "components": {
     "Button": {
       "description": "Interactive action button with tactile elevation and loading state",
@@ -1860,6 +1860,312 @@
         },
         "onComplete": {
           "type": "() => void"
+        }
+      }
+    },
+    "Navbar": {
+      "description": "Header navigation bar with support for floating island mode, scroll dynamics, shadow elevation, sticky positioning, backdrop blur, borders, and responsive mobile drawers",
+      "props": {
+        "floating": {
+          "type": "boolean",
+          "default": false
+        },
+        "shadow": {
+          "type": "string | boolean",
+          "enum": [
+            "none",
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "none"
+        },
+        "scrollBehavior": {
+          "type": "string",
+          "enum": [
+            "none",
+            "elevate",
+            "shrink",
+            "blur"
+          ],
+          "default": "none"
+        },
+        "scrollThreshold": {
+          "type": "number",
+          "default": 20
+        },
+        "transparentOnTop": {
+          "type": "boolean",
+          "default": false
+        },
+        "sticky": {
+          "type": "boolean",
+          "default": false
+        },
+        "blurred": {
+          "type": "boolean",
+          "default": false
+        },
+        "bordered": {
+          "type": "boolean",
+          "default": true
+        },
+        "density": {
+          "type": "string",
+          "enum": [
+            "default",
+            "compact"
+          ],
+          "default": "default"
+        },
+        "maxWidth": {
+          "type": "string | number",
+          "default": "full"
+        },
+        "isMenuOpen": {
+          "type": "boolean"
+        },
+        "defaultMenuOpen": {
+          "type": "boolean",
+          "default": false
+        },
+        "onMenuOpenChange": {
+          "type": "(open: boolean) => void"
+        }
+      }
+    },
+    "NavbarBrand": {
+      "description": "Brand slot in Navbar for logos, platform titles, and version badges with polymorphic link support",
+      "props": {
+        "href": {
+          "type": "string"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        }
+      }
+    },
+    "NavbarContent": {
+      "description": "Flex container in Navbar for organizing links, controls, or action clusters with animated indicator support",
+      "props": {
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ],
+          "default": "center"
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "underline",
+            "elastic",
+            "pill",
+            "rail",
+            "ghost"
+          ],
+          "default": "underline"
+        },
+        "animated": {
+          "type": "boolean",
+          "default": true
+        },
+        "glow": {
+          "type": "boolean",
+          "default": false
+        },
+        "hoverGlider": {
+          "type": "boolean",
+          "default": false
+        },
+        "hideOnMobile": {
+          "type": "boolean",
+          "default": false
+        },
+        "gap": {
+          "type": "string | number"
+        },
+        "indicatorWidth": {
+          "type": "string | number",
+          "description": "Horizontal width of active indicator underline: 'full' | 'content' | percentage (e.g. '70%') | number (pixels)",
+          "default": "full"
+        },
+        "underlineWidth": {
+          "type": "string | number",
+          "description": "Alias for indicatorWidth",
+          "default": "full"
+        },
+        "indicatorThickness": {
+          "type": "string | number",
+          "description": "Stroke thickness of the active indicator line in pixels or CSS units",
+          "default": "2px"
+        },
+        "underlineThickness": {
+          "type": "string | number",
+          "description": "Alias for indicatorThickness",
+          "default": "2px"
+        }
+      }
+    },
+    "NavbarItem": {
+      "description": "Interactive destination item or link in Navbar supporting polymorphic routing, active styling, and layout glider animation",
+      "props": {
+        "isActive": {
+          "type": "boolean",
+          "default": false
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "underline",
+            "elastic",
+            "pill",
+            "rail",
+            "ghost"
+          ]
+        },
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "href": {
+          "type": "string"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        },
+        "onClick": {
+          "type": "(e: MouseEvent) => void"
+        },
+        "indicatorWidth": {
+          "type": "string | number",
+          "description": "Custom indicator width override for this specific item: 'full' | 'content' | percentage | number"
+        },
+        "underlineWidth": {
+          "type": "string | number",
+          "description": "Alias for indicatorWidth"
+        }
+      }
+    },
+    "NavbarActions": {
+      "description": "Right-aligned cluster in Navbar for utility actions, search triggers, theme toggles, and user menus",
+      "props": {
+        "gap": {
+          "type": "string | number"
+        }
+      }
+    },
+    "NavbarToggle": {
+      "description": "Accessible mobile hamburger button toggling the responsive NavbarMenu drawer",
+      "props": {
+        "icon": {
+          "type": "ReactNode"
+        },
+        "openIcon": {
+          "type": "ReactNode"
+        },
+        "aria-label": {
+          "type": "string",
+          "default": "Toggle navigation menu"
+        },
+        "display": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "always",
+            "never"
+          ],
+          "default": "auto"
+        }
+      }
+    },
+    "NavbarMenu": {
+      "description": "Mobile dropdown/drawer menu in Navbar rendering full vertical navigation items when open",
+      "props": {}
+    },
+    "NavbarFlyout": {
+      "description": "Dropdown megamenu panel anchored to a navbar item with support for custom alignment and responsive widths",
+      "props": {
+        "trigger": {
+          "type": "ReactNode",
+          "required": true
+        },
+        "isOpen": {
+          "type": "boolean"
+        },
+        "defaultOpen": {
+          "type": "boolean",
+          "default": false
+        },
+        "onOpenChange": {
+          "type": "(open: boolean) => void"
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ],
+          "default": "center"
+        },
+        "width": {
+          "type": "string | number",
+          "default": "640px"
+        }
+      }
+    },
+    "NavbarFlyoutGrid": {
+      "description": "Multi-column layout grid for architectural service links inside NavbarFlyout",
+      "props": {
+        "columns": {
+          "type": "number",
+          "default": 2
+        },
+        "gap": {
+          "type": "string | number",
+          "default": 16
+        }
+      }
+    },
+    "NavbarFlyoutItem": {
+      "description": "High-polish interactive capability card inside a NavbarFlyout featuring an icon container, title, badge, description, and polymorphic routing",
+      "props": {
+        "icon": {
+          "type": "ReactNode"
+        },
+        "title": {
+          "type": "ReactNode",
+          "required": true
+        },
+        "description": {
+          "type": "ReactNode"
+        },
+        "badge": {
+          "type": "ReactNode"
+        },
+        "href": {
+          "type": "string"
+        },
+        "asChild": {
+          "type": "boolean",
+          "default": false
+        },
+        "as": {
+          "type": "ElementType"
+        },
+        "onClick": {
+          "type": "(e: MouseEvent) => void"
         }
       }
     }

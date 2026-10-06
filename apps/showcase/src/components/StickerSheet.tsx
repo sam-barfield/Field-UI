@@ -123,7 +123,10 @@ export const StickerSheet: React.FC = () => {
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [stepperStep, setStepperStep] = useState(1);
   const [page, setPage] = useState(1);
-  const [sidebarDemoCollapsed, setSidebarDemoCollapsed] = useState(false);
+  // Start collapsed on phones so the demo canvas beside the sidebar keeps usable width.
+  const [sidebarDemoCollapsed, setSidebarDemoCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+  );
 
   // Sample table data
   const sampleTableData = [

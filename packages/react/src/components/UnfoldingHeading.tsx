@@ -200,8 +200,9 @@ function getGlyphFoldState(
 const SIZE_CONFIG: Record<UnfoldingSize, { fontSize: string }> = {
   sm: { fontSize: '1.25rem' },
   md: { fontSize: '1.75rem' },
-  lg: { fontSize: '2.5rem' },
-  xl: { fontSize: '3.75rem' },
+  // lg and xl shrink on phones so long single words still fit; desktop sizes are unchanged.
+  lg: { fontSize: 'clamp(1.75rem, 6vw, 2.5rem)' },
+  xl: { fontSize: 'clamp(2rem, 8vw, 3.75rem)' },
   hero: { fontSize: 'clamp(2.5rem, 5.5vw, 4.75rem)' },
 };
 

@@ -138,9 +138,9 @@ export const ThemeEditor: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: '24px' }}>
+    <div className="theme-editor-layout">
       {/* Controls Sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
         <Card>
           <CardHeader>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -326,10 +326,10 @@ export const ThemeEditor: React.FC = () => {
       </div>
 
       {/* Code Export & Live Output Panel */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
         <Card>
           <CardHeader>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Code2 size={18} style={{ color: 'var(--field-accent-primary)' }} />
                 <Heading level={3}>Design Token Code Export</Heading>
@@ -348,7 +348,7 @@ export const ThemeEditor: React.FC = () => {
             </Text>
           </CardHeader>
           <CardContent>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               <Button
                 size="sm"
                 variant={exportFormat === 'css' ? 'primary' : 'outline'}
@@ -391,6 +391,7 @@ export const ThemeEditor: React.FC = () => {
                   color: 'var(--field-text-primary)',
                   lineHeight: 1.5,
                   whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere',
                 }}
               >
                 {getExportCode()}

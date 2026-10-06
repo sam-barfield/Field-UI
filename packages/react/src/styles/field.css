@@ -420,6 +420,11 @@ html[data-field-theme] {
   padding: 3px;
   border-radius: var(--field-radius-md);
   gap: 2px;
+  /* Long labels scroll inside the control instead of pushing past a narrow container. */
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 .field-segmented-item {
   padding: 5px 12px;
@@ -431,6 +436,8 @@ html[data-field-theme] {
   border: none;
   cursor: pointer;
   transition: all var(--field-duration-fast) var(--field-ease-default);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .field-segmented-control-full {
   display: flex;
@@ -925,6 +932,13 @@ html[data-field-theme] {
   font-family: var(--field-font-mono);
   color: var(--field-text-tertiary);
   user-select: none;
+}
+/* Keep labels at either end of the track inside the slider's box. */
+.field-slider-mark.start {
+  transform: none;
+}
+.field-slider-mark.end {
+  transform: translateX(-100%);
 }
 
 /* --- Cards & Panels --- */
@@ -1950,6 +1964,9 @@ html[data-field-theme] {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Custom header actions drop to a second row instead of overlapping the title. */
+  flex-wrap: wrap;
+  gap: var(--field-space-2);
   padding: 10px 14px;
   background-color: var(--field-surface-raised);
   border-bottom: 1px solid var(--field-border-default);
@@ -1978,6 +1995,13 @@ html[data-field-theme] {
   flex-shrink: 0;
 }
 
+.field-terminal-title,
+.field-terminal-subtitle {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .field-terminal-title {
   font-size: 0.75rem;
   font-weight: 600;
@@ -3298,7 +3322,7 @@ button.field-datepicker-trigger {
     gap: 8px;
   }
   .field-pagination-controls {
-    gap: 4px;
+    gap: 2px;
   }
   .field-pagination-btn {
     height: 28px;
@@ -3310,15 +3334,17 @@ button.field-datepicker-trigger {
   .field-pagination-last {
     display: none !important;
   }
+  /* Rows-per-page gets its own line so the page buttons stay together. */
+  .field-pagination-size {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
 }
 
 @media (max-width: 640px) {
   .field-pagination-container {
     padding: 8px 12px;
     gap: 8px;
-  }
-  .field-pagination-controls {
-    gap: 4px;
   }
   .field-pagination-btn {
     height: 28px;
@@ -3545,7 +3571,8 @@ button.field-datepicker-trigger {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   position: relative;
 }
 .field-step-circle {
@@ -3589,6 +3616,23 @@ button.field-datepicker-trigger {
 .field-step-desc {
   font-size: 0.6875rem;
   color: var(--field-text-tertiary);
+}
+.field-stepper:not(.vertical) .field-step-title,
+.field-stepper:not(.vertical) .field-step-desc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Phones: only the current step keeps its visible label; the others stay readable to screen readers. */
+@media (max-width: 640px) {
+  .field-stepper:not(.vertical) .field-step:not(.active) .field-step-label-group {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
 }
 .field-step-line {
   flex: 1;
@@ -4061,6 +4105,7 @@ button.field-datepicker-trigger {
 .field-unfolding-container {
   display: inline-flex;
   flex-wrap: wrap;
+  max-width: 100%;
   align-items: baseline;
   user-select: none;
   font-family: var(--field-font-sans, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);

@@ -2,6 +2,18 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- Mobile and narrow-container layout fixes, found by a responsive sweep of every docs page at 375, 768, 850 and 1280px:
+  - `Stepper` (horizontal): labels overlapped on phones. Below 640px only the active step shows its label (the others stay available to screen readers), and labels truncate in other narrow containers.
+  - `UnfoldingHeading`: headings never wrapped and ran off-screen. The container is capped at its parent's width, and the `lg` / `xl` sizes scale down on phones (desktop sizes unchanged).
+  - `SegmentedControl`: long labels pushed past narrow containers; the control now scrolls horizontally inside its own box.
+  - `TerminalHeader`: custom header actions overlapped the title; they now wrap to a second row and long titles truncate.
+  - `Pagination`: in narrow containers rows-per-page gets its own line and page buttons stay on one row.
+  - `Slider`: zone marks at either end of the track no longer hang outside the slider.
+- Showcase: the header no longer overflows between 769 and 960px; the theme editor stacks below 1024px; example pages and docs examples (navbar, landing page, dashboard, terminal, code block, sticker sheet sidebar) fit at phone width.
+
 ## [0.3.0] - 2026-10-06
 
 A review and hardening release focused on correctness, accessibility and developer experience. Most APIs are unchanged; see **Breaking changes** before upgrading.

@@ -13,7 +13,7 @@ export default function DiffCopy() {
           { type: 'normal', content: '  strategy: RollingUpdate', oldLineNumber: 5, newLineNumber: 5 },
         ]}
       />
-      <Flex align="center" gap={8}>
+      <Flex align="center" gap={8} wrap="wrap">
         <Code>arn:aws:s3:::logs-production</Code>
         <CopyButton value="arn:aws:s3:::logs-production" />
         <CopyButton value="arn:aws:s3:::logs-production" iconOnly label="Copy ARN" />

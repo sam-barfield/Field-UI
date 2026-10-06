@@ -241,7 +241,7 @@ export const LandingPageDemo: React.FC = () => {
           </Flex>
 
           {/* Key metrics / stats */}
-          <Grid columns={3} gap="16px" style={{ marginTop: '56px' }}>
+          <Grid columns={{ base: 1, md: 3 }} gap="16px" style={{ marginTop: '56px' }}>
             <StatCard
               label="Zero Extra Dependencies"
               value="0 KB"
@@ -292,7 +292,7 @@ export const LandingPageDemo: React.FC = () => {
             </Text>
           </div>
 
-          <Grid columns={3} gap="24px">
+          <Grid columns={{ base: 1, md: 3 }} gap="24px">
             <Card>
               <CardHeader>
                 <div>
@@ -390,7 +390,7 @@ export const LandingPageDemo: React.FC = () => {
             </Text>
           </div>
 
-          <Grid columns={2} gap="24px">
+          <Grid columns={{ base: 1, md: 2 }} gap="24px">
             <Card style={{ backgroundColor: 'var(--field-surface-raised)' }}>
               <CardHeader>
                 <div>
@@ -497,7 +497,7 @@ export const LandingPageDemo: React.FC = () => {
             </Text>
           </div>
 
-          <Grid columns={3} gap="24px">
+          <Grid columns={{ base: 1, md: 3 }} gap="24px">
             <Card>
               <CardContent style={{ paddingTop: '20px' }}>
                 <Flex align="center" gap="12px" style={{ marginBottom: '12px' }}>
@@ -583,7 +583,7 @@ export const LandingPageDemo: React.FC = () => {
             single line of code.
           </Text>
 
-          <Flex justify="center" gap="12px">
+          <Flex justify="center" gap="12px" wrap="wrap">
             <Button size="md" variant="primary">
               Copy Component Code
             </Button>

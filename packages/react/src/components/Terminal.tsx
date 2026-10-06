@@ -140,7 +140,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
       </div>
 
       {/* Right: Actions / Custom Children */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginLeft: 'auto' }}>
         {children}
         {onScrollToBottom && (
           <button

@@ -319,7 +319,7 @@ export const RealWorldDemos: React.FC = () => {
           <Card>
             <CardContent>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                   <Text size="xs" tone="secondary" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>SIMULATE INCIDENTS:</Text>
                   <Button size="sm" variant="outline" leftIcon={<Cpu size={13} />} onClick={() => triggerIncident('memory')}>
                     Memory Saturation
@@ -512,7 +512,7 @@ export const RealWorldDemos: React.FC = () => {
                   <Heading level={3}>Active Cluster Infrastructure</Heading>
                   <Text tone="secondary" size="xs">Real-time health telemetry and worker capacity</Text>
                 </div>
-                <Flex gap="10px" align="center">
+                <Flex gap="10px" align="center" wrap="wrap">
                   <Select
                     value={regionFilter}
                     onChange={setRegionFilter}

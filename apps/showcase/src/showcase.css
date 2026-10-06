@@ -51,8 +51,15 @@ body {
 }
 .showcase-theme-select {
   width: 190px;
+  min-width: 0;
 }
-@media (max-width: 640px) {
+/* Brand + nav links + actions need ~930px; give the links room before they push the actions off-screen. */
+@media (max-width: 1100px) {
+  .showcase-theme-select {
+    width: 150px;
+  }
+}
+@media (max-width: 960px) {
   .showcase-theme-select {
     display: none;
   }
@@ -63,6 +70,23 @@ body {
   margin: 0 auto;
   padding: var(--field-space-8) var(--field-space-6);
   box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .showcase-main {
+    padding: var(--field-space-6) var(--field-space-4);
+  }
+}
+
+/* --- Theme editor --- */
+.theme-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  gap: var(--field-space-6);
+}
+@media (max-width: 1024px) {
+  .theme-editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* --- Docs layout --- */

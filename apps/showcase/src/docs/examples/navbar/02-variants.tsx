@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Navbar, NavbarContent, NavbarItem, SegmentedControl, Stack, Flex, Switch, type NavbarVariant } from '@sam.barfield/field-react';
 
-const LINKS = ['Compute', 'Storage', 'Network', 'Billing'];
+const LINKS = ['Compute', 'Storage', 'Billing'];
 
 export default function NavbarVariants() {
   const [variant, setVariant] = useState<NavbarVariant>('elastic');

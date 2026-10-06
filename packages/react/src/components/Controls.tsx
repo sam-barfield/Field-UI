@@ -564,7 +564,11 @@ export const Slider: React.FC<SliderProps> = ({
           {resolvedZones.map(zone => {
             const markPercent = ((zone.to - min) / rangeSpan) * 100;
             return (
-              <span key={`mark-${zone.to}`} className="field-slider-mark" style={{ left: `${markPercent}%` }}>
+              <span
+                key={`mark-${zone.to}`}
+                className={mergeClassNames('field-slider-mark', markPercent >= 95 && 'end', markPercent <= 5 && 'start')}
+                style={{ left: `${markPercent}%` }}
+              >
                 {zone.to}
                 {valueSuffix}
               </span>

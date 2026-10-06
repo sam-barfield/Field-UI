@@ -1,5 +1,6 @@
 // title: Flyout mega-menu
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarFlyout, NavbarFlyoutGrid, NavbarFlyoutItem, Badge } from '@sam.barfield/field-react';
+// description: On phones the links move into NavbarMenu behind NavbarToggle, as a flyout panel would not fit.
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarFlyout, NavbarFlyoutGrid, NavbarFlyoutItem, NavbarActions, NavbarToggle, NavbarMenu, Badge } from '@sam.barfield/field-react';
 import { Database, HardDrive, Server, Zap } from 'lucide-react';
 
 export default function NavbarFlyoutExample() {
@@ -7,7 +8,7 @@ export default function NavbarFlyoutExample() {
     <div className="example-wide" style={{ minHeight: 300 }}>
       <Navbar bordered>
         <NavbarBrand href="#">Acme Cloud</NavbarBrand>
-        <NavbarContent>
+        <NavbarContent hideOnMobile>
           <NavbarItem isActive>Home</NavbarItem>
           <NavbarFlyout trigger={<NavbarItem>Products</NavbarItem>} width={520}>
             <NavbarFlyoutGrid columns={2}>
@@ -19,6 +20,17 @@ export default function NavbarFlyoutExample() {
           </NavbarFlyout>
           <NavbarItem>Pricing</NavbarItem>
         </NavbarContent>
+        <NavbarActions>
+          <NavbarToggle />
+        </NavbarActions>
+        <NavbarMenu>
+          <NavbarItem isActive>Home</NavbarItem>
+          <NavbarItem>Compute</NavbarItem>
+          <NavbarItem>Functions</NavbarItem>
+          <NavbarItem>Storage</NavbarItem>
+          <NavbarItem>Databases</NavbarItem>
+          <NavbarItem>Pricing</NavbarItem>
+        </NavbarMenu>
       </Navbar>
     </div>
   );

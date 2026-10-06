@@ -330,4 +330,5 @@ showToast({ title: 'Saved', variant: 'success', action: { label: 'Undo', onClick
 - **CookieConsent**: mount once; gate optional scripts on `useCookieConsent().consent?.analytics`; `openPreferences()` for a footer "Cookie settings" link.
 - **Link** for inline text links (underlined by default, `external` for new tabs); **Button** with `href` for standalone actions.
 - **Badge** sizes `sm | md | lg`; **Alert** has `actions` and `onClose`; **StatCard** has `invertTrendColors`.
+- **Narrow screens**: horizontal **Stepper** shows only the current step's label below 640px (keep titles short, or use `orientation="vertical"`); **SegmentedControl** scrolls inside its box when labels don't fit; **TerminalHeader** children wrap below the title; **UnfoldingHeading** `lg` / `xl` shrink on phones. Wrap rows of buttons with `<Flex wrap="wrap">` and stack grids with `columns={{ base: 1, md: 3 }}`; fixed multi-column layouts are the usual cause of mobile overflow.
 - Components are marked `'use client'`, so they can be imported in Next.js Server Components; hooks still need a client component.

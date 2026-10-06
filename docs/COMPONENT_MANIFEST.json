@@ -911,7 +911,7 @@
     "CookieConsent": {
       "category": "Other",
       "source": "packages/react/src/components/CookieConsent.tsx",
-      "description": "Cookie consent banner with accept all / reject non-essential / customise.\r\nChoices are saved in localStorage and exposed through `useCookieConsent`.\r\nReject is as prominent as accept, and nothing optional is enabled by default,\r\nin line with GDPR / PECR guidance. Only load non-essential scripts once\r\n`consent[category]` is true.",
+      "description": "Cookie consent banner with accept all / reject non-essential / customise.\nChoices are saved in localStorage and exposed through `useCookieConsent`.\nReject is as prominent as accept, and nothing optional is enabled by default,\nin line with GDPR / PECR guidance. Only load non-essential scripts once\n`consent[category]` is true.",
       "props": {
         "categories": {
           "type": "CookieCategory[]",
@@ -1733,13 +1733,13 @@
         }
       },
       "examples": [
-        "<Flex align=\"center\" justify=\"space-between\" gap={12}>…</Flex>\r\n<Flex direction={{ base: 'column', md: 'row' }} gap={{ base: '$4', lg: '$8' }}>…</Flex>"
+        "<Flex align=\"center\" justify=\"space-between\" gap={12}>…</Flex>\n<Flex direction={{ base: 'column', md: 'row' }} gap={{ base: '$4', lg: '$8' }}>…</Flex>"
       ]
     },
     "Footer": {
       "category": "Other",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "Site footer. Columns (`FooterBrand`, `FooterColumn`) flow into a responsive grid;\r\n`FooterBottom` sits underneath for copyright and legal links.",
+      "description": "Site footer. Columns (`FooterBrand`, `FooterColumn`) flow into a responsive grid;\n`FooterBottom` sits underneath for copyright and legal links.",
       "props": {
         "tone": {
           "type": "SurfaceTone",
@@ -1763,7 +1763,7 @@
         "HTMLAttributes<HTMLElement>"
       ],
       "examples": [
-        "<Footer>\r\n  <FooterBrand><Heading level={3}>Hearth Bakery</Heading><Text size=\"sm\" tone=\"secondary\">12 Mill Lane, Bristol</Text></FooterBrand>\r\n  <FooterColumn title=\"Visit\"><FooterLink href=\"#hours\">Opening hours</FooterLink></FooterColumn>\r\n  <FooterBottom><Text size=\"sm\" tone=\"tertiary\">© 2026 Hearth Bakery</Text></FooterBottom>\r\n</Footer>"
+        "<Footer>\n  <FooterBrand><Heading level={3}>Hearth Bakery</Heading><Text size=\"sm\" tone=\"secondary\">12 Mill Lane, Bristol</Text></FooterBrand>\n  <FooterColumn title=\"Visit\"><FooterLink href=\"#hours\">Opening hours</FooterLink></FooterColumn>\n  <FooterBottom><Text size=\"sm\" tone=\"tertiary\">© 2026 Hearth Bakery</Text></FooterBottom>\n</Footer>"
       ]
     },
     "FooterBottom": {
@@ -1899,7 +1899,7 @@
     "Grid": {
       "category": "Layout",
       "source": "packages/react/src/components/Typography.tsx",
-      "description": "CSS grid. Use `minChildWidth` for card grids that reflow on their own, or a\r\nbreakpoint object on `columns` for explicit control.",
+      "description": "CSS grid. Use `minChildWidth` for card grids that reflow on their own, or a\nbreakpoint object on `columns` for explicit control.",
       "props": {
         "columns": {
           "type": "Responsive<string | number>",
@@ -1946,13 +1946,13 @@
         }
       },
       "examples": [
-        "<Grid minChildWidth={260} gap={16}>{cards}</Grid>\r\n<Grid columns={{ base: 1, md: 2, lg: 3 }} gap=\"$6\">{features}</Grid>"
+        "<Grid minChildWidth={260} gap={16}>{cards}</Grid>\n<Grid columns={{ base: 1, md: 2, lg: 3 }} gap=\"$6\">{features}</Grid>"
       ]
     },
     "Heading": {
       "category": "Typography",
       "source": "packages/react/src/components/Typography.tsx",
-      "description": "Section heading. `level` sets the size; pass `as` to decouple the visual\r\nsize from the semantic tag, e.g. `<Heading level={1} as=\"h2\">`. Use `display`\r\nfor hero-sized headlines. Headings use the theme's `--field-font-display`.",
+      "description": "Section heading. `level` sets the size; pass `as` to decouple the visual\nsize from the semantic tag, e.g. `<Heading level={1} as=\"h2\">`. Use `display`\nfor hero-sized headlines. Headings use the theme's `--field-font-display`.",
       "props": {
         "level": {
           "type": "1 | 2 | 3 | 4",
@@ -1963,7 +1963,7 @@
         "display": {
           "type": "\"sm\" | \"md\" | \"lg\" | \"xl\"",
           "required": false,
-          "description": "Large, fluid display size for hero and section headlines (`sm` to `xl`). Scales with the\r\nviewport and overrides the size implied by `level` (the tag still follows `level` / `as`)."
+          "description": "Large, fluid display size for hero and section headlines (`sm` to `xl`). Scales with the\nviewport and overrides the size implied by `level` (the tag still follows `level` / `as`)."
         },
         "align": {
           "type": "Responsive<TextAlign>",
@@ -2214,7 +2214,7 @@
         "AnchorHTMLAttributes<HTMLAnchorElement>"
       ],
       "examples": [
-        "<Text>Read our <Link href=\"/privacy\">privacy policy</Link>.</Text>\r\n<Link href=\"https://maps.google.com/?q=...\" external>Get directions</Link>"
+        "<Text>Read our <Link href=\"/privacy\">privacy policy</Link>.</Text>\n<Link href=\"https://maps.google.com/?q=...\" external>Get directions</Link>"
       ]
     },
     "Meter": {
@@ -3065,7 +3065,7 @@
     "Pagination": {
       "category": "Navigation",
       "source": "packages/react/src/components/Table.tsx",
-      "description": "Page navigation with first/prev/next/last, a page window with ellipses and\r\nan optional page-size selector. `variant=\"simple\"` swaps the page window for a\r\ncompact \"Page 4 of 48\" status between prev/next.",
+      "description": "Page navigation with first/prev/next/last, a page window with ellipses and\nan optional page-size selector. `variant=\"simple\"` swaps the page window for a\ncompact \"Page 4 of 48\" status between prev/next.",
       "props": {
         "currentPage": {
           "type": "number",
@@ -3108,7 +3108,7 @@
           "type": "\"full\" | \"simple\"",
           "required": false,
           "default": "'full'",
-          "description": "`full` (default): first/prev, numbered page window, next/last.\r\n`simple`: prev/next with a \"Page 4 of 48\" status between them — for cards, feeds and tight spaces."
+          "description": "`full` (default): first/prev, numbered page window, next/last.\n`simple`: prev/next with a \"Page 4 of 48\" status between them — for cards, feeds and tight spaces."
         },
         "showFirstLast": {
           "type": "boolean",
@@ -3123,7 +3123,7 @@
         }
       },
       "examples": [
-        "<Pagination currentPage={page} totalPages={12} onPageChange={setPage} totalItems={118} pageSize={10} />\r\n<Pagination variant=\"simple\" currentPage={page} totalPages={12} onPageChange={setPage} />"
+        "<Pagination currentPage={page} totalPages={12} onPageChange={setPage} totalItems={118} pageSize={10} />\n<Pagination variant=\"simple\" currentPage={page} totalPages={12} onPageChange={setPage} />"
       ]
     },
     "Popover": {
@@ -3252,7 +3252,7 @@
     "Prose": {
       "category": "Other",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "Styles raw HTML content (headings, paragraphs, lists, quotes, images, tables, code)\r\nfrom Markdown or a CMS, e.g. about pages, blog posts and policies.",
+      "description": "Styles raw HTML content (headings, paragraphs, lists, quotes, images, tables, code)\nfrom Markdown or a CMS, e.g. about pages, blog posts and policies.",
       "props": {
         "size": {
           "type": "\"base\" | \"sm\" | \"lg\"",
@@ -3357,7 +3357,7 @@
     "Reveal": {
       "category": "Other",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "Fades content in as it scrolls into view. Skipped entirely for users who prefer\r\nreduced motion, and content stays visible if JavaScript has not run (SSR).",
+      "description": "Fades content in as it scrolls into view. Skipped entirely for users who prefer\nreduced motion, and content stays visible if JavaScript has not run (SSR).",
       "props": {
         "effect": {
           "type": "\"zoom\" | \"fade\" | \"fade-up\"",
@@ -3396,13 +3396,13 @@
     "Section": {
       "category": "Other",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "A full-width page band with consistent vertical rhythm, an optional background\r\ntone or image, and a centred container. The building block of marketing pages.\r\nGive it an `id` to make it an in-page link target; set `--field-scroll-offset`\r\nto the height of a sticky navbar so anchors are not hidden under it.",
+      "description": "A full-width page band with consistent vertical rhythm, an optional background\ntone or image, and a centred container. The building block of marketing pages.\nGive it an `id` to make it an in-page link target; set `--field-scroll-offset`\nto the height of a sticky navbar so anchors are not hidden under it.",
       "props": {
         "tone": {
           "type": "SurfaceTone",
           "required": false,
           "default": "'default'",
-          "description": "Background band. `muted` / `raised` use theme surfaces, `accent` fills with the brand colour,\r\n`inverse` flips to the opposite light/dark theme (e.g. a dark band on a light site)."
+          "description": "Background band. `muted` / `raised` use theme surfaces, `accent` fills with the brand colour,\n`inverse` flips to the opposite light/dark theme (e.g. a dark band on a light site)."
         },
         "spacing": {
           "type": "\"none\" | \"sm\" | \"md\" | \"lg\" | \"xl\"",
@@ -3443,7 +3443,7 @@
         "HTMLAttributes<HTMLElement>"
       ],
       "examples": [
-        "<Section tone=\"muted\" id=\"menu\" aria-labelledby=\"menu-title\">\r\n  <Heading id=\"menu-title\" display=\"sm\">Our menu</Heading>\r\n</Section>"
+        "<Section tone=\"muted\" id=\"menu\" aria-labelledby=\"menu-title\">\n  <Heading id=\"menu-title\" display=\"sm\">Our menu</Heading>\n</Section>"
       ]
     },
     "SegmentedControl": {
@@ -4072,7 +4072,7 @@
     "SkipLink": {
       "category": "Other",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "\"Skip to content\" link for keyboard users. Hidden until focused; place it first in the page\r\nand give your main landmark the matching id (`<main id=\"main\">`). Focus is moved to the\r\ntarget directly, so it also works with hash routers and targets that are not focusable.",
+      "description": "\"Skip to content\" link for keyboard users. Hidden until focused; place it first in the page\nand give your main landmark the matching id (`<main id=\"main\">`). Focus is moved to the\ntarget directly, so it also works with hash routers and targets that are not focusable.",
       "props": {
         "href": {
           "type": "string",
@@ -4517,7 +4517,7 @@
     "Table": {
       "category": "Data Display",
       "source": "packages/react/src/components/Table.tsx",
-      "description": "Data table with sorting, row selection with bulk actions, expandable rows,\r\nloading skeletons and an empty state. For full control, use the compound\r\nparts (`TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`) as\r\nchildren instead of `columns` / `data`.",
+      "description": "Data table with sorting, row selection with bulk actions, expandable rows,\nloading skeletons and an empty state. For full control, use the compound\nparts (`TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`) as\nchildren instead of `columns` / `data`.",
       "props": {
         "columns": {
           "type": "Column<T>[]",
@@ -4658,7 +4658,7 @@
         }
       },
       "examples": [
-        "<Table data={instances} keyExtractor={r => r.id} selectable\r\n  columns={[\r\n    { key: 'name', header: 'Name', sortable: true },\r\n    { key: 'state', header: 'State', render: r => <Badge variant=\"success\" dot>{r.state}</Badge> },\r\n  ]} />"
+        "<Table data={instances} keyExtractor={r => r.id} selectable\n  columns={[\n    { key: 'name', header: 'Name', sortable: true },\n    { key: 'state', header: 'State', render: r => <Badge variant=\"success\" dot>{r.state}</Badge> },\n  ]} />"
       ]
     },
     "TableBody": {
@@ -4813,7 +4813,7 @@
     "Terminal": {
       "category": "Data Display",
       "source": "packages/react/src/components/Terminal.tsx",
-      "description": "A terminal / log viewer window. Compose with `TerminalHeader`, `TerminalBody`\r\n(containing `TerminalLine`s) and an optional interactive `TerminalPrompt`.",
+      "description": "A terminal / log viewer window. Compose with `TerminalHeader`, `TerminalBody`\n(containing `TerminalLine`s) and an optional interactive `TerminalPrompt`.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -4824,7 +4824,7 @@
           "type": "TerminalVariant",
           "required": false,
           "default": "'window'",
-          "description": "`window` (default): raised window chrome with dots, icon, level badges and a submit button.\r\n`minimal`: flat panel for embedding in consoles and dashboards; the sub-components default\r\nto no dots, no icon, no level badges and no submit button (each can be opted back in)."
+          "description": "`window` (default): raised window chrome with dots, icon, level badges and a submit button.\n`minimal`: flat panel for embedding in consoles and dashboards; the sub-components default\nto no dots, no icon, no level badges and no submit button (each can be opted back in)."
         },
         "height": {
           "type": "string | number",
@@ -4849,7 +4849,7 @@
         }
       },
       "examples": [
-        "<Terminal height={320}>\r\n  <TerminalHeader title=\"deploy.log\" onClear={clear} />\r\n  <TerminalBody>\r\n    {logs.map(l => <TerminalLine key={l.id} level={l.level} timestamp={l.ts}>{l.text}</TerminalLine>)}\r\n  </TerminalBody>\r\n  <TerminalPrompt onSubmit={run} />\r\n</Terminal>\r\n\r\nHeader, body and prompt are all optional, so a bare `<Terminal variant=\"minimal\"><TerminalBody>…`\r\nis a plain embedded log."
+        "<Terminal height={320}>\n  <TerminalHeader title=\"deploy.log\" onClear={clear} />\n  <TerminalBody>\n    {logs.map(l => <TerminalLine key={l.id} level={l.level} timestamp={l.ts}>{l.text}</TerminalLine>)}\n  </TerminalBody>\n  <TerminalPrompt onSubmit={run} />\n</Terminal>\n\nHeader, body and prompt are all optional, so a bare `<Terminal variant=\"minimal\"><TerminalBody>…`\nis a plain embedded log."
       ]
     },
     "TerminalBody": {
@@ -5103,7 +5103,7 @@
         "HTMLAttributes<HTMLElement>"
       ],
       "examples": [
-        "<Text size=\"sm\" tone=\"secondary\">Last deployed 3 minutes ago</Text>\r\n<Text size=\"xl\" tone=\"secondary\" align=\"center\">Small-batch coffee, roasted on site.</Text>"
+        "<Text size=\"sm\" tone=\"secondary\">Last deployed 3 minutes ago</Text>\n<Text size=\"xl\" tone=\"secondary\" align=\"center\">Small-batch coffee, roasted on site.</Text>"
       ]
     },
     "TextArea": {
@@ -5192,7 +5192,7 @@
     "ThemeProvider": {
       "category": "Theming",
       "source": "packages/react/src/theme/ThemeProvider.tsx",
-      "description": "Provides the active Field theme to every component below it.\r\n\r\nWith `scope=\"root\"` (default) the theme's CSS variables are written to\r\n`<html>`, so the whole page (including portals) is themed. With\r\n`scope=\"container\"` they are applied to a wrapper element instead, which\r\nlets you render several themes side by side.",
+      "description": "Provides the active Field theme to every component below it.\n\nWith `scope=\"root\"` (default) the theme's CSS variables are written to\n`<html>`, so the whole page (including portals) is themed. With\n`scope=\"container\"` they are applied to a wrapper element instead, which\nlets you render several themes side by side.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -5253,7 +5253,7 @@
     "ThemeScope": {
       "category": "Theming",
       "source": "packages/react/src/theme/ThemeProvider.tsx",
-      "description": "Applies a different theme (or mode) to a subtree, e.g. a light card inside\r\na dark page. Components inside - including portals such as tooltips and\r\nmodals opened from within - use the scoped theme.",
+      "description": "Applies a different theme (or mode) to a subtree, e.g. a light card inside\na dark page. Components inside - including portals such as tooltips and\nmodals opened from within - use the scoped theme.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -5680,23 +5680,23 @@
   "hooks": {
     "useAnchoredPosition": {
       "signature": "(anchorRef: RefObject<HTMLElement | null>, floatingRef: RefObject<HTMLElement | null>, open: boolean, { placement, align, offset, matchWidth }?: AnchoredPositionOptions): { ...; }",
-      "description": "Positions a `position: fixed` floating element next to an anchor, keeping\r\nit inside the viewport and following scroll/resize. Rendering the floating\r\nelement in a portal with this style avoids clipping by `overflow` parents."
+      "description": "Positions a `position: fixed` floating element next to an anchor, keeping\nit inside the viewport and following scroll/resize. Rendering the floating\nelement in a portal with this style avoids clipping by `overflow` parents."
     },
     "useControllableState": {
       "signature": "<T>({ value, defaultValue, onChange, }: { value?: T; defaultValue: T; onChange?: ((value: T) => void); }): [T, (next: T) => void]",
-      "description": "State that can be either controlled (`value` provided) or uncontrolled\r\n(`defaultValue`), calling `onChange` in both cases."
+      "description": "State that can be either controlled (`value` provided) or uncontrolled\n(`defaultValue`), calling `onChange` in both cases."
     },
     "useCookieConsent": {
       "signature": "(storageKey?: string): { consent: CookieConsentRecord | null; hasConsent: (categoryId: string) => boolean; openPreferences: () => void; reset: () => void; }",
-      "description": "Read the visitor's saved cookie choices anywhere in the app, and reopen the\r\npreferences panel (e.g. from a \"Cookie settings\" footer link)."
+      "description": "Read the visitor's saved cookie choices anywhere in the app, and reopen the\npreferences panel (e.g. from a \"Cookie settings\" footer link)."
     },
     "useDismissableLayer": {
       "signature": "(active: boolean, options: DismissableLayerOptions): void",
-      "description": "Close a popover/menu/dialog on Escape or outside press. When several layers\r\nare open (a select inside a modal), only the topmost one responds."
+      "description": "Close a popover/menu/dialog on Escape or outside press. When several layers\nare open (a select inside a modal), only the topmost one responds."
     },
     "useFocusTrap": {
       "signature": "(containerRef: RefObject<HTMLElement | null>, active: boolean, options?: { initialFocusRef?: RefObject<HTMLElement | null>; restoreFocus?: boolean; }): void",
-      "description": "Trap Tab focus inside `containerRef` while active, move focus into it on\r\nopen, and restore focus to the previously focused element on close."
+      "description": "Trap Tab focus inside `containerRef` while active, move focus into it on\nopen, and restore focus to the previously focused element on close."
     },
     "useIsomorphicLayoutEffect": {
       "signature": "(effect: EffectCallback, deps?: DependencyList): void",
@@ -5740,7 +5740,7 @@
     },
     "useThemeSafe": {
       "signature": "(): ThemeContextValue",
-      "description": "Like `useTheme`, but returns the default dark theme (with no-op setters)\r\ninstead of throwing when used outside a `<ThemeProvider>`."
+      "description": "Like `useTheme`, but returns the default dark theme (with no-op setters)\ninstead of throwing when used outside a `<ThemeProvider>`."
     },
     "useToast": {
       "signature": "(): ToastContextValue",

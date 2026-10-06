@@ -315,5 +315,7 @@ const manifest = {
 };
 
 const outFile = join(root, 'docs/COMPONENT_MANIFEST.json');
-writeFileSync(outFile, JSON.stringify(manifest, null, 2) + '\n');
+// Normalise CRLF from Windows checkouts so the manifest is identical on every OS.
+const lf = (_key, value) => (typeof value === 'string' ? value.replace(/\r\n/g, '\n') : value);
+writeFileSync(outFile, JSON.stringify(manifest, lf, 2) + '\n');
 console.log(`Wrote ${Object.keys(components).length} components and ${Object.keys(hooks).length} hooks to docs/COMPONENT_MANIFEST.json`);

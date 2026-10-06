@@ -78,7 +78,11 @@ export const componentPages: ComponentPageDef[] = [
     summary: 'A compact single-choice switcher for 2-5 options, such as view modes or time ranges.',
     api: ['SegmentedControl'],
     whenToUse: ['Switching views of the same content (Day / Week / Month).', 'Filtering a list by a small set of mutually exclusive states.'],
-    whenNotToUse: ['More than ~5 options - use Select.', 'Choices inside a form that is submitted later - use RadioGroup.'],
+    whenNotToUse: [
+      'More than ~5 options - use Select.',
+      'Choices inside a form that is submitted later - use RadioGroup.',
+      'Long labels in a narrow layout: the control scrolls sideways inside its own box rather than overflowing, so keep labels short or use a Select on phones.',
+    ],
     accessibility: ['Rendered as a radiogroup with radio buttons; only the selected option is in the tab order.', 'Give the group an aria-label, and give icon-only options their own aria-label.'],
     keyboard: [{ keys: ['←', '→'], description: 'Move to and select the previous / next option.' }, { keys: ['Home', 'End'], description: 'Select the first / last option.' }],
     related: ['tabs', 'radio-group'],
@@ -466,7 +470,14 @@ export const componentPages: ComponentPageDef[] = [
     category: 'Navigation',
     summary: 'Shows progress through a multi-step flow such as a wizard or checkout.',
     api: ['Stepper'],
-    accessibility: ['Rendered as an ordered list; the current step has aria-current="step" and each step announces its status.'],
+    whenToUse: [
+      'Keep step titles short. Below 640px the horizontal stepper only labels the current step (other steps show their number), and labels truncate in narrow containers.',
+      'Use orientation="vertical" for long flows or long titles that should always be visible.',
+    ],
+    accessibility: [
+      'Rendered as an ordered list; the current step has aria-current="step" and each step announces its status.',
+      'Labels hidden on phones are only hidden visually, so screen readers still announce every step.',
+    ],
     related: ['tabs', 'modal'],
   },
 
@@ -551,6 +562,7 @@ export const componentPages: ComponentPageDef[] = [
     category: 'Data Display',
     summary: 'A terminal / log viewer with level badges, auto-scroll and an interactive prompt with history. Use the minimal variant to embed a flat console without window chrome.',
     api: ['Terminal', 'TerminalHeader', 'TerminalBody', 'TerminalLine', 'TerminalPrompt'],
+    whenToUse: ['Pass filters or extra actions as TerminalHeader children. In narrow containers they wrap onto a second row and long titles truncate.'],
     keyboard: [{ keys: ['Enter'], description: 'Submit the command.' }, { keys: ['↑', '↓'], description: 'Browse command history.' }],
     related: ['code-block', 'timeline'],
   },
@@ -679,7 +691,10 @@ export const componentPages: ComponentPageDef[] = [
     category: 'Typography',
     summary: 'A display heading whose letters are drawn as a wireframe and then materialise into solid type.',
     api: ['UnfoldingHeading'],
-    whenToUse: ['Hero headlines and section intros on marketing pages - sparingly.'],
+    whenToUse: [
+      'Hero headlines and section intros on marketing pages - sparingly.',
+      'The heading wraps within its container. Sizes lg and xl scale down on phones (to 28px and 32px) so long single words still fit; hero scales with the viewport.',
+    ],
     accessibility: ['The full text is always available to screen readers; the animation is skipped with prefers-reduced-motion.'],
     related: ['typography'],
   },

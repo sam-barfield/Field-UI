@@ -2,7 +2,7 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
-## [Unreleased]
+## [0.3.1] - 2026-10-06
 
 ### Fixed
 - Mobile and narrow-container layout fixes, found by a responsive sweep of every docs page at 375, 768, 850 and 1280px:
@@ -13,6 +13,8 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
   - `Pagination`: in narrow containers rows-per-page gets its own line and page buttons stay on one row.
   - `Slider`: zone marks at either end of the track no longer hang outside the slider.
 - Showcase: the header no longer overflows between 769 and 960px; the theme editor stacks below 1024px; example pages and docs examples (navbar, landing page, dashboard, terminal, code block, sticker sheet sidebar) fit at phone width.
+- `npm run docs:manifest` normalises Windows line endings, so the generated manifest no longer changes depending on the OS it was built on.
+- Docs: Stepper, SegmentedControl, Terminal and UnfoldingHeading pages and `docs/AGENTS.md` describe their narrow-screen behaviour.
 
 ## [0.3.0] - 2026-10-06
 

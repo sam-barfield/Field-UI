@@ -1,6 +1,6 @@
 {
   "name": "field-design-system",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "private": true,
   "description": "Field Design System: Precision-crafted, dark-first design system with React client libraries, interactive sticker sheet, and theme editor.",
   "workspaces": [
@@ -9,9 +9,13 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=@field/showcase",
-    "build": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm --prefix apps/showcase run build",
-    "build:showcase": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm --prefix apps/showcase run build",
-    "typecheck": "npm --prefix packages/tokens run typecheck && npm --prefix packages/react run typecheck && npm --prefix apps/showcase run typecheck"
+    "build": "npm --prefix packages/tokens run build && npm --prefix packages/react run build && npm run docs:manifest && npm --prefix apps/showcase run build",
+    "typecheck": "npm --prefix packages/tokens run typecheck && npm --prefix packages/react run typecheck && npm --prefix apps/showcase run typecheck",
+    "yalc:tokens": "npm run build --workspace=@sam.barfield/field-tokens && npm --workspace=@sam.barfield/field-tokens exec -- yalc push",
+    "yalc:react": "npm run build --workspace=@sam.barfield/field-react && npm --workspace=@sam.barfield/field-react exec -- yalc push",
+    "yalc:all": "npm run yalc:tokens && npm run yalc:react",
+    "docs:manifest": "node scripts/generate-manifest.mjs",
+    "build:packages": "npm --prefix packages/tokens run build && npm --prefix packages/react run build"
   },
   "keywords": [
     "design-system",
@@ -23,5 +27,9 @@
     "accessible"
   ],
   "author": "Field Design Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "yalc": "^1.0.0-pre.53",
+    "typescript": "^5.6.3"
+  }
 }

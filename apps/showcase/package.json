@@ -1,6 +1,6 @@
 {
   "name": "@field/showcase",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "@sam.barfield/field-react": "*",
     "@sam.barfield/field-tokens": "*",
     "lucide-react": "^0.475.0",
+    "prism-react-renderer": "^2.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

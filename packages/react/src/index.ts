@@ -2,10 +2,10 @@
 export * from '@sam.barfield/field-tokens';
 
 // Theme Provider & hooks
-export * from './theme';
+export * from './theme/index.js';
 
 // Components
-export * from './components';
+export * from './components/index.js';
 
 // Utilities
-export * from './utils';
+export * from './utils/index.js';

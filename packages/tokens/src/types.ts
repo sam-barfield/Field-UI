@@ -138,6 +138,11 @@ export interface FieldTheme {
   mode: 'dark' | 'light';
   semantics: FieldSemanticTokens;
   radiiOverrides?: Partial<FieldPrimitiveTokens['radii']>;
+  /**
+   * Font stack overrides. `display` is used by headings, `sans` by body text and controls.
+   * Fonts are not loaded for you: add the webfont (e.g. a Google Fonts link) yourself.
+   */
+  fonts?: Partial<FieldPrimitiveTokens['typography']['fonts']>;
 }
 
 export interface FieldThemePair {

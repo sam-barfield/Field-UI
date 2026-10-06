@@ -1,3 +1,3 @@
-export * from './dark';
-export * from './light';
-export * from './high-contrast';
+export * from './dark.js';
+export * from './light.js';
+export * from './high-contrast.js';

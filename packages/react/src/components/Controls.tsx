@@ -1,78 +1,106 @@
-import React, { useState, useRef, useEffect, useId } from 'react';
-import { Check, ChevronUp, ChevronDown, X } from 'lucide-react';
+'use client';
 
+import React, { useState, useRef, useEffect, useId } from 'react';
+import { createPortal } from 'react-dom';
+import { Check, ChevronUp, ChevronDown, X, Minus } from 'lucide-react';
+import {
+  mergeRefs,
+  useAnchoredPosition,
+  useControllableState,
+  useDismissableLayer,
+  useIsomorphicLayoutEffect,
+} from '../utils/hooks.js';
+import { mergeClassNames } from '../utils/polymorphic.js';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { FieldLabel, FieldMessage, getFieldDescriptionId } from './Input.js';
+
+type NativeCheckboxProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'onChange' | 'checked' | 'defaultChecked' | 'size' | 'children'
+>;
 
 /* --- SWITCH --- */
-export interface SwitchProps {
-  label?: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+export interface SwitchProps extends NativeCheckboxProps {
+  label?: React.ReactNode;
+  /** Secondary text under the label. */
+  description?: React.ReactNode;
+  /** Controlled state. */
+  checked?: boolean;
+  /** Initial state when uncontrolled. */
+  defaultChecked?: boolean;
+  /** Called with the new state when toggled. */
+  onChange?: (checked: boolean, event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   size?: 'sm' | 'md';
-  description?: string;
   className?: string;
-  name?: string;
-  id?: string;
-  value?: string;
-  required?: boolean;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
+/**
+ * An on/off toggle for settings that apply immediately. Backed by a native
+ * `<input type="checkbox" role="switch">`, so it is keyboard accessible,
+ * labelled by its text and submits with forms.
+ *
+ * @example
+ * <Switch label="Auto-scaling" description="Add capacity under load" checked={on} onChange={setOn} />
+ */
 export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
   (
     {
       label,
-      checked,
+      description,
+      checked: controlledChecked,
+      defaultChecked = false,
       onChange,
       disabled = false,
       size = 'md',
-      description,
       className = '',
-      name,
-      id,
-      value,
-      required,
-      onBlur,
+      id: customId,
+      style,
+      ...inputProps
     },
     ref
   ) => {
+    const generatedId = useId();
+    const id = customId || generatedId;
+    const [checked, setChecked] = useState(defaultChecked);
+    const isOn = controlledChecked ?? checked;
+
     return (
       <label
         htmlFor={id}
-        className={`field-flex items-center gap-3 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-        style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '12px', position: 'relative' }}
+        className={mergeClassNames('field-switch-root', disabled && 'disabled', className)}
+        style={style}
       >
         <input
           ref={ref}
+          id={id}
           type="checkbox"
           role="switch"
-          name={name}
-          id={id}
-          value={value}
-          checked={checked}
-          required={required}
+          className="field-control-input"
+          checked={isOn}
           disabled={disabled}
-          onBlur={onBlur}
-          onChange={e => onChange(e.target.checked)}
-          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
-          tabIndex={-1}
-          aria-hidden="true"
+          aria-describedby={description ? `${id}-desc` : undefined}
+          onChange={e => {
+            if (controlledChecked === undefined) setChecked(e.target.checked);
+            onChange?.(e.target.checked, e);
+          }}
+          {...inputProps}
         />
-        <button
-          type="button"
-          role="switch"
-          aria-checked={checked}
-          disabled={disabled}
-          className={`field-switch ${size === 'sm' ? 'field-switch-sm' : ''} ${checked ? 'checked' : ''}`}
-          onClick={() => !disabled && onChange(!checked)}
+        <span
+          className={mergeClassNames('field-switch', size === 'sm' && 'field-switch-sm', isOn && 'checked')}
+          aria-hidden="true"
         >
           <span className="field-switch-thumb" />
-        </button>
+        </span>
         {(label || description) && (
-          <div style={{ display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
-            {label && <span className="field-label" style={{ cursor: 'pointer', margin: 0 }}>{label}</span>}
-            {description && <span className="field-helper-text">{description}</span>}
-          </div>
+          <span className="field-control-text">
+            {label && <span className="field-control-label">{label}</span>}
+            {description && (
+              <span id={`${id}-desc`} className="field-helper-text">
+                {description}
+              </span>
+            )}
+          </span>
         )}
       </label>
     );
@@ -82,82 +110,96 @@ export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
 Switch.displayName = 'Switch';
 
 /* --- CHECKBOX --- */
-export interface CheckboxProps {
-  label?: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+export interface CheckboxProps extends NativeCheckboxProps {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean, event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  /** Shows a dash and reports "mixed" to assistive tech (e.g. a partially selected "select all"). */
   indeterminate?: boolean;
   className?: string;
-  name?: string;
-  id?: string;
-  value?: string;
-  required?: boolean;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
+/**
+ * A native checkbox with Field styling. Pass `aria-label` when there is no
+ * visible `label` (e.g. row selection in a table).
+ *
+ * @example
+ * <Checkbox label="I accept the terms" checked={accepted} onChange={setAccepted} />
+ */
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   (
     {
       label,
-      checked,
+      description,
+      checked: controlledChecked,
+      defaultChecked = false,
       onChange,
       disabled = false,
       indeterminate = false,
       className = '',
-      name,
-      id,
-      value,
-      required,
-      onBlur,
+      id: customId,
+      style,
+      ...inputProps
     },
     ref
   ) => {
+    const generatedId = useId();
+    const id = customId || generatedId;
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [checked, setChecked] = useState(defaultChecked);
+    const isChecked = controlledChecked ?? checked;
+
+    useIsomorphicLayoutEffect(() => {
+      if (inputRef.current) inputRef.current.indeterminate = indeterminate;
+    }, [indeterminate]);
+
     return (
       <label
         htmlFor={id}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
-          userSelect: 'none',
-          position: 'relative',
-        }}
-        className={className}
+        className={mergeClassNames('field-checkbox-root', disabled && 'disabled', className)}
+        style={style}
       >
         <input
-          ref={ref}
-          type="checkbox"
-          name={name}
+          ref={mergeRefs(inputRef, ref)}
           id={id}
-          value={value}
-          checked={checked}
-          required={required}
+          type="checkbox"
+          className="field-control-input"
+          checked={isChecked}
           disabled={disabled}
-          onBlur={onBlur}
-          onChange={e => onChange(e.target.checked)}
-          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
+          aria-describedby={description ? `${id}-desc` : undefined}
+          onChange={e => {
+            if (controlledChecked === undefined) setChecked(e.target.checked);
+            onChange?.(e.target.checked, e);
+          }}
+          {...inputProps}
         />
         <span
-          className={`field-checkbox ${checked ? 'checked' : ''} ${indeterminate ? 'indeterminate' : ''}`}
+          className={mergeClassNames(
+            'field-checkbox',
+            (isChecked || indeterminate) && 'checked',
+            indeterminate && 'indeterminate'
+          )}
           aria-hidden="true"
         >
-          {checked && !indeterminate && <Check size={13} strokeWidth={2.75} style={{ display: 'block', flexShrink: 0 }} />}
-          {indeterminate && (
-            <span
-              style={{
-                width: '8px',
-                height: '2px',
-                backgroundColor: 'var(--field-text-inverse, #fff)',
-                borderRadius: '1px',
-                display: 'block',
-              }}
-            />
+          {indeterminate ? (
+            <Minus size={12} strokeWidth={3} />
+          ) : (
+            isChecked && <Check size={13} strokeWidth={2.75} />
           )}
         </span>
-        {label && <span className="field-text field-text-sm">{label}</span>}
+        {(label || description) && (
+          <span className="field-control-text">
+            {label && <span className="field-control-label">{label}</span>}
+            {description && (
+              <span id={`${id}-desc`} className="field-helper-text">
+                {description}
+              </span>
+            )}
+          </span>
+        )}
       </label>
     );
   }
@@ -168,130 +210,191 @@ Checkbox.displayName = 'Checkbox';
 /* --- RADIO GROUP --- */
 export interface RadioOption<T extends string = string> {
   value: T;
-  label: string;
-  description?: string;
+  label: React.ReactNode;
+  description?: React.ReactNode;
   disabled?: boolean;
 }
 
 export interface RadioGroupProps<T extends string = string> {
-  label?: string;
+  label?: React.ReactNode;
   options: RadioOption<T>[];
-  value: T;
-  onChange: (val: T) => void;
+  /** Controlled value. */
+  value?: T;
+  /** Initial value when uncontrolled. */
+  defaultValue?: T;
+  onChange?: (val: T) => void;
   disabled?: boolean;
+  /** Stack options vertically (default) or lay them out in a row. */
+  orientation?: 'vertical' | 'horizontal';
+  helperText?: React.ReactNode;
+  error?: React.ReactNode;
   className?: string;
+  /** Form field name. Generated automatically if omitted. */
   name?: string;
   required?: boolean;
+  'aria-label'?: string;
 }
 
+/**
+ * A set of mutually exclusive options. Uses native radio inputs, so arrow
+ * keys move the selection and the group submits with forms.
+ *
+ * @example
+ * <RadioGroup label="Plan" value={plan} onChange={setPlan} options={[
+ *   { value: 'free', label: 'Free' },
+ *   { value: 'pro', label: 'Pro', description: '$12 / month' },
+ * ]} />
+ */
 export function RadioGroup<T extends string = string>(props: Readonly<RadioGroupProps<T>>) {
   const {
     label,
     options,
-    value,
+    value: controlledValue,
+    defaultValue,
     onChange,
     disabled = false,
+    orientation = 'vertical',
+    helperText,
+    error,
     className = '',
     name,
     required,
+    'aria-label': ariaLabel,
   } = props;
+  const generatedId = useId();
+  const groupName = name || generatedId;
+  const [value, setValue] = useControllableState<T | undefined>({
+    value: controlledValue,
+    defaultValue,
+    onChange: onChange as ((v: T | undefined) => void) | undefined,
+  });
+
   return (
-    <div className={`field-form-item ${className}`} role="radiogroup" aria-label={label}>
-      {label && <span className="field-label">{label}</span>}
-      <div className="field-radio-group">
+    <div
+      className={mergeClassNames('field-form-item', className)}
+      role="radiogroup"
+      aria-labelledby={label ? `${generatedId}-label` : undefined}
+      aria-label={!label ? ariaLabel : undefined}
+      aria-describedby={getFieldDescriptionId(generatedId, error, helperText)}
+      aria-required={required || undefined}
+      aria-invalid={error ? true : undefined}
+    >
+      {label && (
+        <span id={`${generatedId}-label`} className="field-label">
+          {label}
+          {required && (
+            <span className="field-label-required" aria-hidden="true">
+              *
+            </span>
+          )}
+        </span>
+      )}
+      <div className={mergeClassNames('field-radio-group', orientation === 'horizontal' && 'horizontal')}>
         {options.map(opt => {
           const isSelected = opt.value === value;
           const isDisabled = disabled || opt.disabled;
+          const optionId = `${generatedId}-${opt.value}`;
           return (
-            <label
-              key={opt.value}
-              className={`field-radio-item ${isDisabled ? 'disabled' : ''}`}
-              style={{ position: 'relative' }}
-            >
-              {name && (
-                <input
-                  type="radio"
-                  name={name}
-                  value={opt.value}
-                  checked={isSelected}
-                  disabled={isDisabled}
-                  required={required}
-                  onChange={() => onChange(opt.value)}
-                  style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', margin: 0 }}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-              )}
-              <button
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
+            <label key={opt.value} htmlFor={optionId} className={mergeClassNames('field-radio-item', isDisabled && 'disabled')}>
+              <input
+                id={optionId}
+                type="radio"
+                className="field-control-input"
+                name={groupName}
+                value={opt.value}
+                checked={isSelected}
                 disabled={isDisabled}
-                onClick={() => !isDisabled && onChange(opt.value)}
-                className={`field-radio-button ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}`}
+                required={required}
+                aria-describedby={opt.description ? `${optionId}-desc` : undefined}
+                onChange={() => setValue(opt.value)}
+              />
+              <span
+                className={mergeClassNames('field-radio-button', isSelected && 'checked', isDisabled && 'disabled')}
+                aria-hidden="true"
               >
                 {isSelected && <span className="field-radio-dot" />}
-              </button>
-              <div className="field-radio-content">
-                <span className="field-radio-label">
-                  {opt.label}
-                </span>
+              </span>
+              <span className="field-radio-content">
+                <span className="field-radio-label">{opt.label}</span>
                 {opt.description && (
-                  <span className="field-radio-desc">
+                  <span id={`${optionId}-desc`} className="field-radio-desc">
                     {opt.description}
                   </span>
                 )}
-              </div>
+              </span>
             </label>
           );
         })}
       </div>
+      <FieldMessage id={generatedId} error={error} helperText={helperText} />
     </div>
   );
 }
 
 /* --- SLIDER & LEVEL ZONES --- */
 export interface SliderZone {
+  /** Start of the zone. Defaults to the end of the previous zone (or `min`). */
   from?: number;
+  /** End of the zone (inclusive). */
   to: number;
+  /** Status keyword or any CSS colour. */
   color?: 'success' | 'warning' | 'danger' | 'accent' | (string & {});
+  /** Shown as a badge while the value is inside this zone. */
   label?: string;
 }
 
 export interface SliderProps {
-  label?: string;
-  value: number;
+  label?: React.ReactNode;
+  /** Controlled value. */
+  value?: number;
+  /** Initial value when uncontrolled. */
+  defaultValue?: number;
   min?: number;
   max?: number;
   step?: number;
-  onChange: (val: number) => void;
+  onChange?: (val: number) => void;
+  /** Colour-coded ranges, e.g. healthy / warning / critical thresholds. */
   zones?: SliderZone[];
+  /** Show zone boundary values under the track. */
   showMarks?: boolean;
+  /** Soft glow around the fill and thumb. */
   glow?: boolean;
   disabled?: boolean;
+  /** Show the current value in the header. Default `true`. */
   showValue?: boolean;
+  /** Appended to the displayed value, e.g. `%` or ` GB`. */
   valueSuffix?: string;
   className?: string;
   style?: React.CSSProperties;
   name?: string;
   id?: string;
   required?: boolean;
+  'aria-label'?: string;
 }
 
 const resolveColor = (c?: string): string => {
   if (!c) return 'var(--field-accent-primary)';
   switch (c) {
-    case 'success': return 'var(--field-status-success-base, #10B981)';
-    case 'warning': return 'var(--field-status-warning-base, #F59E0B)';
-    case 'danger': return 'var(--field-status-danger-base, #EF4444)';
+    case 'success': return 'var(--field-status-success-base)';
+    case 'warning': return 'var(--field-status-warning-base)';
+    case 'danger': return 'var(--field-status-danger-base)';
     case 'accent': return 'var(--field-accent-primary)';
     default: return c;
   }
 };
 
+/**
+ * A range input with optional colour-coded threshold zones. Built on a native
+ * `<input type="range">` for keyboard and screen-reader support.
+ *
+ * @example
+ * <Slider label="CPU alarm" valueSuffix="%" value={cpu} onChange={setCpu}
+ *   zones={[{ to: 60, color: 'success', label: 'Healthy' }, { to: 85, color: 'warning' }, { to: 100, color: 'danger' }]} />
+ */
 export const Slider: React.FC<SliderProps> = ({
   label,
-  value,
+  value: controlledValue,
+  defaultValue,
   min = 0,
   max = 100,
   step = 1,
@@ -305,50 +408,56 @@ export const Slider: React.FC<SliderProps> = ({
   className = '',
   style,
   name,
-  id,
+  id: customId,
   required,
+  'aria-label': ariaLabel,
 }) => {
+  const generatedId = useId();
+  const id = customId || generatedId;
+  const [value, setValue] = useControllableState<number>({
+    value: controlledValue,
+    defaultValue: defaultValue ?? min,
+    onChange,
+  });
   const rangeSpan = Math.max(1, max - min);
   const clampedValue = Math.min(max, Math.max(min, value));
   const valuePercent = ((clampedValue - min) / rangeSpan) * 100;
 
-  // Resolve zones with explicit start and end boundaries
   const resolvedZones = React.useMemo(() => {
     if (!zones || zones.length === 0) return null;
     let currentFrom = min;
-    return zones.map((z) => {
+    return zones.map(z => {
       const from = z.from ?? currentFrom;
       const to = Math.min(max, z.to);
       currentFrom = to;
-      return {
-        from,
-        to,
-        color: resolveColor(z.color),
-        label: z.label,
-      };
+      return { from, to, color: resolveColor(z.color), label: z.label };
     });
   }, [zones, min, max]);
 
-  // Find active zone for current slider value
   const activeZone = React.useMemo(() => {
     if (!resolvedZones) return null;
     return (
-      resolvedZones.find((z) => clampedValue >= z.from && clampedValue <= z.to) ||
-      resolvedZones.at(-1)
+      resolvedZones.find(z => clampedValue >= z.from && clampedValue <= z.to) ||
+      resolvedZones[resolvedZones.length - 1]
     );
   }, [resolvedZones, clampedValue]);
 
   const activeColor = activeZone ? activeZone.color : 'var(--field-accent-primary)';
+  const valueText = `${clampedValue}${valueSuffix}${activeZone?.label ? ` (${activeZone.label})` : ''}`;
 
   return (
     <div
-      className={`field-slider-container ${disabled ? 'disabled' : ''} ${className}`}
+      className={mergeClassNames('field-slider-container', disabled && 'disabled', className)}
       style={style}
     >
       {(label || showValue) && (
         <div className="field-slider-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {label && <span className="field-label" style={{ margin: 0 }}>{label}</span>}
+          <div className="field-slider-header-label">
+            {label && (
+              <label htmlFor={id} id={`${id}-label`} className="field-label">
+                {label}
+              </label>
+            )}
             {activeZone?.label && (
               <span
                 className="field-slider-zone-badge"
@@ -365,9 +474,8 @@ export const Slider: React.FC<SliderProps> = ({
           {showValue && (
             <span
               className="field-slider-value"
-              style={{
-                color: activeZone ? activeColor : 'var(--field-text-primary)',
-              }}
+              style={{ color: activeZone ? activeColor : 'var(--field-text-primary)' }}
+              aria-hidden="true"
             >
               {clampedValue}
               {valueSuffix}
@@ -377,10 +485,9 @@ export const Slider: React.FC<SliderProps> = ({
       )}
 
       <div className="field-slider-track-wrapper">
-        {/* Background track (shows colored zone levels if defined) */}
         <div className="field-slider-track-bg">
           {resolvedZones ? (
-            resolvedZones.map((zone) => {
+            resolvedZones.map(zone => {
               const left = ((zone.from - min) / rangeSpan) * 100;
               const width = ((zone.to - zone.from) / rangeSpan) * 100;
               return (
@@ -401,7 +508,6 @@ export const Slider: React.FC<SliderProps> = ({
           )}
         </div>
 
-        {/* Dynamic filled track */}
         <div
           className="field-slider-track-fill"
           style={{
@@ -411,10 +517,9 @@ export const Slider: React.FC<SliderProps> = ({
           }}
         />
 
-        {/* Threshold boundary divider lines layer (sits above track fill so reached lines remain visible) */}
         {resolvedZones && resolvedZones.length > 1 && (
           <div className="field-slider-threshold-lines">
-            {resolvedZones.slice(0, -1).map((zone) => {
+            {resolvedZones.slice(0, -1).map(zone => {
               const linePercent = ((zone.to - min) / rangeSpan) * 100;
               const isReached = clampedValue >= zone.to;
               return (
@@ -424,7 +529,7 @@ export const Slider: React.FC<SliderProps> = ({
                   style={{
                     left: `${linePercent}%`,
                     backgroundColor: isReached
-                      ? 'var(--field-surface-base, #0D1117)'
+                      ? 'var(--field-surface-base)'
                       : `color-mix(in srgb, ${zone.color} 75%, transparent)`,
                   }}
                 />
@@ -433,7 +538,6 @@ export const Slider: React.FC<SliderProps> = ({
           </div>
         )}
 
-        {/* Native range input layered on top for full accessibility */}
         <input
           type="range"
           name={name}
@@ -444,31 +548,25 @@ export const Slider: React.FC<SliderProps> = ({
           step={step}
           value={clampedValue}
           disabled={disabled}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={e => setValue(Number(e.target.value))}
           className="field-slider-input"
           style={{
             '--thumb-color': activeColor,
             '--thumb-glow': glow ? `0 0 10px ${activeColor}` : 'none',
           } as React.CSSProperties}
-          aria-label={label || 'Slider control'}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={clampedValue}
+          aria-label={!label ? ariaLabel ?? 'Value' : undefined}
+          aria-valuetext={valueText}
         />
       </div>
 
-      {/* Marks / Level labels beneath track */}
       {showMarks && resolvedZones && (
-        <div className="field-slider-marks">
-          {resolvedZones.map((zone) => {
+        <div className="field-slider-marks" aria-hidden="true">
+          {resolvedZones.map(zone => {
             const markPercent = ((zone.to - min) / rangeSpan) * 100;
             return (
-              <span
-                key={`mark-${zone.to}`}
-                className="field-slider-mark"
-                style={{ left: `${markPercent}%` }}
-              >
-                {zone.to}{valueSuffix}
+              <span key={`mark-${zone.to}`} className="field-slider-mark" style={{ left: `${markPercent}%` }}>
+                {zone.to}
+                {valueSuffix}
               </span>
             );
           })}
@@ -482,120 +580,179 @@ export const Slider: React.FC<SliderProps> = ({
 export interface NumberInputProps {
   value?: number;
   defaultValue?: number;
+  /** Called with the committed (clamped, step-rounded) number. */
   onChange?: (val: number) => void;
   min?: number;
   max?: number;
   step?: number;
+  /** Unit label shown inside the field, e.g. `GB`. */
   unit?: string;
-  label?: string;
-  helperText?: string;
-  error?: string;
+  label?: React.ReactNode;
+  helperText?: React.ReactNode;
+  error?: React.ReactNode;
   disabled?: boolean;
   className?: string;
   name?: string;
   id?: string;
   required?: boolean;
+  placeholder?: string;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  'aria-label'?: string;
 }
 
-export const NumberInput: React.FC<NumberInputProps> = ({
-  value: controlledValue,
-  defaultValue = 0,
-  onChange,
-  min = -Infinity,
-  max = Infinity,
-  step = 1,
-  unit,
-  label,
-  helperText,
-  error,
-  disabled = false,
-  className = '',
-  name,
-  id,
-  required,
-  onBlur,
-}) => {
-  const [internalValue, setInternalValue] = useState(defaultValue);
-  const isControlled = controlledValue !== undefined;
-  const currentVal = isControlled ? controlledValue : internalValue;
-
-  const clamp = (val: number) => Math.min(Math.max(val, min), max);
-
-  const updateValue = (next: number) => {
-    const clamped = clamp(next);
-    if (!isControlled) setInternalValue(clamped);
-    onChange?.(clamped);
-  };
-
-  const handleStepUp = () => {
-    if (!disabled) updateValue(currentVal + step);
-  };
-
-  const handleStepDown = () => {
-    if (!disabled) updateValue(currentVal - step);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (disabled) return;
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      handleStepUp();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      handleStepDown();
-    }
-  };
-
-  return (
-    <div className={`field-form-item ${className}`}>
-      {label && <label htmlFor={id} className="field-label">{label}</label>}
-      <div className={`field-number-input-wrapper ${error ? 'error' : ''}`}>
-        <input
-          type="number"
-          name={name}
-          id={id}
-          required={required}
-          onBlur={onBlur}
-          className="field-number-input"
-          value={Number.isNaN(currentVal) ? '' : currentVal}
-          min={min !== -Infinity ? min : undefined}
-          max={max !== Infinity ? max : undefined}
-          step={step}
-          disabled={disabled}
-          onChange={e => {
-            const parsed = Number.parseFloat(e.target.value);
-            updateValue(Number.isNaN(parsed) ? 0 : parsed);
-          }}
-          onKeyDown={handleKeyDown}
-        />
-        {unit && <span className="field-number-input-unit">{unit}</span>}
-        <div className="field-number-input-stepper">
-          <button
-            type="button"
-            className="field-number-stepper-btn"
-            disabled={disabled || currentVal >= max}
-            onClick={handleStepUp}
-            aria-label="Increase value"
-          >
-            <ChevronUp size={12} />
-          </button>
-          <button
-            type="button"
-            className="field-number-stepper-btn"
-            disabled={disabled || currentVal <= min}
-            onClick={handleStepDown}
-            aria-label="Decrease value"
-          >
-            <ChevronDown size={12} />
-          </button>
-        </div>
-      </div>
-      {error && <span className="field-error-text">{error}</span>}
-      {!error && helperText && <span className="field-helper-text">{helperText}</span>}
-    </div>
-  );
+const decimalsOf = (n: number) => {
+  const str = String(n);
+  const dot = str.indexOf('.');
+  return dot === -1 ? 0 : str.length - dot - 1;
 };
+
+/**
+ * A numeric field with stepper buttons. Typing is free-form; the value is
+ * clamped to `min`/`max` and committed on blur or Enter. Arrow keys step.
+ *
+ * @example
+ * <NumberInput label="Instances" min={1} max={20} value={count} onChange={setCount} />
+ */
+export const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
+  (
+    {
+      value: controlledValue,
+      defaultValue = 0,
+      onChange,
+      min = -Infinity,
+      max = Infinity,
+      step = 1,
+      unit,
+      label,
+      helperText,
+      error,
+      disabled = false,
+      className = '',
+      name,
+      id: customId,
+      required,
+      placeholder,
+      onBlur,
+      'aria-label': ariaLabel,
+    },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = customId || generatedId;
+    const [currentVal, setCurrentVal] = useControllableState<number>({
+      value: controlledValue,
+      defaultValue,
+      onChange,
+    });
+    const [draft, setDraft] = useState<string | null>(null);
+    const precision = Math.max(decimalsOf(step), decimalsOf(min === -Infinity ? 0 : min));
+
+    const normalize = (val: number) => {
+      const clamped = Math.min(Math.max(val, min), max);
+      return Number(clamped.toFixed(precision));
+    };
+
+    const commit = (val: number) => {
+      const next = normalize(val);
+      setDraft(null);
+      if (next !== currentVal) setCurrentVal(next);
+    };
+
+    const commitDraft = () => {
+      if (draft === null) return;
+      const parsed = Number.parseFloat(draft);
+      if (Number.isNaN(parsed)) setDraft(null);
+      else commit(parsed);
+    };
+
+    const handleStep = (direction: 1 | -1) => {
+      if (disabled) return;
+      const base = draft !== null && !Number.isNaN(Number.parseFloat(draft)) ? Number.parseFloat(draft) : currentVal;
+      commit(base + direction * step);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (disabled) return;
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleStep(1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleStep(-1);
+      } else if (e.key === 'Enter') {
+        commitDraft();
+      } else if (e.key === 'Escape' && draft !== null) {
+        setDraft(null);
+      }
+    };
+
+    const describedBy = getFieldDescriptionId(id, error, helperText);
+    const displayValue = draft ?? (Number.isNaN(currentVal) ? '' : String(currentVal));
+
+    return (
+      <div className={mergeClassNames('field-form-item', className)}>
+        {label && (
+          <FieldLabel htmlFor={id} required={required}>
+            {label}
+          </FieldLabel>
+        )}
+        <div className={mergeClassNames('field-number-input-wrapper', error && 'error', disabled && 'disabled')}>
+          <input
+            ref={ref}
+            type="text"
+            inputMode="decimal"
+            role="spinbutton"
+            name={name}
+            id={id}
+            required={required}
+            placeholder={placeholder}
+            className="field-number-input"
+            value={displayValue}
+            disabled={disabled}
+            aria-label={!label ? ariaLabel : undefined}
+            aria-valuenow={Number.isNaN(currentVal) ? undefined : currentVal}
+            aria-valuemin={Number.isFinite(min) ? min : undefined}
+            aria-valuemax={Number.isFinite(max) ? max : undefined}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={e => {
+              commitDraft();
+              onBlur?.(e);
+            }}
+            onKeyDown={handleKeyDown}
+          />
+          {unit && <span className="field-number-input-unit">{unit}</span>}
+          <div className="field-number-input-stepper">
+            <button
+              type="button"
+              tabIndex={-1}
+              className="field-number-stepper-btn"
+              disabled={disabled || currentVal >= max}
+              onClick={() => handleStep(1)}
+              aria-label="Increase value"
+            >
+              <ChevronUp size={12} />
+            </button>
+            <button
+              type="button"
+              tabIndex={-1}
+              className="field-number-stepper-btn"
+              disabled={disabled || currentVal <= min}
+              onClick={() => handleStep(-1)}
+              aria-label="Decrease value"
+            >
+              <ChevronDown size={12} />
+            </button>
+          </div>
+        </div>
+        <FieldMessage id={id} error={error} helperText={helperText} />
+      </div>
+    );
+  }
+);
+
+NumberInput.displayName = 'NumberInput';
 
 /* --- COMBOBOX / MULTI-SELECT --- */
 export interface ComboboxOption {
@@ -606,20 +763,34 @@ export interface ComboboxOption {
 
 export interface ComboboxProps {
   options: ComboboxOption[];
+  /** Controlled list of selected values. */
   value?: string[];
+  /** Initial selection when uncontrolled. */
   defaultValue?: string[];
   onChange?: (val: string[]) => void;
   placeholder?: string;
-  label?: string;
-  helperText?: string;
-  error?: string;
+  label?: React.ReactNode;
+  helperText?: React.ReactNode;
+  error?: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  /** Renders one hidden input per selected value for native form submission. */
   name?: string;
   id?: string;
   required?: boolean;
+  /** Text shown when the search matches nothing. */
+  emptyMessage?: React.ReactNode;
+  'aria-label'?: string;
+  container?: HTMLElement | null;
 }
 
+/**
+ * A searchable multi-select: type to filter, Enter or click to toggle, chips
+ * show the selection and Backspace removes the last one.
+ *
+ * @example
+ * <Combobox label="Tags" options={tags} value={selected} onChange={setSelected} />
+ */
 export const Combobox: React.FC<ComboboxProps> = ({
   options,
   value: controlledValue,
@@ -632,93 +803,136 @@ export const Combobox: React.FC<ComboboxProps> = ({
   disabled = false,
   className = '',
   name,
-  id,
+  id: customId,
   required,
+  emptyMessage = 'No options found',
+  'aria-label': ariaLabel,
+  container,
 }) => {
-  const [internalValue, setInternalValue] = useState<string[]>(defaultValue);
+  const [currentValues, setValues] = useControllableState<string[]>({
+    value: controlledValue,
+    defaultValue,
+    onChange,
+  });
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const controlRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const generatedId = useId();
+  const id = customId || generatedId;
+  const listboxId = `${id}-listbox`;
+  const portalProps = usePortalThemeProps('field-select-dropdown');
+  const { style: floatingStyle } = useAnchoredPosition(controlRef, listRef, isOpen, { matchWidth: true, offset: 4 });
 
-  const isControlled = controlledValue !== undefined;
-  const currentValues = isControlled ? controlledValue : internalValue;
+  useDismissableLayer(isOpen, { refs: [controlRef, listRef], onDismiss: () => setIsOpen(false) });
 
-  const updateValues = (next: string[]) => {
-    if (!isControlled) setInternalValue(next);
-    onChange?.(next);
-  };
+  const filteredOptions = options.filter(opt => opt.label.toLowerCase().includes(search.trim().toLowerCase()));
 
-  const handleToggleOption = (val: string) => {
-    if (currentValues.includes(val)) {
-      updateValues(currentValues.filter(v => v !== val));
-    } else {
-      updateValues([...currentValues, val]);
-    }
-    inputRef.current?.focus();
-  };
-
-  const handleRemoveChip = (val: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    updateValues(currentValues.filter(v => v !== val));
-  };
+  useEffect(() => {
+    setActiveIndex(prev => Math.min(prev, Math.max(0, filteredOptions.length - 1)));
+  }, [filteredOptions.length]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handlePointerDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+    listRef.current?.querySelector<HTMLElement>(`[data-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [isOpen, activeIndex]);
+
+  const toggleOption = (val: string) => {
+    setValues(currentValues.includes(val) ? currentValues.filter(v => v !== val) : [...currentValues, val]);
+    setSearch('');
+    inputRef.current?.focus();
+  };
+
+  const removeValue = (val: string) => {
+    setValues(currentValues.filter(v => v !== val));
+    inputRef.current?.focus();
+  };
+
+  const moveActive = (direction: 1 | -1) => {
+    if (filteredOptions.length === 0) return;
+    let next = activeIndex;
+    for (let i = 0; i < filteredOptions.length; i++) {
+      next = (next + direction + filteredOptions.length) % filteredOptions.length;
+      if (!filteredOptions[next].disabled) break;
+    }
+    setActiveIndex(next);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!isOpen) setIsOpen(true);
+        else moveActive(1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!isOpen) setIsOpen(true);
+        else moveActive(-1);
+        break;
+      case 'Enter': {
+        if (!isOpen) return;
+        e.preventDefault();
+        const opt = filteredOptions[activeIndex];
+        if (opt && !opt.disabled) toggleOption(opt.value);
+        break;
       }
-    };
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [isOpen]);
+      case 'Escape':
+        if (isOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(false);
+        }
+        break;
+      case 'Backspace':
+        if (search === '' && currentValues.length > 0) {
+          setValues(currentValues.slice(0, -1));
+        }
+        break;
+      case 'Tab':
+        setIsOpen(false);
+        break;
+    }
+  };
 
-  const filteredOptions = options.filter(opt =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const generatedId = useId();
-  const comboboxId = id || generatedId;
-  const listboxId = `${comboboxId}-listbox`;
+  const describedBy = getFieldDescriptionId(id, error, helperText);
+  const portalTarget = getPortalTarget(container);
+  const activeOption = filteredOptions[activeIndex];
 
   return (
-    <div ref={containerRef} className={`field-form-item ${className}`}>
-      {name && currentValues.map(val => (
-        <input key={val} type="hidden" name={name} value={val} />
-      ))}
-      {label && <label htmlFor={id} className="field-label">{label}</label>}
+    <div className={mergeClassNames('field-form-item', className)}>
+      {name && currentValues.map(val => <input key={val} type="hidden" name={name} value={val} />)}
+      {label && (
+        <FieldLabel htmlFor={id} required={required}>
+          {label}
+        </FieldLabel>
+      )}
       <div
-        className={`field-combobox-container ${error ? 'error' : ''}`}
-        role="combobox"
-        aria-expanded={isOpen}
-        aria-controls={listboxId}
-        aria-haspopup="listbox"
-        tabIndex={disabled ? -1 : 0}
-        onClick={() => {
-          if (!disabled) {
-            setIsOpen(true);
-            inputRef.current?.focus();
-          }
-        }}
-        onKeyDown={e => {
-          if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-            setIsOpen(true);
-            inputRef.current?.focus();
-          }
+        ref={controlRef}
+        className={mergeClassNames('field-combobox-container', error && 'error', disabled && 'disabled', isOpen && 'open')}
+        onMouseDown={e => {
+          if (disabled || e.target === inputRef.current) return;
+          e.preventDefault();
+          inputRef.current?.focus();
+          setIsOpen(true);
         }}
       >
         {currentValues.map(val => {
           const opt = options.find(o => o.value === val);
+          const text = opt ? opt.label : val;
           return (
             <span key={val} className="field-tag-chip">
-              <span>{opt ? opt.label : val}</span>
+              <span>{text}</span>
               {!disabled && (
                 <button
                   type="button"
+                  tabIndex={-1}
                   className="field-tag-chip-remove"
-                  onClick={e => handleRemoveChip(val, e)}
-                  aria-label={`Remove ${opt ? opt.label : val}`}
+                  onMouseDown={e => e.stopPropagation()}
+                  onClick={() => removeValue(val)}
+                  aria-label={`Remove ${text}`}
                 >
                   <X size={12} />
                 </button>
@@ -730,56 +944,74 @@ export const Combobox: React.FC<ComboboxProps> = ({
           id={id}
           ref={inputRef}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? listboxId : undefined}
+          aria-autocomplete="list"
+          aria-activedescendant={isOpen && activeOption ? `${id}-option-${activeIndex}` : undefined}
+          aria-label={!label ? ariaLabel : undefined}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           className="field-combobox-input"
           value={search}
           disabled={disabled}
           placeholder={currentValues.length === 0 ? placeholder : ''}
+          autoComplete="off"
           onChange={e => {
             setSearch(e.target.value);
+            setActiveIndex(0);
             setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onClick={() => !disabled && setIsOpen(true)}
+          onKeyDown={handleKeyDown}
         />
       </div>
 
-      {isOpen && (
-        <div style={{ position: 'relative' }}>
-          <ul id={listboxId} className="field-select-dropdown" role="listbox">
+      {isOpen &&
+        portalTarget &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={listboxId}
+            role="listbox"
+            aria-multiselectable="true"
+            {...portalProps}
+            style={{ ...portalProps.style, ...floatingStyle }}
+          >
             {filteredOptions.length === 0 ? (
-              <li style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--field-text-tertiary)' }}>
-                No options found
-              </li>
+              <li className="field-select-empty">{emptyMessage}</li>
             ) : (
-              filteredOptions.map(opt => {
+              filteredOptions.map((opt, idx) => {
                 const isSelected = currentValues.includes(opt.value);
                 return (
                   <li
                     key={opt.value}
+                    id={`${id}-option-${idx}`}
+                    data-index={idx}
                     role="option"
-                    tabIndex={opt.disabled ? -1 : 0}
                     aria-selected={isSelected}
-                    className={`field-select-option ${isSelected ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
-                    onClick={() => !opt.disabled && handleToggleOption(opt.value)}
-                    onKeyDown={e => {
-                      if (!opt.disabled && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
-                        handleToggleOption(opt.value);
-                      }
-                    }}
+                    aria-disabled={opt.disabled || undefined}
+                    className={mergeClassNames(
+                      'field-select-option',
+                      isSelected && 'selected',
+                      idx === activeIndex && 'active',
+                      opt.disabled && 'disabled'
+                    )}
+                    onMouseDown={e => e.preventDefault()}
+                    onMouseMove={() => !opt.disabled && activeIndex !== idx && setActiveIndex(idx)}
+                    onClick={() => !opt.disabled && toggleOption(opt.value)}
                   >
-                    <span>{opt.label}</span>
-                    {isSelected && <Check size={14} color="var(--field-accent-primary)" />}
+                    <span className="field-select-option-text">{opt.label}</span>
+                    {isSelected && <Check size={14} className="field-select-check" aria-hidden="true" />}
                   </li>
                 );
               })
             )}
-          </ul>
-        </div>
-      )}
+          </ul>,
+          portalTarget
+        )}
 
-      {error && <span className="field-error-text">{error}</span>}
-      {!error && helperText && <span className="field-helper-text">{helperText}</span>}
+      <FieldMessage id={id} error={error} helperText={helperText} />
     </div>
   );
 };
-

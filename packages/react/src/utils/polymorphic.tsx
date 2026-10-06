@@ -1,12 +1,16 @@
 import React, { cloneElement, isValidElement } from 'react';
+import { getElementRef, mergeRefs } from './hooks.js';
 
 export interface PolymorphicProps {
+  /** Merge this component's props onto its single child element instead of rendering its own (e.g. a router `<Link>`). */
   asChild?: boolean;
+  /** Render as a different element or component, e.g. `as={Link}` or `as="a"`. */
   as?: React.ElementType;
 }
 
 /**
  * Merges two event handlers so that both are executed in sequence.
+ * The second handler is skipped if the first called `event.preventDefault()`.
  */
 export function composeEventHandlers<E extends React.SyntheticEvent>(
   originalHandler?: (event: E) => void,
@@ -24,8 +28,35 @@ export function composeEventHandlers<E extends React.SyntheticEvent>(
 /**
  * Merges class names, filtering out falsy values.
  */
-export function mergeClassNames(...classes: (string | undefined | null | false)[]): string {
+export function mergeClassNames(...classes: unknown[]): string {
   return classes.filter(Boolean).join(' ');
+}
+
+/**
+ * Props that only make sense for a particular rendered element.
+ *
+ * `type` and `disabled` are valid on `<button>` but not on `<a>`; links get
+ * `aria-disabled` and lose their `href` instead. Custom components (`as={Link}`)
+ * receive `href` and `aria-disabled` so they can decide for themselves.
+ */
+export function getInteractiveElementProps(
+  tag: React.ElementType,
+  { href, disabled, type = 'button' }: { href?: string; disabled?: boolean; type?: string }
+): Record<string, unknown> {
+  if (tag === 'button') {
+    return { type, disabled };
+  }
+  if (tag === 'a') {
+    return {
+      href: disabled ? undefined : href,
+      'aria-disabled': disabled || undefined,
+      tabIndex: disabled ? -1 : undefined,
+    };
+  }
+  if (typeof tag === 'string') {
+    return { 'aria-disabled': disabled || undefined };
+  }
+  return { href: disabled ? undefined : href, 'aria-disabled': disabled || undefined };
 }
 
 /**
@@ -60,14 +91,7 @@ export function renderPolymorphic(
     };
 
     if (ref) {
-      const childRef = (child as any).ref;
-      mergedProps.ref = (node: any) => {
-        if (typeof childRef === 'function') childRef(node);
-        else if (childRef && typeof childRef === 'object') (childRef as any).current = node;
-
-        if (typeof ref === 'function') ref(node);
-        else if (typeof ref === 'object') (ref as any).current = node;
-      };
+      mergedProps.ref = mergeRefs(getElementRef(child) as React.Ref<unknown>, ref);
     }
 
     return cloneElement(child, {

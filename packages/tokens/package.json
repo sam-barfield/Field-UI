@@ -1,6 +1,6 @@
 {
   "name": "@sam.barfield/field-tokens",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Minimal, inheritable, multi-platform design tokens for Field Design System",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -10,13 +10,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./tailwind.css": "./dist/tailwind.css"
+    "./tokens.css": "./dist/tokens.css",
+    "./themes/*": "./dist/themes/*",
+    "./tailwind.css": "./dist/tailwind.css",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc && node -e \"const fs = require('fs'); fs.copyFileSync('src/tailwind.css', 'dist/tailwind.css');\"",
+    "build": "tsc && node scripts/build-css.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
@@ -24,5 +27,10 @@
   },
   "publishConfig": {
     "@sam.barfield:registry": "https://gitlab.xencloud.io/api/v4/projects/17/packages/npm/"
-  }
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "license": "MIT"
 }

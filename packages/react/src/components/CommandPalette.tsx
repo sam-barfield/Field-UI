@@ -1,14 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+'use client';
+
+import React, { useState, useEffect, useRef, useId, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Command } from 'lucide-react';
-import { Kbd } from './Typography';
-import { useThemeSafe } from '../theme';
+import { Search } from 'lucide-react';
+import { Kbd } from './Typography.js';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { useFocusTrap, useScrollLock } from '../utils/hooks.js';
+import { mergeClassNames } from '../utils/polymorphic.js';
 
 export interface CommandItemData {
   id: string;
   title: string;
+  /** Items are grouped under their category heading. Default "General". */
   category?: string;
   description?: string;
+  /** Extra search terms that aren't displayed. */
+  keywords?: string[];
   icon?: React.ReactNode;
   shortcut?: string;
   onSelect: () => void;
@@ -20,179 +27,220 @@ export interface CommandPaletteProps {
   onClose: () => void;
   items: CommandItemData[];
   placeholder?: string;
+  /** Toggle with ⌘K / Ctrl+K. Requires `onOpen`. Default `true`. */
   enableGlobalHotkey?: boolean;
+  /** Called when the global ⌘K / Ctrl+K hotkey asks to open the palette. */
   onOpen?: () => void;
+  /** Shown when nothing matches the query. */
+  emptyMessage?: React.ReactNode;
+  /** Content for the right side of the footer. */
+  footer?: React.ReactNode;
   container?: HTMLElement | null;
   className?: string;
 }
 
+const isMacPlatform = () =>
+  typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+
+/**
+ * A ⌘K search-and-run dialog. Filters items by title, category, description
+ * and keywords; arrow keys move, Enter runs, Escape closes.
+ *
+ * @example
+ * <CommandPalette isOpen={open} onOpen={() => setOpen(true)} onClose={() => setOpen(false)} items={commands} />
+ */
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
   items,
-  placeholder = 'Type a command or search resources...',
+  placeholder = 'Type a command or search...',
   enableGlobalHotkey = true,
   onOpen,
+  emptyMessage = 'No matching results.',
+  footer,
   container,
   className = '',
 }) => {
-  const { theme } = useThemeSafe();
+  const baseId = useId();
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const portalProps = usePortalThemeProps(mergeClassNames('field-command-wrapper', className));
+
+  useScrollLock(isOpen);
+  useFocusTrap(dialogRef, isOpen, { initialFocusRef: inputRef });
 
   // Global hotkey listener for Cmd+K / Ctrl+K
   useEffect(() => {
     if (!enableGlobalHotkey) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-      const isCmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
-
+      const isCmdOrCtrl = isMacPlatform() ? e.metaKey : e.ctrlKey;
       if (isCmdOrCtrl && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        if (isOpen) {
-          onClose();
-        } else {
-          onOpen?.();
-        }
+        if (isOpen) onClose();
+        else onOpen?.();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enableGlobalHotkey, isOpen, onClose, onOpen]);
 
-  // Reset search and selected index when opened
+  // Reset when opened
   useEffect(() => {
     if (isOpen) {
       setSearch('');
       setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
-  // Filter items based on query
-  const filteredItems = items.filter(item => {
-    if (!search.trim()) return true;
-    const query = search.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(query) ||
-      item.category?.toLowerCase().includes(query) ||
-      item.description?.toLowerCase().includes(query)
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return items;
+    return items.filter(item =>
+      [item.title, item.category, item.description, ...(item.keywords ?? [])].some(field =>
+        field?.toLowerCase().includes(query)
+      )
     );
-  });
+  }, [items, search]);
 
-  // Keep selected index in range
+  // Group while preserving a flat index for keyboard navigation
+  const groups = useMemo(() => {
+    const map = new Map<string, Array<{ item: CommandItemData; index: number }>>();
+    filteredItems.forEach(item => {
+      const cat = item.category || 'General';
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push({ item, index: -1 });
+    });
+    let i = 0;
+    map.forEach(list => list.forEach(entry => (entry.index = i++)));
+    return map;
+  }, [filteredItems]);
+
+  const orderedItems = useMemo(() => Array.from(groups.values()).flat().map(e => e.item), [groups]);
+
   useEffect(() => {
-    if (selectedIndex >= filteredItems.length) {
-      setSelectedIndex(Math.max(0, filteredItems.length - 1));
-    }
-  }, [filteredItems.length, selectedIndex]);
+    if (selectedIndex >= orderedItems.length) setSelectedIndex(Math.max(0, orderedItems.length - 1));
+  }, [orderedItems.length, selectedIndex]);
 
-  // Keyboard navigation within the palette
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>(`[data-index="${selectedIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selectedIndex]);
+
+  const runItem = (item?: CommandItemData) => {
+    if (!item || item.disabled) return;
+    onClose();
+    item.onSelect();
+  };
+
+  const moveSelection = (direction: 1 | -1) => {
+    if (orderedItems.length === 0) return;
+    setSelectedIndex(prev => (prev + direction + orderedItems.length) % orderedItems.length);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      onClose();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < filteredItems.length - 1 ? prev + 1 : 0));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : filteredItems.length - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const current = filteredItems[selectedIndex];
-      if (current && !current.disabled) {
-        current.onSelect();
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
         onClose();
-      }
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        moveSelection(1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        moveSelection(-1);
+        break;
+      case 'Home':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          setSelectedIndex(0);
+        }
+        break;
+      case 'End':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          setSelectedIndex(orderedItems.length - 1);
+        }
+        break;
+      case 'Enter':
+        e.preventDefault();
+        runItem(orderedItems[selectedIndex]);
+        break;
     }
   };
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  const portalTarget = getPortalTarget(container);
+  if (!isOpen || !portalTarget) return null;
 
-  // Group filtered items by category
-  const groups: Record<string, CommandItemData[]> = {};
-  filteredItems.forEach(item => {
-    const cat = item.category || 'General';
-    if (!groups[cat]) groups[cat] = [];
-    groups[cat].push(item);
-  });
+  const listboxId = `${baseId}-listbox`;
+  const activeId = orderedItems[selectedIndex] ? `${baseId}-item-${selectedIndex}` : undefined;
 
-  let globalIndexCounter = 0;
-
-  const content = (
-    <div
-      className={`field-command-wrapper field-scope ${className}`.trim()}
-      data-field-theme={theme.id}
-      data-theme={theme.mode}
-    >
-      <button
-        type="button"
-        aria-label="Close command palette"
-        className="field-command-backdrop"
-        onClick={onClose}
-      />
-      <dialog className="field-command-dialog" open aria-label="Command palette">
+  return createPortal(
+    <div {...portalProps}>
+      <div className="field-command-backdrop" aria-hidden="true" onClick={onClose} />
+      <div
+        ref={dialogRef}
+        className="field-command-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+        onKeyDown={handleKeyDown}
+      >
         <div className="field-command-search-bar">
-          <Search size={18} color="var(--field-text-tertiary)" />
+          <Search size={18} className="field-command-search-icon" aria-hidden="true" />
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls={listboxId}
+            aria-activedescendant={activeId}
+            aria-autocomplete="list"
             className="field-command-search-input"
             value={search}
             onChange={e => {
               setSearch(e.target.value);
               setSelectedIndex(0);
             }}
-            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             aria-label="Search commands"
+            autoComplete="off"
+            spellCheck={false}
           />
-          <Kbd>ESC</Kbd>
+          <Kbd>Esc</Kbd>
         </div>
 
-        <div className="field-command-list">
-          {filteredItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--field-text-tertiary)', fontSize: '0.875rem' }}>
-              No matching commands or resources found.
-            </div>
+        <div ref={listRef} id={listboxId} role="listbox" aria-label="Results" className="field-command-list">
+          {orderedItems.length === 0 ? (
+            <div className="field-command-empty">{emptyMessage}</div>
           ) : (
-            Object.entries(groups).map(([groupTitle, groupItems]) => (
-              <div key={groupTitle} className="field-command-group">
-                <div className="field-command-group-heading">{groupTitle}</div>
-                {groupItems.map(item => {
-                  const itemIndex = globalIndexCounter++;
-                  const isSelected = itemIndex === selectedIndex;
+            Array.from(groups.entries()).map(([groupTitle, entries]) => (
+              <div key={groupTitle} role="group" aria-labelledby={`${baseId}-group-${groupTitle}`} className="field-command-group">
+                <div id={`${baseId}-group-${groupTitle}`} className="field-command-group-heading">
+                  {groupTitle}
+                </div>
+                {entries.map(({ item, index }) => {
+                  const isSelected = index === selectedIndex;
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      type="button"
-                      disabled={item.disabled}
-                      className={`field-command-item ${isSelected ? 'selected' : ''}`}
-                      onClick={() => {
-                        if (!item.disabled) {
-                          item.onSelect();
-                          onClose();
-                        }
-                      }}
-                      onMouseEnter={() => setSelectedIndex(itemIndex)}
+                      id={`${baseId}-item-${index}`}
+                      data-index={index}
+                      role="option"
+                      aria-selected={isSelected}
+                      aria-disabled={item.disabled || undefined}
+                      className={mergeClassNames('field-command-item', isSelected && 'selected', item.disabled && 'disabled')}
+                      onClick={() => runItem(item)}
+                      onMouseMove={() => !isSelected && setSelectedIndex(index)}
                     >
                       <div className="field-command-item-left">
-                        {item.icon && (
-                          <span style={{ color: isSelected ? 'var(--field-accent-primary)' : 'var(--field-text-secondary)', display: 'inline-flex' }}>
-                            {item.icon}
-                          </span>
-                        )}
-                        <div>
-                          <div>{item.title}</div>
-                          {item.description && (
-                            <div style={{ fontSize: '0.75rem', color: 'var(--field-text-secondary)', marginTop: '2px' }}>
-                              {item.description}
-                            </div>
-                          )}
+                        {item.icon && <span className="field-command-item-icon" aria-hidden="true">{item.icon}</span>}
+                        <div className="field-command-item-text">
+                          <div className="field-command-item-title">{item.title}</div>
+                          {item.description && <div className="field-command-item-desc">{item.description}</div>}
                         </div>
                       </div>
                       {item.shortcut && (
@@ -200,7 +248,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           <Kbd>{item.shortcut}</Kbd>
                         </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -208,27 +256,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           )}
         </div>
 
-        <div className="field-command-footer">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Navigate</span>
-            <Kbd>↑</Kbd>
-            <Kbd>↓</Kbd>
+        <div className="field-command-footer" aria-hidden="true">
+          <div className="field-command-footer-hints">
+            <span className="field-command-hint">
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd> Navigate
+            </span>
+            <span className="field-command-hint">
+              <Kbd>↵</Kbd> Select
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Select</span>
-            <Kbd>↵</Kbd>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Command size={12} />
-            <span>Field Omnibar</span>
-          </div>
+          {footer ?? (
+            <span className="field-command-hint">
+              <Kbd>{isMacPlatform() ? '⌘' : 'Ctrl'}</Kbd>
+              <Kbd>K</Kbd> Toggle
+            </span>
+          )}
         </div>
-      </dialog>
-    </div>
+      </div>
+    </div>,
+    portalTarget
   );
-
-  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
-  if (!portalTarget) return null;
-
-  return createPortal(content, portalTarget);
 };

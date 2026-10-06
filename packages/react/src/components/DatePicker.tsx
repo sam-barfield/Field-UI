@@ -1,7 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useThemeSafe } from '../theme';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { useAnchoredPosition, useControllableState, useDismissableLayer } from '../utils/hooks.js';
+import { mergeClassNames } from '../utils/polymorphic.js';
+import { FieldLabel } from './Input.js';
 
 export interface DateRange {
   start: Date | null;
@@ -15,106 +20,259 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-const formatDisplayDate = (date: Date | null): string => {
-  if (!date) return '';
-  const m = MONTH_NAMES[date.getMonth()].substring(0, 3);
-  const d = date.getDate();
-  const y = date.getFullYear();
-  return `${m} ${d}, ${y}`;
+/* --- Date helpers (all comparisons are by calendar day, ignoring time) --- */
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const dayValue = (d: Date) => startOfDay(d).getTime();
+const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const addMonths = (d: Date, n: number) => {
+  const target = new Date(d.getFullYear(), d.getMonth() + n, 1);
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  return new Date(target.getFullYear(), target.getMonth(), Math.min(d.getDate(), lastDay));
 };
 
-const isSameDay = (d1: Date | null, d2: Date | null): boolean => {
-  if (!d1 || !d2) return false;
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
-};
+const isSameDay = (a: Date | null | undefined, b: Date | null | undefined): boolean =>
+  Boolean(a && b && dayValue(a) === dayValue(b));
 
 const isBetween = (target: Date, start: Date | null, end: Date | null): boolean => {
   if (!start || !end) return false;
-  const t = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
-  const s = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
-  const e = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
-  return t > s && t < e;
+  const t = dayValue(target);
+  return t > dayValue(start) && t < dayValue(end);
 };
 
-function getPreviousMonthYear(month: number, year: number): { month: number; year: number } {
-  if (month === 0) return { month: 11, year: year - 1 };
-  return { month: month - 1, year };
+/** Local `YYYY-MM-DD` (what `<input type="date">` submits). `toISOString()` would shift by the UTC offset. */
+export const toISODateString = (d: Date | null): string => {
+  if (!d) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const defaultFormat = (date: Date): string =>
+  `${MONTH_NAMES[date.getMonth()].substring(0, 3)} ${date.getDate()}, ${date.getFullYear()}`;
+
+const fullDateLabel = (date: Date) =>
+  `${DAY_NAMES_LONG[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+const DAY_NAMES_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/* --- Shared calendar grid --- */
+
+interface CalendarProps {
+  /** Day that holds keyboard focus (and decides the visible month). */
+  focusedDate: Date;
+  onFocusedDateChange: (date: Date) => void;
+  onSelect: (date: Date) => void;
+  isDisabled: (date: Date) => boolean;
+  getDayClassName: (date: Date) => string;
+  isSelected: (date: Date) => boolean;
+  onHover?: (date: Date | null) => void;
+  /** Focus the focused day on mount (when the popover opens). */
+  autoFocus?: boolean;
+  labelId: string;
 }
 
-function getNextMonthYear(month: number, year: number): { month: number; year: number } {
-  if (month === 11) return { month: 0, year: year + 1 };
-  return { month: month + 1, year };
-}
+const Calendar: React.FC<CalendarProps> = ({
+  focusedDate,
+  onFocusedDateChange,
+  onSelect,
+  isDisabled,
+  getDayClassName,
+  isSelected,
+  onHover,
+  autoFocus,
+  labelId,
+}) => {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const shouldFocus = useRef(Boolean(autoFocus));
+  const viewYear = focusedDate.getFullYear();
+  const viewMonth = focusedDate.getMonth();
 
-function usePopoverOutsideClick(
-  isOpen: boolean,
-  triggerRef: React.RefObject<HTMLElement | null>,
-  popoverRef: React.RefObject<HTMLElement | null>,
-  onClose: () => void,
-  onUpdatePosition: () => void
-) {
   useEffect(() => {
-    if (!isOpen) return;
+    if (!shouldFocus.current) return;
+    shouldFocus.current = false;
+    gridRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus({ preventScroll: true });
+  }, [focusedDate]);
 
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node) &&
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
-      ) {
-        onClose();
-      }
-    };
+  const moveFocus = (next: Date) => {
+    shouldFocus.current = true;
+    onFocusedDateChange(next);
+  };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    let next: Date | null = null;
+    switch (e.key) {
+      case 'ArrowLeft': next = addDays(focusedDate, -1); break;
+      case 'ArrowRight': next = addDays(focusedDate, 1); break;
+      case 'ArrowUp': next = addDays(focusedDate, -7); break;
+      case 'ArrowDown': next = addDays(focusedDate, 7); break;
+      case 'Home': next = addDays(focusedDate, -focusedDate.getDay()); break;
+      case 'End': next = addDays(focusedDate, 6 - focusedDate.getDay()); break;
+      case 'PageUp': next = addMonths(focusedDate, e.shiftKey ? -12 : -1); break;
+      case 'PageDown': next = addMonths(focusedDate, e.shiftKey ? 12 : 1); break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (!isDisabled(focusedDate)) onSelect(focusedDate);
+        return;
+      default:
+        return;
+    }
+    e.preventDefault();
+    moveFocus(next);
+  };
 
-    const handleResize = () => onUpdatePosition();
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const gridStart = addDays(firstOfMonth, -firstOfMonth.getDay());
+  const weeks = Array.from({ length: 6 }, (_, w) =>
+    Array.from({ length: 7 }, (_, d) => addDays(gridStart, w * 7 + d))
+  );
+  const today = new Date();
 
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, true);
+  return (
+    <>
+      <div className="field-datepicker-header">
+        <button
+          type="button"
+          className="field-datepicker-nav-btn"
+          onClick={() => onFocusedDateChange(addMonths(focusedDate, -1))}
+          aria-label="Previous month"
+        >
+          <ChevronLeft size={15} aria-hidden="true" />
+        </button>
+        <div id={labelId} className="field-datepicker-current-month" aria-live="polite">
+          {MONTH_NAMES[viewMonth]} {viewYear}
+        </div>
+        <button
+          type="button"
+          className="field-datepicker-nav-btn"
+          onClick={() => onFocusedDateChange(addMonths(focusedDate, 1))}
+          aria-label="Next month"
+        >
+          <ChevronRight size={15} aria-hidden="true" />
+        </button>
+      </div>
 
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize, true);
-    };
-  }, [isOpen, triggerRef, popoverRef, onClose, onUpdatePosition]);
+      <div ref={gridRef} role="grid" aria-labelledby={labelId} onKeyDown={handleKeyDown} onMouseLeave={() => onHover?.(null)}>
+        <div role="row" className="field-datepicker-weekdays">
+          {DAY_NAMES.map((d, i) => (
+            <div key={d} role="columnheader" className="field-datepicker-weekday" aria-label={DAY_NAMES_LONG[i]}>
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="field-datepicker-grid" role="rowgroup">
+          {weeks.map(week => (
+            <div role="row" key={week[0].toDateString()} className="field-datepicker-week">
+              {week.map(date => {
+                const disabled = isDisabled(date);
+                const isFocused = isSameDay(date, focusedDate);
+                const inMonth = date.getMonth() === viewMonth;
+                return (
+                  <div role="gridcell" key={date.toDateString()} aria-selected={isSelected(date) || undefined}>
+                    <button
+                      type="button"
+                      tabIndex={isFocused ? 0 : -1}
+                      disabled={disabled}
+                      aria-label={fullDateLabel(date)}
+                      aria-current={isSameDay(date, today) ? 'date' : undefined}
+                      className={mergeClassNames(
+                        'field-datepicker-day',
+                        inMonth ? 'current-month' : 'other-month',
+                        isSameDay(date, today) && 'today',
+                        getDayClassName(date)
+                      )}
+                      onClick={() => {
+                        onFocusedDateChange(date);
+                        onSelect(date);
+                      }}
+                      onMouseEnter={() => onHover?.(date)}
+                    >
+                      {date.getDate()}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* --- Shared popover behaviour --- */
+
+function useCalendarPopover(disabled: boolean) {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const { style } = useAnchoredPosition(triggerRef, popoverRef, isOpen, { offset: 6 });
+
+  const close = (returnFocus = true) => {
+    setIsOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  };
+  useDismissableLayer(isOpen, { refs: [triggerRef, popoverRef], onDismiss: () => close(true) });
+
+  return {
+    isOpen,
+    open: () => !disabled && setIsOpen(true),
+    close,
+    triggerRef,
+    popoverRef,
+    floatingStyle: style,
+  };
 }
+
+const makeDisabledCheck = (minDate?: Date, maxDate?: Date) => (date: Date) =>
+  (minDate !== undefined && dayValue(date) < dayValue(minDate)) ||
+  (maxDate !== undefined && dayValue(date) > dayValue(maxDate));
+
+/* --- DatePicker --- */
 
 export interface DatePickerProps {
-  label?: string;
+  label?: React.ReactNode;
+  /** Controlled value. */
   value?: Date | null;
+  /** Initial value when uncontrolled. */
+  defaultValue?: Date | null;
   onChange?: (date: Date | null) => void;
   placeholder?: string;
+  /** Earliest selectable day (time of day is ignored). */
   minDate?: Date;
+  /** Latest selectable day (time of day is ignored). */
   maxDate?: Date;
   disabled?: boolean;
+  /** Show a clear (×) button when a date is set. Default `true`. */
   clearable?: boolean;
+  /** Keep the calendar open after picking and show a Done button. */
   showDoneButton?: boolean;
   showCloseButton?: boolean;
   doneButtonLabel?: string;
   onDone?: () => void;
+  /** Custom display format for the trigger. */
+  formatDate?: (date: Date) => string;
+  helperText?: React.ReactNode;
+  error?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  /** Submits the date as local `YYYY-MM-DD` under this name. */
   name?: string;
   id?: string;
   required?: boolean;
   container?: HTMLElement | null;
 }
 
+/**
+ * A date field with a keyboard-accessible calendar popover (arrows move by
+ * day/week, PageUp/PageDown by month, Enter selects, Escape closes).
+ *
+ * @example
+ * <DatePicker label="Start date" value={date} onChange={setDate} minDate={new Date()} />
+ */
 export const DatePicker: React.FC<DatePickerProps> = ({
   label,
-  value,
+  value: controlledValue,
+  defaultValue = null,
   onChange,
   placeholder = 'Select date...',
   minDate,
@@ -125,240 +283,121 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   showCloseButton = false,
   doneButtonLabel = 'Done',
   onDone,
+  formatDate = defaultFormat,
+  helperText,
+  error,
   className = '',
   style,
   name,
-  id,
+  id: customId,
   required,
   container,
 }) => {
-  const { theme } = useThemeSafe();
-  const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 280 });
-
-  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
-
-  // Current calendar viewing month and year
-  const initialView = value ? new Date(value) : new Date();
-  const [viewYear, setViewYear] = useState(initialView.getFullYear());
-  const [viewMonth, setViewMonth] = useState(initialView.getMonth());
-
-  const updatePosition = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const popoverHeight = 330;
-    const fitsBelow = rect.bottom + popoverHeight <= window.innerHeight;
-    const top = fitsBelow ? rect.bottom + 6 : rect.top - popoverHeight - 6;
-    setCoords({
-      top: Math.max(8, top),
-      left: Math.min(rect.left, window.innerWidth - 300),
-      width: Math.max(rect.width, 280),
-    });
-  };
+  const generatedId = useId();
+  const id = customId || generatedId;
+  const [value, setValue] = useControllableState<Date | null>({ value: controlledValue, defaultValue, onChange });
+  const [focusedDate, setFocusedDate] = useState<Date>(() => value ?? new Date());
+  const popover = useCalendarPopover(disabled);
+  const portalProps = usePortalThemeProps('field-datepicker-popover');
+  const isDisabled = makeDisabledCheck(minDate, maxDate);
 
   const handleOpen = () => {
-    if (disabled) return;
-    if (value) {
-      setViewYear(value.getFullYear());
-      setViewMonth(value.getMonth());
-    }
-    updatePosition();
-    setIsOpen(true);
+    const today = new Date();
+    setFocusedDate(value ?? (isDisabled(today) && minDate ? minDate : today));
+    popover.open();
   };
 
-  usePopoverOutsideClick(isOpen, triggerRef, popoverRef, () => setIsOpen(false), updatePosition);
-
-  const prevMonth = () => {
-    const prev = getPreviousMonthYear(viewMonth, viewYear);
-    setViewMonth(prev.month);
-    setViewYear(prev.year);
+  const select = (date: Date | null) => {
+    setValue(date);
+    if (!showDoneButton) popover.close();
   };
 
-  const nextMonth = () => {
-    const next = getNextMonthYear(viewMonth, viewYear);
-    setViewMonth(next.month);
-    setViewYear(next.year);
-  };
-
-  // Calendar cells generation
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); // 0 = Sun
-  const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
-
-  const days: Array<{ date: Date; isCurrentMonth: boolean }> = [];
-
-  // Prev month padding
-  for (let i = firstDayIndex - 1; i >= 0; i--) {
-    days.push({
-      date: new Date(viewYear, viewMonth - 1, daysInPrevMonth - i),
-      isCurrentMonth: false,
-    });
-  }
-
-  // Current month
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push({
-      date: new Date(viewYear, viewMonth, i),
-      isCurrentMonth: true,
-    });
-  }
-
-  // Next month padding to fill a complete 42-cell or 35-cell grid
-  const remaining = (7 - (days.length % 7)) % 7;
-  for (let i = 1; i <= remaining; i++) {
-    days.push({
-      date: new Date(viewYear, viewMonth + 1, i),
-      isCurrentMonth: false,
-    });
-  }
-
+  const portalTarget = getPortalTarget(container);
   const today = new Date();
+  const descriptionId = error ? `${id}-error` : helperText ? `${id}-helper` : undefined;
 
   return (
-    <div className={`field-datepicker-container ${disabled ? 'disabled' : ''} ${className}`}>
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          id={id ? `${id}-input` : undefined}
-          value={value ? value.toISOString() : ''}
-          required={required}
-        />
+    <div className={mergeClassNames('field-datepicker', disabled && 'disabled', className)} style={style}>
+      {name && <input type="hidden" name={name} value={toISODateString(value)} required={required} />}
+      {label && (
+        <FieldLabel htmlFor={id} required={required} className="field-datepicker-label">
+          {label}
+        </FieldLabel>
       )}
-      {label && <label htmlFor={id} className="field-datepicker-label">{label}</label>}
 
-      <div className="field-datepicker-trigger-wrapper" style={{ position: 'relative', display: 'inline-flex', width: '100%' }}>
+      <div className="field-datepicker-trigger-wrapper">
         <button
           type="button"
-          ref={triggerRef}
+          ref={popover.triggerRef}
           id={id}
           aria-haspopup="dialog"
-          aria-expanded={isOpen}
+          aria-expanded={popover.isOpen}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={descriptionId}
           disabled={disabled}
-          className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
-          onClick={handleOpen}
-          style={{ width: '100%', paddingRight: clearable && value && !disabled ? '32px' : undefined }}
+          className={mergeClassNames(
+            'field-datepicker-trigger',
+            popover.isOpen && 'active',
+            error && 'error',
+            clearable && value && !disabled && 'has-clear'
+          )}
+          onClick={() => (popover.isOpen ? popover.close(false) : handleOpen())}
         >
-          <CalendarIcon size={15} className="field-datepicker-icon" />
-          <span className={`field-datepicker-value ${!value ? 'placeholder' : ''}`}>
-            {value ? formatDisplayDate(value) : placeholder}
+          <CalendarIcon size={15} className="field-datepicker-icon" aria-hidden="true" />
+          <span className={mergeClassNames('field-datepicker-value', !value && 'placeholder')}>
+            {value ? formatDate(value) : placeholder}
           </span>
         </button>
 
         {clearable && value && !disabled && (
-          <button
-            type="button"
-            className="field-datepicker-clear"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange?.(null);
-            }}
-            aria-label="Clear date"
-            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
-          >
-            <X size={13} />
+          <button type="button" className="field-datepicker-clear" onClick={() => setValue(null)} aria-label="Clear date">
+            <X size={13} aria-hidden="true" />
           </button>
         )}
       </div>
+      {error && <span id={`${id}-error`} className="field-error-text" role="alert">{error}</span>}
+      {!error && helperText && <span id={`${id}-helper`} className="field-helper-text">{helperText}</span>}
 
-      {isOpen &&
+      {popover.isOpen &&
         portalTarget &&
         createPortal(
           <div
-            ref={popoverRef}
-            className="field-datepicker-popover field-scope"
-            data-field-theme={theme.id}
-            data-theme={theme.mode}
-            style={{
-              position: 'fixed',
-              top: coords.top,
-              left: coords.left,
-              zIndex: 99999,
-            }}
+            ref={popover.popoverRef}
+            role="dialog"
+            aria-label="Choose date"
+            {...portalProps}
+            style={{ ...portalProps.style, ...popover.floatingStyle }}
           >
-            {/* Header: Month / Year / Prev / Next */}
-            <div className="field-datepicker-header">
-              <button type="button" className="field-datepicker-nav-btn" onClick={prevMonth} aria-label="Previous month">
-                <ChevronLeft size={15} />
-              </button>
-              <div className="field-datepicker-current-month">
-                {MONTH_NAMES[viewMonth]} {viewYear}
-              </div>
-              <button type="button" className="field-datepicker-nav-btn" onClick={nextMonth} aria-label="Next month">
-                <ChevronRight size={15} />
-              </button>
-            </div>
+            <Calendar
+              labelId={`${id}-month`}
+              autoFocus
+              focusedDate={focusedDate}
+              onFocusedDateChange={setFocusedDate}
+              onSelect={select}
+              isDisabled={isDisabled}
+              isSelected={date => isSameDay(date, value)}
+              getDayClassName={date => (isSameDay(date, value) ? 'selected' : '')}
+            />
 
-            {/* Weekdays */}
-            <div className="field-datepicker-weekdays">
-              {DAY_NAMES.map(d => (
-                <div key={d} className="field-datepicker-weekday">{d}</div>
-              ))}
-            </div>
-
-            {/* Days Grid */}
-            <div className="field-datepicker-grid">
-              {days.map((item) => {
-                const isSelected = isSameDay(item.date, value ?? null);
-                const isToday = isSameDay(item.date, today);
-                const isPastMin = minDate ? item.date < minDate : false;
-                const isFutureMax = maxDate ? item.date > maxDate : false;
-                const isDisabledDay = isPastMin || isFutureMax;
-
-                return (
-                  <button
-                    key={item.date.toISOString()}
-                    type="button"
-                    disabled={isDisabledDay}
-                    className={`field-datepicker-day ${item.isCurrentMonth ? 'current-month' : 'other-month'} ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
-                    onClick={() => {
-                      onChange?.(item.date);
-                      if (!showDoneButton) {
-                        setIsOpen(false);
-                      }
-                    }}
-                  >
-                    {item.date.getDate()}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Quick Actions Footer */}
             <div className="field-datepicker-footer">
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="field-datepicker-footer-group">
                 <button
                   type="button"
                   className="field-datepicker-action-btn"
-                  onClick={() => {
-                    onChange?.(new Date());
-                    if (!showDoneButton) setIsOpen(false);
-                  }}
+                  disabled={isDisabled(today)}
+                  onClick={() => select(startOfDay(today))}
                 >
                   Today
                 </button>
                 {value && (
-                  <button
-                    type="button"
-                    className="field-datepicker-action-btn clear"
-                    onClick={() => {
-                      onChange?.(null);
-                      if (!showDoneButton) setIsOpen(false);
-                    }}
-                  >
+                  <button type="button" className="field-datepicker-action-btn clear" onClick={() => select(null)}>
                     Clear
                   </button>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="field-datepicker-footer-group">
                 {showCloseButton && (
-                  <button
-                    type="button"
-                    className="field-datepicker-action-btn"
-                    onClick={() => setIsOpen(false)}
-                  >
+                  <button type="button" className="field-datepicker-action-btn" onClick={() => popover.close()}>
                     Close
                   </button>
                 )}
@@ -368,7 +407,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     className="field-datepicker-action-btn primary"
                     onClick={() => {
                       onDone?.();
-                      setIsOpen(false);
+                      popover.close();
                     }}
                   >
                     {doneButtonLabel}
@@ -383,190 +422,155 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   );
 };
 
+/* --- DateRangePicker --- */
+
+export interface DateRangePreset {
+  label: string;
+  /** Called when the preset is clicked; return the range to select. */
+  range: () => DateRange;
+}
+
+const lastNDays = (n: number): DateRange => {
+  const end = startOfDay(new Date());
+  return { start: addDays(end, -(n - 1)), end };
+};
+
+export const DEFAULT_DATE_RANGE_PRESETS: DateRangePreset[] = [
+  { label: 'Last 7 days', range: () => lastNDays(7) },
+  { label: 'Last 30 days', range: () => lastNDays(30) },
+  { label: 'Last 90 days', range: () => lastNDays(90) },
+];
+
 export interface DateRangePickerProps {
-  label?: string;
+  label?: React.ReactNode;
+  /** Controlled range. */
   value?: DateRange;
+  /** Initial range when uncontrolled. */
+  defaultValue?: DateRange;
   onChange?: (range: DateRange) => void;
   placeholder?: string;
+  minDate?: Date;
+  maxDate?: Date;
   disabled?: boolean;
+  /** Quick-pick buttons. Pass `[]` to hide them. Defaults to last 7/30/90 days. */
+  presets?: DateRangePreset[];
   showDoneButton?: boolean;
   showCloseButton?: boolean;
   doneButtonLabel?: string;
   onDone?: () => void;
+  formatDate?: (date: Date) => string;
+  helperText?: React.ReactNode;
+  error?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  /** Submits `${name}_start` and `${name}_end` as local `YYYY-MM-DD`. */
   name?: string;
   id?: string;
   required?: boolean;
   container?: HTMLElement | null;
 }
 
+const EMPTY_RANGE: DateRange = { start: null, end: null };
+
+/**
+ * Pick a start and end date. The first click sets the start, the second the
+ * end (order is normalised); hovering previews the range.
+ *
+ * @example
+ * <DateRangePicker label="Billing period" value={range} onChange={setRange} />
+ */
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   label,
-  value = { start: null, end: null },
+  value: controlledValue,
+  defaultValue = EMPTY_RANGE,
   onChange,
   placeholder = 'Select date range...',
+  minDate,
+  maxDate,
   disabled = false,
+  presets = DEFAULT_DATE_RANGE_PRESETS,
   showDoneButton = false,
   showCloseButton = false,
   doneButtonLabel = 'Done',
   onDone,
+  formatDate = defaultFormat,
+  helperText,
+  error,
   className = '',
   style,
   name,
-  id,
+  id: customId,
   required,
   container,
 }) => {
-  const { theme } = useThemeSafe();
-  const [isOpen, setIsOpen] = useState(false);
+  const generatedId = useId();
+  const id = customId || generatedId;
+  const [value, setValue] = useControllableState<DateRange>({ value: controlledValue, defaultValue, onChange });
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-
-  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
-
-  const initialDate = value.start || new Date();
-  const [viewYear, setViewYear] = useState(initialDate.getFullYear());
-  const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
-
-  const updatePosition = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const popoverHeight = 350;
-    const fitsBelow = rect.bottom + popoverHeight <= window.innerHeight;
-    const top = fitsBelow ? rect.bottom + 6 : rect.top - popoverHeight - 6;
-    setCoords({
-      top: Math.max(8, top),
-      left: Math.min(rect.left, window.innerWidth - 320),
-    });
-  };
+  const [focusedDate, setFocusedDate] = useState<Date>(() => value.start ?? new Date());
+  const popover = useCalendarPopover(disabled);
+  const portalProps = usePortalThemeProps('field-datepicker-popover range-popover');
+  const isDisabled = makeDisabledCheck(minDate, maxDate);
 
   const handleOpen = () => {
-    if (disabled) return;
-    if (value.start) {
-      setViewYear(value.start.getFullYear());
-      setViewMonth(value.start.getMonth());
-    }
-    updatePosition();
-    setIsOpen(true);
-  };
-
-  usePopoverOutsideClick(isOpen, triggerRef, popoverRef, () => setIsOpen(false), updatePosition);
-
-  const prevMonth = () => {
-    const { month, year } = getPreviousMonthYear(viewMonth, viewYear);
-    setViewMonth(month);
-    setViewYear(year);
-  };
-
-  const nextMonth = () => {
-    const { month, year } = getNextMonthYear(viewMonth, viewYear);
-    setViewMonth(month);
-    setViewYear(year);
+    setFocusedDate(value.start ?? new Date());
+    setHoverDate(null);
+    popover.open();
   };
 
   const handleDayClick = (date: Date) => {
-    if (!value.start || (value.start && value.end)) {
-      // Start new selection
-      onChange?.({ start: date, end: null });
-    } else if (value.start && !value.end) {
-      // Pick end date
-      if (date < value.start) {
-        onChange?.({ start: date, end: value.start });
-      } else {
-        onChange?.({ start: value.start, end: date });
-      }
-      if (!showDoneButton) {
-        setIsOpen(false);
-      }
+    if (!value.start || value.end) {
+      setValue({ start: date, end: null });
+      return;
     }
+    setValue(dayValue(date) < dayValue(value.start) ? { start: date, end: value.start } : { start: value.start, end: date });
+    if (!showDoneButton) popover.close();
   };
 
-  // Days generation
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
-
-  const days: Array<{ date: Date; isCurrentMonth: boolean }> = [];
-
-  for (let i = firstDayIndex - 1; i >= 0; i--) {
-    days.push({
-      date: new Date(viewYear, viewMonth - 1, daysInPrevMonth - i),
-      isCurrentMonth: false,
-    });
-  }
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push({
-      date: new Date(viewYear, viewMonth, i),
-      isCurrentMonth: true,
-    });
-  }
-
-  const remaining = 42 - days.length;
-  for (let i = 1; i <= remaining; i++) {
-    days.push({
-      date: new Date(viewYear, viewMonth + 1, i),
-      isCurrentMonth: false,
-    });
-  }
-
   const formatRangeLabel = (): string => {
-    if (value.start && value.end) {
-      return `${formatDisplayDate(value.start)} — ${formatDisplayDate(value.end)}`;
-    }
-    if (value.start) {
-      return `${formatDisplayDate(value.start)} — Select end date`;
-    }
+    if (value.start && value.end) return `${formatDate(value.start)} – ${formatDate(value.end)}`;
+    if (value.start) return `${formatDate(value.start)} – Select end date`;
     return placeholder;
   };
 
-  const setQuickRange = (daysCount: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - daysCount);
-    onChange?.({ start, end });
-    setIsOpen(false);
-  };
+  const previewEnd = value.start && !value.end ? hoverDate : null;
+  const portalTarget = getPortalTarget(container);
+  const descriptionId = error ? `${id}-error` : helperText ? `${id}-helper` : undefined;
 
   return (
-    <div className={`field-datepicker ${disabled ? 'disabled' : ''} ${className}`} style={style}>
+    <div className={mergeClassNames('field-datepicker', disabled && 'disabled', className)} style={style}>
       {name && (
         <>
-          <input
-            type="hidden"
-            name={`${name}_start`}
-            id={id ? `${id}-start-input` : undefined}
-            value={value.start ? value.start.toISOString() : ''}
-            required={required}
-          />
-          <input
-            type="hidden"
-            name={`${name}_end`}
-            id={id ? `${id}-end-input` : undefined}
-            value={value.end ? value.end.toISOString() : ''}
-            required={required}
-          />
+          <input type="hidden" name={`${name}_start`} value={toISODateString(value.start)} required={required} />
+          <input type="hidden" name={`${name}_end`} value={toISODateString(value.end)} required={required} />
         </>
       )}
-      {label && <label htmlFor={id} className="field-datepicker-label">{label}</label>}
+      {label && (
+        <FieldLabel htmlFor={id} required={required} className="field-datepicker-label">
+          {label}
+        </FieldLabel>
+      )}
 
-      <div className="field-datepicker-trigger-wrapper" style={{ position: 'relative', display: 'inline-flex', width: '100%' }}>
+      <div className="field-datepicker-trigger-wrapper">
         <button
           type="button"
-          ref={triggerRef}
+          ref={popover.triggerRef}
           id={id}
           aria-haspopup="dialog"
-          aria-expanded={isOpen}
+          aria-expanded={popover.isOpen}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={descriptionId}
           disabled={disabled}
-          className={`field-datepicker-trigger ${isOpen ? 'active' : ''}`}
-          onClick={handleOpen}
-          style={{ width: '100%', paddingRight: value.start && !disabled ? '32px' : undefined }}
+          className={mergeClassNames(
+            'field-datepicker-trigger',
+            popover.isOpen && 'active',
+            error && 'error',
+            value.start && !disabled && 'has-clear'
+          )}
+          onClick={() => (popover.isOpen ? popover.close(false) : handleOpen())}
         >
-          <CalendarIcon size={15} className="field-datepicker-icon" />
-          <span className={`field-datepicker-value ${!value.start ? 'placeholder' : ''}`}>
+          <CalendarIcon size={15} className="field-datepicker-icon" aria-hidden="true" />
+          <span className={mergeClassNames('field-datepicker-value', !value.start && 'placeholder')}>
             {formatRangeLabel()}
           </span>
         </button>
@@ -575,111 +579,79 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <button
             type="button"
             className="field-datepicker-clear"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange?.({ start: null, end: null });
-            }}
+            onClick={() => setValue(EMPTY_RANGE)}
             aria-label="Clear date range"
-            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
           >
-            <X size={13} />
+            <X size={13} aria-hidden="true" />
           </button>
         )}
       </div>
+      {error && <span id={`${id}-error`} className="field-error-text" role="alert">{error}</span>}
+      {!error && helperText && <span id={`${id}-helper`} className="field-helper-text">{helperText}</span>}
 
-      {isOpen &&
+      {popover.isOpen &&
         portalTarget &&
         createPortal(
           <div
-            ref={popoverRef}
-            className="field-datepicker-popover range-popover field-scope"
-            data-field-theme={theme.id}
-            data-theme={theme.mode}
-            style={{
-              position: 'fixed',
-              top: coords.top,
-              left: coords.left,
-              zIndex: 99999,
-            }}
+            ref={popover.popoverRef}
+            role="dialog"
+            aria-label="Choose date range"
+            {...portalProps}
+            style={{ ...portalProps.style, ...popover.floatingStyle }}
           >
-            {/* Quick Presets Bar */}
-            <div className="field-datepicker-presets">
-              <button type="button" className="field-datepicker-preset-btn" onClick={() => setQuickRange(7)}>
-                Last 7 Days
-              </button>
-              <button type="button" className="field-datepicker-preset-btn" onClick={() => setQuickRange(30)}>
-                Last 30 Days
-              </button>
-              <button type="button" className="field-datepicker-preset-btn" onClick={() => setQuickRange(90)}>
-                Last 90 Days
-              </button>
-            </div>
-
-            {/* Header */}
-            <div className="field-datepicker-header">
-              <button type="button" className="field-datepicker-nav-btn" onClick={prevMonth} aria-label="Previous month">
-                <ChevronLeft size={15} />
-              </button>
-              <div className="field-datepicker-current-month">
-                {MONTH_NAMES[viewMonth]} {viewYear}
-              </div>
-              <button type="button" className="field-datepicker-nav-btn" onClick={nextMonth} aria-label="Next month">
-                <ChevronRight size={15} />
-              </button>
-            </div>
-
-            {/* Weekdays */}
-            <div className="field-datepicker-weekdays">
-              {DAY_NAMES.map(d => (
-                <div key={d} className="field-datepicker-weekday">{d}</div>
-              ))}
-            </div>
-
-            {/* Days Grid */}
-            <div className="field-datepicker-grid">
-              {days.map((item) => {
-                const isStart = isSameDay(item.date, value.start);
-                const isEnd = isSameDay(item.date, value.end);
-                const inRange = isBetween(item.date, value.start, value.end);
-                let inHoverRange = false;
-                if (value.start && !value.end && hoverDate) {
-                  inHoverRange = hoverDate >= value.start
-                    ? isBetween(item.date, value.start, hoverDate)
-                    : isBetween(item.date, hoverDate, value.start);
-                }
-
-                return (
+            {presets.length > 0 && (
+              <div className="field-datepicker-presets">
+                {presets.map(preset => (
                   <button
-                    key={item.date.toISOString()}
+                    key={preset.label}
                     type="button"
-                    className={`field-datepicker-day ${item.isCurrentMonth ? 'current-month' : 'other-month'} ${isStart ? 'range-start' : ''} ${isEnd ? 'range-end' : ''} ${inRange || inHoverRange ? 'in-range' : ''}`}
-                    onClick={() => handleDayClick(item.date)}
-                    onMouseEnter={() => setHoverDate(item.date)}
+                    className="field-datepicker-preset-btn"
+                    onClick={() => {
+                      const range = preset.range();
+                      setValue(range);
+                      if (range.start) setFocusedDate(range.start);
+                      if (!showDoneButton) popover.close();
+                    }}
                   >
-                    {item.date.getDate()}
+                    {preset.label}
                   </button>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {/* Quick Actions Footer with Clear, Close, and Done */}
+            <Calendar
+              labelId={`${id}-month`}
+              autoFocus
+              focusedDate={focusedDate}
+              onFocusedDateChange={date => {
+                setFocusedDate(date);
+                if (value.start && !value.end) setHoverDate(date);
+              }}
+              onSelect={handleDayClick}
+              onHover={setHoverDate}
+              isDisabled={isDisabled}
+              isSelected={date => isSameDay(date, value.start) || isSameDay(date, value.end)}
+              getDayClassName={date => {
+                const isStart = isSameDay(date, value.start);
+                const isEnd = isSameDay(date, value.end);
+                let inRange = isBetween(date, value.start, value.end);
+                if (previewEnd && value.start) {
+                  inRange =
+                    dayValue(previewEnd) >= dayValue(value.start)
+                      ? isBetween(date, value.start, previewEnd)
+                      : isBetween(date, previewEnd, value.start);
+                }
+                return mergeClassNames(isStart && 'range-start', isEnd && 'range-end', inRange && 'in-range');
+              }}
+            />
+
             <div className="field-datepicker-footer">
-              <button
-                type="button"
-                className="field-datepicker-action-btn clear"
-                onClick={() => {
-                  onChange?.({ start: null, end: null });
-                }}
-              >
+              <button type="button" className="field-datepicker-action-btn clear" onClick={() => setValue(EMPTY_RANGE)}>
                 Clear
               </button>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="field-datepicker-footer-group">
                 {showCloseButton && (
-                  <button
-                    type="button"
-                    className="field-datepicker-action-btn"
-                    onClick={() => setIsOpen(false)}
-                  >
+                  <button type="button" className="field-datepicker-action-btn" onClick={() => popover.close()}>
                     Close
                   </button>
                 )}
@@ -689,7 +661,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     className="field-datepicker-action-btn primary"
                     onClick={() => {
                       onDone?.();
-                      setIsOpen(false);
+                      popover.close();
                     }}
                   >
                     {doneButtonLabel}

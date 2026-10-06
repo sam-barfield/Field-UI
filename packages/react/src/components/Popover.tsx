@@ -1,16 +1,39 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { getFocusableElements, useAnchoredPosition, useControllableState, useDismissableLayer } from '../utils/hooks.js';
+import { composeEventHandlers, mergeClassNames } from '../utils/polymorphic.js';
 
 export interface PopoverProps {
+  /** Element that toggles the popover. A plain node is wrapped in an unstyled button. */
   trigger: React.ReactNode;
   content: React.ReactNode;
+  /** Horizontal alignment to the trigger. Default `start`. */
   align?: 'start' | 'center' | 'end';
+  /** Preferred side; flips when there isn't room. Default `bottom`. */
   position?: 'bottom' | 'top';
+  /** Panel width (any CSS length). Default `280px`. */
   width?: string;
+  /** Controlled open state. */
   isOpen?: boolean;
+  defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Accessible name of the panel. */
+  'aria-label'?: string;
+  container?: HTMLElement | null;
   className?: string;
 }
 
+/**
+ * Floating panel anchored to a trigger, for rich content such as details,
+ * filters or small forms. Closes on outside click and Escape, and returns
+ * focus to the trigger.
+ *
+ * @example
+ * <Popover trigger={<Button>Filters</Button>} content={<FilterForm />} />
+ */
 export const Popover: React.FC<PopoverProps> = ({
   trigger,
   content,
@@ -18,106 +41,70 @@ export const Popover: React.FC<PopoverProps> = ({
   position = 'bottom',
   width = '280px',
   isOpen: controlledIsOpen,
+  defaultOpen = false,
   onOpenChange,
+  'aria-label': ariaLabel,
+  container,
   className = '',
 }) => {
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [effectiveAlign, setEffectiveAlign] = useState<'start' | 'center' | 'end'>(align);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDialogElement>(null);
+  const panelId = useId();
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useControllableState({ value: controlledIsOpen, defaultValue: defaultOpen, onChange: onOpenChange });
+  const portalProps = usePortalThemeProps(mergeClassNames('field-popover-card', className));
+  const { style: floatingStyle } = useAnchoredPosition(triggerRef, panelRef, open, { placement: position, align, offset: 8 });
 
-  const isControlled = controlledIsOpen !== undefined;
-  const open = isControlled ? controlledIsOpen : internalIsOpen;
-
-  const setOpen = (val: boolean) => {
-    if (!isControlled) {
-      setInternalIsOpen(val);
-    }
-    onOpenChange?.(val);
+  const close = () => {
+    setOpen(false);
+    if (triggerRef.current) getFocusableElements(triggerRef.current)[0]?.focus();
   };
 
-  useEffect(() => {
-    setEffectiveAlign(align);
-  }, [align]);
+  useDismissableLayer(open, { refs: [triggerRef, panelRef], onDismiss: close });
 
-  useEffect(() => {
-    if (!open) return;
+  const triggerProps = {
+    'aria-haspopup': 'dialog' as const,
+    'aria-expanded': open,
+    'aria-controls': open ? panelId : undefined,
+  };
 
-    // Edge/boundary detection: auto-flip to 'end' if opening start would overflow right boundary
-    if (align === 'start' && cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      const viewportLimit = window.innerWidth - 12;
+  const renderedTrigger = React.isValidElement(trigger) ? (
+    React.cloneElement(trigger as React.ReactElement<any>, {
+      ...triggerProps,
+      onClick: composeEventHandlers((trigger as React.ReactElement<any>).props?.onClick, () => setOpen(!open)),
+    })
+  ) : (
+    <button
+      type="button"
+      className="field-unstyled-button"
+      onClick={() => setOpen(!open)}
+      {...triggerProps}
+    >
+      {trigger}
+    </button>
+  );
 
-      // Also check if inside a constrained scroll/layout container
-      const parent = containerRef.current?.closest<HTMLElement>('main, [data-field-theme], .field-scope, [style*="overflow"]');
-      const parentRect = parent?.getBoundingClientRect();
-      const rightLimit = parentRect && parentRect.right < viewportLimit ? parentRect.right - 8 : viewportLimit;
-
-      if (rect.right > rightLimit) {
-        setEffectiveAlign('end');
-      }
-    }
-
-    const handlePointerDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open, align]);
+  const portalTarget = getPortalTarget(container);
 
   return (
-    <div ref={containerRef} className={`field-popover-wrapper ${className}`}>
-      {React.isValidElement(trigger) ? (
-        React.cloneElement(trigger as React.ReactElement<any>, {
-          onClick: (e: React.MouseEvent) => {
-            (trigger as React.ReactElement<any>).props?.onClick?.(e);
-            setOpen(!open);
-          },
-          'aria-haspopup': 'dialog',
-          'aria-expanded': open,
-        })
-      ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            font: 'inherit',
-            color: 'inherit',
-            cursor: 'pointer',
-            display: 'inline-flex',
-          }}
-        >
-          {trigger}
-        </button>
-      )}
-
-      {open && (
-        <dialog
-          ref={cardRef}
-          open
-          className={`field-popover-card align-${effectiveAlign} position-${position}`}
-          style={{ width, maxWidth: 'min(calc(100vw - 24px), 320px)' }}
-          aria-label="Popover details"
-        >
-          {content}
-        </dialog>
-      )}
-    </div>
+    <>
+      <span ref={triggerRef} className="field-popover-anchor">
+        {renderedTrigger}
+      </span>
+      {open &&
+        portalTarget &&
+        createPortal(
+          <div
+            ref={panelRef}
+            id={panelId}
+            role="dialog"
+            aria-label={ariaLabel}
+            {...portalProps}
+            style={{ ...portalProps.style, ...floatingStyle, width, maxWidth: 'calc(100vw - 16px)' }}
+          >
+            {content}
+          </div>,
+          portalTarget
+        )}
+    </>
   );
 };

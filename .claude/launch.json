@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "showcase",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "design-test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "../design_test", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

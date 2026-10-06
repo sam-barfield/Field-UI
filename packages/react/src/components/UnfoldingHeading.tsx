@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useSafeId } from '../utils/hooks.js';
 
 export type UnfoldingVariant = 'modular' | 'faceted';
 export type UnfoldingTrigger = 'mount' | 'scroll' | 'manual';
@@ -206,6 +209,14 @@ const SIZE_CONFIG: Record<UnfoldingSize, { fontSize: string }> = {
 // UnfoldingHeading Component
 // ---------------------------------------------------------------------------
 
+/**
+ * Display heading whose letters are drawn as a wireframe and then "materialise"
+ * into solid type. The full text is always available to screen readers, and
+ * the animation is skipped when the user prefers reduced motion.
+ *
+ * @example
+ * <UnfoldingHeading as="h1" size="hero" text="Build faster" highlightWords={['faster']} trigger="scroll" />
+ */
 export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   text,
   as: Component = 'h2',
@@ -230,7 +241,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   style,
   ...props
 }) => {
-  const containerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLElement>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
   const [inView, setInView] = useState(false);
@@ -247,12 +258,8 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
   const hasGlow = intensitySettings.hasGlow;
   const glowRadius = intensitySettings.glowRadius;
 
-  // Stable unique filter ID per component instance
-  const filterIdRef = useRef<string>('');
-  if (!filterIdRef.current) {
-    filterIdRef.current = `field-wf-${Math.random().toString(36).slice(2, 9)}`;
-  }
-  const filterId = filterIdRef.current;
+  // Stable, SSR-safe unique filter ID per component instance
+  const filterId = useSafeId('field-wf');
 
   // Sequential State Machine:
   // - activeCharSeqIdx: index in allChars currently drawing its wireframe
@@ -406,6 +413,7 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
     setMaxMaterializedIdx(-1);
 
     let isCancelled = false;
+    let materialized = -1;
     let currentCharIdx = 0;
     let currentStepIdx = 0;
     let flushInterval: any = null;
@@ -417,26 +425,28 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
 
       // 1. If lead wave finished all characters, flush trailing letters to styled font
       if (currentCharIdx >= allChars.length) {
+        // Track progress locally so side effects stay out of state updaters
+        // (updaters run twice in StrictMode, which double-fired onComplete).
+        let flushed = Math.max(materialized, -1);
         flushInterval = setInterval(() => {
           if (isCancelled) {
             clearInterval(flushInterval);
             return;
           }
-          setMaxMaterializedIdx((prev) => {
-            const next = prev + 1;
-            if (next >= allChars.length - 1) {
-              clearInterval(flushInterval);
-              // Allow the final trailing letters time to finish their 0.42s smooth materialization transition
-              finishTimer = setTimeout(() => {
-                if (!isCancelled) {
-                  setIsFinished(true);
-                  onCompleteRef.current?.();
-                }
-              }, 480);
-              return allChars.length - 1;
-            }
-            return next;
-          });
+          flushed += 1;
+          if (flushed >= allChars.length - 1) {
+            clearInterval(flushInterval);
+            setMaxMaterializedIdx(allChars.length - 1);
+            // Allow the final trailing letters time to finish their 0.42s materialization transition
+            finishTimer = setTimeout(() => {
+              if (!isCancelled) {
+                setIsFinished(true);
+                onCompleteRef.current?.();
+              }
+            }, 480);
+            return;
+          }
+          setMaxMaterializedIdx(flushed);
         }, Math.max(resolvedSpeedMs * 2, 60));
 
         return;
@@ -454,8 +464,9 @@ export const UnfoldingHeading: React.FC<UnfoldingHeadingProps> = ({
       // Only letters that have strictly finished their wireframe draw can ever be materialized
       if (currentCharIdx > 0 && currentCharIdx > leadLetterLag) {
         const targetMatIdx = currentCharIdx - 1 - leadLetterLag;
-        if (targetMatIdx >= 0) {
-          setMaxMaterializedIdx((prev) => Math.max(prev, targetMatIdx));
+        if (targetMatIdx > materialized) {
+          materialized = targetMatIdx;
+          setMaxMaterializedIdx(targetMatIdx);
         }
       }
 
@@ -792,5 +803,8 @@ const LetterPolygonalCell: React.FC<LetterPolygonalCellProps> = ({
 // Component Aliases
 // ---------------------------------------------------------------------------
 
+/**
+ * Alias of `UnfoldingHeading`.
+ */
 export const UnfoldingHeader = UnfoldingHeading;
 export type UnfoldingHeaderProps = UnfoldingHeadingProps;

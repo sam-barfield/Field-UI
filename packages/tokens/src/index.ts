@@ -1,7 +1,8 @@
-export * from './types';
-export * from './primitives';
-export * from './themes';
-export * from './presets';
-export * from './compiler';
-export * from './tailwind/preset';
+export * from './types.js';
+export * from './primitives/index.js';
+export * from './themes/index.js';
+export * from './presets/index.js';
+export * from './compiler.js';
+export * from './create.js';
+export * from './tailwind/preset.js';
 

@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Terminal as TerminalIcon, Copy, Trash2, ArrowDown, Check, CornerDownLeft } from 'lucide-react';
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'success' | 'cmd' | 'debug';
@@ -10,55 +12,96 @@ export interface LogLine {
   content: string;
 }
 
+export type TerminalVariant = 'window' | 'minimal';
+
+const TerminalContext = React.createContext<{ variant: TerminalVariant }>({ variant: 'window' });
+
 /* --- TERMINAL ROOT --- */
 export interface TerminalProps {
   children: React.ReactNode;
+  /**
+   * `window` (default): raised window chrome with dots, icon, level badges and a submit button.
+   * `minimal`: flat panel for embedding in consoles and dashboards; the sub-components default
+   * to no dots, no icon, no level badges and no submit button (each can be opted back in).
+   */
+  variant?: TerminalVariant;
+  /** Window height (number = px). */
   height?: number | string;
+  /** Maximum height (number = px). */
   maxHeight?: number | string;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * A terminal / log viewer window. Compose with `TerminalHeader`, `TerminalBody`
+ * (containing `TerminalLine`s) and an optional interactive `TerminalPrompt`.
+ *
+ * @example
+ * <Terminal height={320}>
+ *   <TerminalHeader title="deploy.log" onClear={clear} />
+ *   <TerminalBody>
+ *     {logs.map(l => <TerminalLine key={l.id} level={l.level} timestamp={l.ts}>{l.text}</TerminalLine>)}
+ *   </TerminalBody>
+ *   <TerminalPrompt onSubmit={run} />
+ * </Terminal>
+ *
+ * Header, body and prompt are all optional, so a bare `<Terminal variant="minimal"><TerminalBody>…`
+ * is a plain embedded log.
+ */
 export const Terminal: React.FC<TerminalProps> = ({
   children,
+  variant = 'window',
   height = '440px',
   maxHeight,
   className = '',
   style,
 }) => {
   return (
-    <div
-      className={`field-terminal ${className}`}
-      style={{
-        height: typeof height === 'number' ? `${height}px` : height,
-        maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
+    <TerminalContext.Provider value={{ variant }}>
+      <div
+        className={`field-terminal field-terminal-${variant} ${className}`}
+        style={{
+          height: typeof height === 'number' ? `${height}px` : height,
+          maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight,
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    </TerminalContext.Provider>
   );
 };
 
 /* --- TERMINAL HEADER --- */
 export interface TerminalHeaderProps {
+  /** Window title. */
   title?: string;
+  /** Secondary text next to the title. */
   subtitle?: string;
+  /** Icon before the title. Defaults to a terminal glyph in the `window` variant; pass `null` to hide it. */
   icon?: React.ReactNode;
+  /** Show macOS-style window dots. Default `true` for `window`, `false` for `minimal`. */
   showControls?: boolean;
+  /** Shows a clear button when provided. */
   onClear?: () => void;
+  /** Shows a copy button when provided. */
   onCopyAll?: () => void;
+  /** Shows a scroll-to-bottom button when provided. */
   onScrollToBottom?: () => void;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Window chrome with title and optional scroll-to-bottom, copy and clear actions.
+ */
 export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   title = 'cluster-ops@edge-01: ~',
   subtitle,
   icon,
-  showControls = true,
+  showControls,
   onClear,
   onCopyAll,
   onScrollToBottom,
@@ -66,7 +109,11 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   className = '',
   style,
 }) => {
+  const { variant } = useContext(TerminalContext);
   const [copied, setCopied] = useState(false);
+  const showDots = showControls ?? variant === 'window';
+  const resolvedIcon =
+    icon !== undefined ? icon : variant === 'window' ? <TerminalIcon size={14} className="field-terminal-icon" /> : null;
 
   const handleCopy = () => {
     onCopyAll?.();
@@ -78,7 +125,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
     <div className={`field-terminal-header ${className}`} style={style}>
       {/* Left: Window Dots + Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-        {showControls && (
+        {showDots && (
           <div className="field-terminal-dots">
             <span className="dot dot-close" />
             <span className="dot dot-minimize" />
@@ -86,8 +133,8 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          {icon || <TerminalIcon size={14} className="field-terminal-icon" />}
-          <span className="field-terminal-title">{title}</span>
+          {resolvedIcon}
+          {title && <span className="field-terminal-title">{title}</span>}
           {subtitle && <span className="field-terminal-subtitle">{subtitle}</span>}
         </div>
       </div>
@@ -136,11 +183,15 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
 /* --- TERMINAL BODY --- */
 export interface TerminalBodyProps {
   children: React.ReactNode;
+  /** Scroll to the newest line when children change. */
   autoScroll?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Scrollable output area. Auto-scrolls to the newest line while `autoScroll` is on.
+ */
 export const TerminalBody = React.forwardRef<HTMLDivElement, TerminalBodyProps>(
   ({ children, autoScroll = true, className = '', style }, ref) => {
     const internalRef = useRef<HTMLDivElement>(null);
@@ -164,27 +215,38 @@ TerminalBody.displayName = 'TerminalBody';
 
 /* --- TERMINAL LINE --- */
 export interface TerminalLineProps {
+  /** Time shown before the line. */
   timestamp?: string;
+  /** Log level; sets the badge and text colour. */
   level?: LogLevel;
+  /** Text shown before the content, e.g. a service name. */
   prefix?: string;
+  /** Show the level badge. Default `true` for `window`, `false` for `minimal` (the text colour still reflects the level). */
+  showBadge?: boolean;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * One log line with optional timestamp, level badge (`info`, `warn`, `error`, `success`, `debug`, `cmd`) and prefix.
+ */
 export const TerminalLine: React.FC<TerminalLineProps> = ({
   timestamp,
   level = 'info',
   prefix,
+  showBadge,
   children,
   className = '',
   style,
 }) => {
+  const { variant } = useContext(TerminalContext);
+  const badge = showBadge ?? variant === 'window';
   const levelClass = level ? `level-${level}` : '';
   return (
     <div className={`field-terminal-line ${levelClass} ${className}`.trim()} style={style}>
       {timestamp && <span className="field-terminal-time">{timestamp}</span>}
-      {level && level !== 'cmd' && (
+      {badge && level && level !== 'cmd' && (
         <span className={`field-terminal-badge badge-${level}`}>
           {level.toUpperCase()}
         </span>
@@ -197,10 +259,17 @@ export const TerminalLine: React.FC<TerminalLineProps> = ({
 
 /* --- TERMINAL PROMPT (INTERACTIVE CLI) --- */
 export interface TerminalPromptProps {
+  /** User shown in the prompt. */
   user?: string;
+  /** Working directory shown in the prompt. */
   path?: string;
+  /** Replaces the `user:path$` label entirely, e.g. `">"` or `"$"`. */
+  prompt?: React.ReactNode;
+  /** Show the submit button. Default `true` for `window`, `false` for `minimal`. */
+  showSubmitButton?: boolean;
   value?: string;
   onChange?: (val: string) => void;
+  /** Called with the trimmed command on Enter. */
   onSubmit?: (cmd: string) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -208,9 +277,14 @@ export interface TerminalPromptProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * Interactive command input with ↑/↓ history. `onSubmit` receives the trimmed command.
+ */
 export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
   user = 'root',
   path = '~',
+  prompt,
+  showSubmitButton,
   value: controlledValue,
   onChange,
   onSubmit,
@@ -219,6 +293,8 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
   className = '',
   style,
 }) => {
+  const { variant } = useContext(TerminalContext);
+  const showSubmit = showSubmitButton ?? variant === 'window';
   const [internalValue, setInternalValue] = useState('');
   const [history, setHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState<number>(-1);
@@ -282,10 +358,16 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
       style={style}
     >
       <div className="field-terminal-prompt-label">
-        <span className="user">{user}</span>
-        <span className="sep">:</span>
-        <span className="path">{path}</span>
-        <span className="symbol">$</span>
+        {prompt !== undefined ? (
+          <span className="symbol">{prompt}</span>
+        ) : (
+          <>
+            <span className="user">{user}</span>
+            <span className="sep">:</span>
+            <span className="path">{path}</span>
+            <span className="symbol">$</span>
+          </>
+        )}
       </div>
       <input
         ref={inputRef}
@@ -300,20 +382,18 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
         autoComplete="off"
         autoCapitalize="off"
       />
-      <button
-        type="button"
-        className="field-terminal-prompt-enter"
-        onClick={() => {
-          if (value.trim()) {
-            setHistory(prev => [...prev, value.trim()]);
-            onSubmit?.(value.trim());
-            if (controlledValue === undefined) setInternalValue('');
-          }
-        }}
-        title="Execute command (Enter)"
-      >
-        <CornerDownLeft size={12} />
-      </button>
+      {showSubmit && (
+        <button
+          type="button"
+          className="field-terminal-prompt-enter"
+          onClick={handleEnter}
+          disabled={disabled}
+          title="Execute command (Enter)"
+          aria-label="Execute command"
+        >
+          <CornerDownLeft size={12} />
+        </button>
+      )}
     </label>
   );
 };

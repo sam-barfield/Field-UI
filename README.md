@@ -1,70 +1,55 @@
 # Field Design System
 
-**Field** is a professional, high-craft design system tailored for dark-themed environments (with light theme parity), featuring minimal and inheritable design tokens, a first-class React + TypeScript component library, an interactive living sticker sheet, and a live visual theme editor with instant code export.
-
----
-
-## ⚡ Quick Start
-
-### 1. Install and Run the Interactive Showcase
-```bash
-# Install dependencies across all packages
-npm install
-
-# Start the interactive Sticker Sheet & Theme Editor
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
-
-## 📦 Monorepo Architecture
-
-| Package / Directory | Purpose |
-|:---|:---|
-| [`packages/tokens`](./packages/tokens) | Minimal, 3-tier design token engine (primitives, dark/light semantics, presets, W3C DTCG JSON, and CSS compiler) |
-| [`packages/react`](./packages/react) | First-class React + TypeScript client library (`@sam.barfield/field-react`) with 45+ accessible components |
-| [`apps/showcase`](./apps/showcase) | Interactive application featuring the **Component Catalog**, **Living Sticker Sheet**, **Theme Editor**, **Real-World Demos & Cloud Terminal**, and **Documentation** |
-| [`docs/DESIGN_PHILOSOPHY.md`](./docs/DESIGN_PHILOSOPHY.md) | Design rationale, tactical aesthetics, token inheritance model, and accessibility standards |
-| [`docs/AGENTS.md`](./docs/AGENTS.md) | Dedicated LLM & AI coding assistant guide with import contracts, recipes, and anti-hallucination rules |
-| [`docs/COMPONENT_MANIFEST.json`](./docs/COMPONENT_MANIFEST.json) | Machine-readable component catalog with props, types, and descriptions for agent structured tool calling |
-
----
-
-## 🎨 Design Aesthetic: Tactical & Smart
-
-Field deliberately rejects generic AI / template boilerplate:
-- **Obsidian Baseline**: Deep, cool-toned dark surfaces (`#090B0E`, `#11141B`, `#171B24`) that maximize contrast while eliminating visual fatigue.
-- **1px Micro-Luminescence**: Tactile 1px borders with inset top-edge specular highlights (`inset 0 1px 0 rgba(255, 255, 255, 0.12)`).
-- **Tabular Precision**: Figures and KPI metrics are rendered with monospace tabular numerals (`font-variant-numeric: tabular-nums`).
-- **Snappy Physics**: Transitions utilize spring-like cubic beziers (`cubic-bezier(0.16, 1, 0.3, 1)`).
-
----
-
-## 🛠️ Using `@sam.barfield/field-react` in your React / TypeScript App
+**Field** is a React design system for dashboards, consoles and developer tools, and for the customer-facing websites around them: accessible components, a token-driven theme engine with light-mode parity and website theme presets, and documentation generated from the source.
 
 ```tsx
 import '@sam.barfield/field-react/styles.css';
-import { ThemeProvider, Button, Card, StatCard, TextInput } from '@sam.barfield/field-react';
+import { ThemeProvider, ToastProvider, Button } from '@sam.barfield/field-react';
 
-export function Dashboard() {
+export function App() {
   return (
-    <ThemeProvider defaultMode="dark">
-      <StatCard
-        label="SYSTEM LATENCY"
-        value="14.8 ms"
-        delta={{ value: "-3.1 ms", trend: "up" }}
-      />
-      <Button variant="primary">Deploy Node</Button>
+    <ThemeProvider defaultMode="system" storageKey="theme">
+      <ToastProvider>
+        <Button variant="primary">Deploy</Button>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
 ```
 
----
+## Using Field in an app
 
-## 🤖 Working with AI Agents
+1. Point npm at the registry (`.npmrc`):
+   ```ini
+   @sam.barfield:registry=https://gitlab.xencloud.io/api/v4/packages/npm/
+   //gitlab.xencloud.io/api/v4/packages/npm/:_authToken=${GITLAB_NPM_TOKEN}
+   ```
+2. `npm install @sam.barfield/field-react` (React 18 or 19).
+3. Import `@sam.barfield/field-react/styles.css` once. It includes the default theme variables, so pages are styled before hydration.
+4. Wrap the app in `ThemeProvider` (and `ToastProvider` if you use toasts).
 
-When prompting an AI assistant (Antigravity, Claude, ChatGPT, Cursor) to write components with Field:
-- Point the agent to [docs/AGENTS.md](./docs/AGENTS.md).
-- Use the **Agent Prompt Generator** tab in the showcase app to copy ready-to-use prompt templates for any component or pattern.
+The docs site (`npm run dev`) has guides for installation, theming, Tailwind, routers, forms, accessibility and SSR, plus a page with live examples and a generated API table for every component.
+
+## Repository
+
+| Path | Purpose |
+|:---|:---|
+| [`packages/tokens`](./packages/tokens) | `@sam.barfield/field-tokens`: colour scales, themes, `createTheme`, CSS / DTCG / TS exporters, Tailwind preset, plain CSS themes |
+| [`packages/react`](./packages/react) | `@sam.barfield/field-react`: components, `ThemeProvider`, hooks and the stylesheet (re-exports the tokens package) |
+| [`apps/showcase`](./apps/showcase) | Docs site: guides, component pages, sticker sheet, theme editor and full-page examples |
+| [`docs/COMPONENT_MANIFEST.json`](./docs/COMPONENT_MANIFEST.json) | Every component, prop, type, default and description, generated from source |
+| [`docs/AGENTS.md`](./docs/AGENTS.md) | Rules and recipes for AI coding assistants |
+| [`docs/DESIGN_PHILOSOPHY.md`](./docs/DESIGN_PHILOSOPHY.md) | Visual principles behind the system |
+
+## Development
+
+```bash
+npm install
+npm run dev            # docs site at http://localhost:5173
+npm run typecheck      # all packages + showcase
+npm run build          # tokens → react → manifest → showcase
+npm run docs:manifest  # regenerate docs/COMPONENT_MANIFEST.json after changing props/JSDoc
+npm run yalc:all       # publish local builds to yalc for testing in another app
+```
+
+Prop descriptions in the docs come from JSDoc comments on the component props interfaces, so document new props there. Adding a component page to the docs means adding an entry to `apps/showcase/src/docs/componentPages.ts` and example files under `apps/showcase/src/docs/examples/<page-id>/`. See [`.agents/rules/component-lifecycle.md`](./.agents/rules/component-lifecycle.md) for the full checklist.

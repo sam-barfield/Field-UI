@@ -39,8 +39,10 @@ import {
   Radio,
   AlertTriangle,
   Sparkles,
+  Store,
 } from 'lucide-react';
 import { LandingPageDemo } from './LandingPageDemo';
+import { BusinessSiteDemo } from './BusinessSiteDemo';
 
 const INITIAL_LOGS: LogLine[] = [
   { id: '1', timestamp: '14:20:01.102', level: 'info', content: 'Connecting to cluster control plane wss://control.field.internal:8443...' },
@@ -57,7 +59,7 @@ const INITIAL_LOGS: LogLine[] = [
 
 export const RealWorldDemos: React.FC = () => {
   const { showToast } = useToast();
-  const [activeView, setActiveView] = useState<'dashboard' | 'settings' | 'terminal' | 'landing'>('terminal');
+  const [activeView, setActiveView] = useState<'dashboard' | 'settings' | 'terminal' | 'landing' | 'business'>('terminal');
 
   // Dashboard filter state
   const [regionFilter, setRegionFilter] = useState('all');
@@ -231,7 +233,7 @@ export const RealWorldDemos: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* View Switcher Sub-nav */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <Button
             size="sm"
             variant={activeView === 'terminal' ? 'primary' : 'secondary'}
@@ -264,9 +266,17 @@ export const RealWorldDemos: React.FC = () => {
           >
             Landing Page & Typography
           </Button>
+          <Button
+            size="sm"
+            variant={activeView === 'business' ? 'primary' : 'secondary'}
+            leftIcon={<Store size={14} />}
+            onClick={() => setActiveView('business')}
+          >
+            Business Website
+          </Button>
         </div>
 
-        {activeView === 'landing' ? (
+        {activeView === 'business' ? null : activeView === 'landing' ? (
           <Badge variant="accent" dot>
             Scroll & Viewport Trigger Active
           </Badge>
@@ -654,6 +664,9 @@ export const RealWorldDemos: React.FC = () => {
           </Card>
         </div>
       )}
+
+      {/* --- 5. BUSINESS WEBSITE (website themes + Website components) --- */}
+      {activeView === 'business' && <BusinessSiteDemo />}
 
       {/* --- 4. MARKETING & LANDING PAGE COMPOSITE --- */}
       {activeView === 'landing' && (

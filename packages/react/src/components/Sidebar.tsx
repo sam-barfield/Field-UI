@@ -1,7 +1,9 @@
+'use client';
+
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { PanelLeftClose, PanelLeft, ChevronDown } from 'lucide-react';
-import { Tooltip } from './Accordion';
-import { renderPolymorphic } from '../utils/polymorphic';
+import { Tooltip } from './Accordion.js';
+import { getInteractiveElementProps, renderPolymorphic } from '../utils/polymorphic.js';
 
 export interface SidebarContextValue {
   isCollapsed: boolean;
@@ -28,12 +30,19 @@ export const useSidebar = () => {
 /* --- SIDEBAR PROVIDER --- */
 export interface SidebarProviderProps {
   children: React.ReactNode;
+  /** Initial collapsed state when uncontrolled. */
   defaultCollapsed?: boolean;
+  /** Controlled collapsed state. */
   collapsed?: boolean;
+  /** Called when the sidebar collapses or expands. */
   onCollapseChange?: (collapsed: boolean) => void;
+  /** `compact` tightens item spacing. */
   density?: 'default' | 'compact';
 }
 
+/**
+ * Shares collapsed state between a `Sidebar` and controls elsewhere (e.g. a `SidebarTrigger` in your header). Read it with `useSidebar()`.
+ */
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   children,
   defaultCollapsed = false,
@@ -68,16 +77,40 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
 /* --- SIDEBAR ROOT --- */
 export interface SidebarProps {
   children: React.ReactNode;
+  /** Controlled collapsed state. */
   collapsed?: boolean;
+  /** Initial collapsed state when uncontrolled. */
   defaultCollapsed?: boolean;
+  /** Called when the sidebar collapses or expands. */
   onCollapseChange?: (collapsed: boolean) => void;
+  /** `compact` tightens item spacing. */
   density?: 'default' | 'compact';
+  /** Expanded width (number = px). */
   width?: number | string;
+  /** Width when collapsed to icons (number = px). */
   collapsedWidth?: number | string;
+  /** Accessible name for the navigation landmark. Default "Sidebar". */
+  'aria-label'?: string;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Collapsible application sidebar. Compose with `SidebarHeader`,
+ * `SidebarContent`, `SidebarGroup`, `SidebarItem`, `SidebarDropdown` and
+ * `SidebarFooter`. Wrap in `SidebarProvider` to toggle it from elsewhere
+ * (e.g. a `SidebarTrigger` in your header).
+ *
+ * @example
+ * <Sidebar>
+ *   <SidebarHeader title="Acme" icon={<Logo />} />
+ *   <SidebarContent>
+ *     <SidebarGroup label="Compute">
+ *       <SidebarItem icon={<Server size={16} />} label="Instances" isActive />
+ *     </SidebarGroup>
+ *   </SidebarContent>
+ * </Sidebar>
+ */
 export const Sidebar: React.FC<SidebarProps> = ({
   children,
   collapsed: controlledCollapsed,
@@ -86,6 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   density: propDensity,
   width = 260,
   collapsedWidth = 64,
+  'aria-label': ariaLabel = 'Sidebar',
   className = '',
   style,
 }) => {
@@ -121,6 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }}
       data-collapsed={isCollapsed}
       data-density={density}
+      aria-label={ariaLabel}
     >
       {children}
     </aside>
@@ -146,13 +181,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 export interface SidebarHeaderProps {
   children?: React.ReactNode;
   title?: React.ReactNode;
+  /** Secondary line under the title. */
   subtitle?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Show the built-in collapse toggle. */
   showToggle?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Top section of the sidebar with title, subtitle, icon and the built-in collapse toggle. Pass `children` for a fully custom header.
+ */
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   children,
   title,
@@ -229,6 +269,9 @@ export interface SidebarContentProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * Scrollable middle section holding `SidebarGroup`s.
+ */
 export const SidebarContent: React.FC<SidebarContentProps> = ({
   children,
   className = '',
@@ -249,6 +292,9 @@ export interface SidebarGroupProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * A labelled group of sidebar items. The label hides when the sidebar is collapsed.
+ */
 export const SidebarGroup: React.FC<SidebarGroupProps> = ({
   children,
   label,
@@ -274,12 +320,16 @@ export interface SidebarDropdownProps {
   badge?: React.ReactNode;
   defaultOpen?: boolean;
   isOpen?: boolean;
+  /** Called with the new open state. */
   onToggle?: (open: boolean) => void;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * An expandable item revealing `SidebarSubItem`s on a tree line. Clicking it while collapsed expands the sidebar.
+ */
 export const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
   icon,
   label,
@@ -316,6 +366,7 @@ export const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
           onClick={handleToggle}
           style={style}
           aria-expanded={isOpen}
+          aria-label={typeof label === 'string' ? label : undefined}
         >
           {icon && <span className="field-sidebar-item-icon">{icon}</span>}
         </button>
@@ -369,6 +420,9 @@ export interface SidebarSubItemProps {
   children?: React.ReactNode;
 }
 
+/**
+ * A nested link inside a `SidebarDropdown`, with optional description and badge.
+ */
 export const SidebarSubItem: React.FC<SidebarSubItemProps> = ({
   label,
   description,
@@ -409,25 +463,16 @@ export const SidebarSubItem: React.FC<SidebarSubItemProps> = ({
     });
   }
 
-  const defaultTag = href && !disabled ? 'a' : 'button';
-  const elementProps: Record<string, any> = {
-    as,
+  const tag: React.ElementType = as ?? (href ? 'a' : 'button');
+  return renderPolymorphic(tag, {
     className: itemClass,
     style,
-    onClick,
+    onClick: disabled ? undefined : onClick,
+    'aria-current': isActive ? 'page' : undefined,
+    ...getInteractiveElementProps(tag, { href, disabled }),
     children: content,
     ...props,
-  };
-
-  if (href && !disabled) {
-    elementProps.href = href;
-  }
-  if (!as || as === 'button') {
-    elementProps.type = 'button';
-    elementProps.disabled = disabled;
-  }
-
-  return renderPolymorphic(defaultTag, elementProps);
+  });
 };
 
 /* --- SIDEBAR ITEM --- */
@@ -446,6 +491,9 @@ export interface SidebarItemProps {
   children?: React.ReactNode;
 }
 
+/**
+ * A navigation item with icon, label and badge. Shows a tooltip and keeps its accessible name when the sidebar is collapsed.
+ */
 export const SidebarItem: React.FC<SidebarItemProps> = ({
   icon,
   label,
@@ -487,32 +535,23 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
         onClick,
         disabled,
         'aria-current': isActive ? 'page' : undefined,
+        'aria-label': isCollapsed && typeof label === 'string' ? label : undefined,
         children,
         ...props,
       });
     }
 
-    const defaultTag = href && !disabled ? 'a' : 'button';
-    const elementProps: Record<string, any> = {
-      as,
+    const tag: React.ElementType = as ?? (href ? 'a' : 'button');
+    return renderPolymorphic(tag, {
       className: itemClass,
       style,
-      onClick,
-      children: content,
+      onClick: disabled ? undefined : onClick,
       'aria-current': isActive ? 'page' : undefined,
+      'aria-label': isCollapsed && typeof label === 'string' ? label : undefined,
+      ...getInteractiveElementProps(tag, { href, disabled }),
+      children: content,
       ...props,
-    };
-
-    if (href && !disabled) {
-      elementProps.href = href;
-    }
-    if (!as || as === 'button') {
-      elementProps.type = 'button';
-      elementProps.disabled = disabled;
-      elementProps['aria-pressed'] = isActive;
-    }
-
-    return renderPolymorphic(defaultTag, elementProps);
+    });
   };
 
   if (isCollapsed && typeof label === 'string') {
@@ -529,11 +568,15 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 /* --- SIDEBAR FOOTER --- */
 export interface SidebarFooterProps {
   children: React.ReactNode;
+  /** Replacement content while the sidebar is collapsed (e.g. just an avatar). */
   collapsedChildren?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Bottom section (user menu, status). `collapsedChildren` replaces the content while collapsed.
+ */
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   children,
   collapsedChildren,
@@ -550,12 +593,17 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 
 /* --- STANDALONE SIDEBAR TRIGGER --- */
 export interface SidebarTriggerProps {
+  /** Override the collapsed state (defaults to the sidebar context). */
   isCollapsed?: boolean;
+  /** Custom toggle handler (defaults to the sidebar context). */
   onToggle?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Standalone collapse/expand button for use outside the sidebar (inside `SidebarProvider`).
+ */
 export const SidebarTrigger: React.FC<SidebarTriggerProps> = ({
   isCollapsed: controlledIsCollapsed,
   onToggle,

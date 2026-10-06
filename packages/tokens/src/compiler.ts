@@ -1,15 +1,20 @@
-import { FieldTheme } from './types';
-import { spacing } from './primitives/spacing';
-import { radii } from './primitives/radii';
-import { typography } from './primitives/typography';
-import { shadows } from './primitives/shadows';
-import { motion } from './primitives/motion';
+import { FieldTheme, FieldThemePair } from './types.js';
+import { spacing } from './primitives/spacing.js';
+import { radii } from './primitives/radii.js';
+import { typography } from './primitives/typography.js';
+import { shadows, lightShadows } from './primitives/shadows.js';
+import { motion } from './primitives/motion.js';
 
 /**
  * Generate CSS variable key-value pairs for a FieldTheme.
+ *
+ * Every `--field-*` custom property the component library reads is produced
+ * here, so this is the single source of truth for the CSS variable contract.
  */
 export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
   const activeRadii = { ...radii, ...theme.radiiOverrides };
+  const activeShadows = theme.mode === 'light' ? lightShadows : shadows;
+  const activeFonts = { ...typography.fonts, ...theme.fonts };
 
   const vars: Record<string, string> = {
     // Surfaces
@@ -77,18 +82,18 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-radius-full': activeRadii.full,
 
     // Shadows
-    '--field-shadow-none': shadows.none,
-    '--field-shadow-xs': shadows.xs,
-    '--field-shadow-sm': shadows.sm,
-    '--field-shadow-md': shadows.md,
-    '--field-shadow-lg': shadows.lg,
-    '--field-shadow-xl': shadows.xl,
-    '--field-shadow-glow': shadows.glow,
+    '--field-shadow-none': activeShadows.none,
+    '--field-shadow-xs': activeShadows.xs,
+    '--field-shadow-sm': activeShadows.sm,
+    '--field-shadow-md': activeShadows.md,
+    '--field-shadow-lg': activeShadows.lg,
+    '--field-shadow-xl': activeShadows.xl,
+    '--field-shadow-glow': activeShadows.glow,
 
     // Fonts
-    '--field-font-sans': typography.fonts.sans,
-    '--field-font-mono': typography.fonts.mono,
-    '--field-font-display': typography.fonts.display,
+    '--field-font-sans': activeFonts.sans,
+    '--field-font-mono': activeFonts.mono,
+    '--field-font-display': activeFonts.display,
 
     // Transitions & Easings
     '--field-duration-instant': motion.durations.instant,
@@ -96,10 +101,13 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-duration-normal': motion.durations.normal,
     '--field-duration-deliberate': motion.durations.deliberate,
     '--field-ease-default': motion.easings.default,
+    '--field-ease-in': motion.easings.in,
+    '--field-ease-out': motion.easings.out,
+    '--field-ease-in-out': motion.easings.inOut,
     '--field-ease-spring': motion.easings.spring,
   };
 
-  // Add spacing variables
+  // Spacing: `0.5` becomes `--field-space-0_5` because `.` is not valid in a custom property name.
   Object.entries(spacing).forEach(([key, val]) => {
     vars[`--field-space-${key.replace('.', '_')}`] = val;
   });
@@ -108,7 +116,9 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
 }
 
 /**
- * Render variables into a CSS stylesheet string.
+ * Render a theme's variables into a CSS rule.
+ *
+ * @example themeToCssString(darkTheme, ':root')
  */
 export function themeToCssString(theme: FieldTheme, selector = ':root'): string {
   const vars = themeToCssVariables(theme);
@@ -117,49 +127,90 @@ export function themeToCssString(theme: FieldTheme, selector = ':root'): string 
 }
 
 /**
+ * Render a complete stylesheet for a dark/light theme pair.
+ *
+ * The dark theme is the default on `:root`; `[data-theme="light"]` switches to
+ * the light theme. This is what `@sam.barfield/field-react/styles.css` ships
+ * with, so pages render with correct colours before React hydrates (no flash
+ * of unstyled content, and SSR works without any JavaScript).
+ */
+export function themePairToCssString(pair: FieldThemePair): string {
+  return [
+    themeToCssString(pair.dark, ':root, [data-theme="dark"]'),
+    `:root, [data-theme="dark"] {\n  color-scheme: dark;\n}\n`,
+    themeToCssString(pair.light, '[data-theme="light"]'),
+    `[data-theme="light"] {\n  color-scheme: light;\n}\n`,
+  ].join('\n');
+}
+
+/**
  * Export theme as W3C DTCG-compliant Design Tokens JSON.
  */
 export function themeToDtcgJson(theme: FieldTheme): string {
-  const dtcgObj: Record<string, any> = {
+  const s = theme.semantics;
+  const color = (value: string) => ({ $value: value, $type: 'color' });
+  const statusGroup = (group: FieldTheme['semantics']['status']['success']) => ({
+    base: color(group.base),
+    surface: color(group.surface),
+    border: color(group.border),
+    text: color(group.text),
+  });
+
+  const dtcgObj = {
     $description: `Field Design Tokens - ${theme.label}`,
     color: {
       surface: {
-        base: { $value: theme.semantics.surfaces.base, $type: 'color' },
-        raised: { $value: theme.semantics.surfaces.raised, $type: 'color' },
-        overlay: { $value: theme.semantics.surfaces.overlay, $type: 'color' },
-        sunken: { $value: theme.semantics.surfaces.sunken, $type: 'color' },
-        subtle: { $value: theme.semantics.surfaces.subtle, $type: 'color' },
+        base: color(s.surfaces.base),
+        raised: color(s.surfaces.raised),
+        overlay: color(s.surfaces.overlay),
+        sunken: color(s.surfaces.sunken),
+        subtle: color(s.surfaces.subtle),
+        active: color(s.surfaces.active),
       },
       border: {
-        subtle: { $value: theme.semantics.borders.subtle, $type: 'color' },
-        default: { $value: theme.semantics.borders.default, $type: 'color' },
-        strong: { $value: theme.semantics.borders.strong, $type: 'color' },
-        focus: { $value: theme.semantics.borders.focus, $type: 'color' },
+        subtle: color(s.borders.subtle),
+        default: color(s.borders.default),
+        strong: color(s.borders.strong),
+        focus: color(s.borders.focus),
+        highlight: color(s.borders.highlight),
       },
       text: {
-        primary: { $value: theme.semantics.text.primary, $type: 'color' },
-        secondary: { $value: theme.semantics.text.secondary, $type: 'color' },
-        tertiary: { $value: theme.semantics.text.tertiary, $type: 'color' },
-        inverse: { $value: theme.semantics.text.inverse, $type: 'color' },
+        primary: color(s.text.primary),
+        secondary: color(s.text.secondary),
+        tertiary: color(s.text.tertiary),
+        inverse: color(s.text.inverse),
+        disabled: color(s.text.disabled),
       },
       accent: {
-        primary: { $value: theme.semantics.accent.primary, $type: 'color' },
-        hover: { $value: theme.semantics.accent.hover, $type: 'color' },
-        active: { $value: theme.semantics.accent.active, $type: 'color' },
+        primary: color(s.accent.primary),
+        hover: color(s.accent.hover),
+        active: color(s.accent.active),
+        subtle: color(s.accent.subtle),
+        subtleHover: color(s.accent.subtleHover),
+        contrast: color(s.accent.contrast),
       },
-      status: theme.semantics.status,
+      status: {
+        success: statusGroup(s.status.success),
+        warning: statusGroup(s.status.warning),
+        danger: statusGroup(s.status.danger),
+        info: statusGroup(s.status.info),
+      },
     },
-    radii: radii,
-    spacing: spacing,
+    radius: Object.fromEntries(
+      Object.entries({ ...radii, ...theme.radiiOverrides }).map(([k, v]) => [k, { $value: v, $type: 'dimension' }])
+    ),
+    spacing: Object.fromEntries(
+      Object.entries(spacing).map(([k, v]) => [k, { $value: v, $type: 'dimension' }])
+    ),
   };
   return JSON.stringify(dtcgObj, null, 2);
 }
 
 /**
- * Export theme as TypeScript config object.
+ * Export theme as a TypeScript module that can be dropped into a project.
  */
 export function themeToTypeScript(theme: FieldTheme): string {
-  return `import { FieldTheme } from '@field/tokens';
+  return `import type { FieldTheme } from '@sam.barfield/field-tokens';
 
 export const customFieldTheme: FieldTheme = ${JSON.stringify(theme, null, 2)};
 `;

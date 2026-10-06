@@ -1,7 +1,10 @@
-import { FieldTheme, FieldThemePair } from '../types';
-import { darkTheme } from '../themes/dark';
-import { lightTheme } from '../themes/light';
-import { highContrastDarkTheme } from '../themes/high-contrast';
+import { FieldTheme, FieldThemePair } from '../types.js';
+import { darkTheme } from '../themes/dark.js';
+import { lightTheme } from '../themes/light.js';
+import { highContrastDarkTheme } from '../themes/high-contrast.js';
+import { businessThemePairs } from './business.js';
+
+export * from './business.js';
 
 export const titaniumAmberTheme: FieldTheme = {
   id: 'field-titanium-amber',
@@ -366,10 +369,12 @@ export const emeraldPrecisionPair: FieldThemePair = {
 
 export const defaultThemePair = cobaltThemePair;
 
+/** Every built-in pair: the app/console pairs followed by the website pairs (`businessThemePairs`). */
 export const themePairs: FieldThemePair[] = [
   cobaltThemePair,
   titaniumAmberPair,
   emeraldPrecisionPair,
+  ...businessThemePairs,
 ];
 
 export const themePresets: FieldTheme[] = [

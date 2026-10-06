@@ -1,6 +1,6 @@
 {
   "name": "@sam.barfield/field-react",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Smart, precision-crafted React component library for the Field Design System",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -12,17 +12,18 @@
     },
     "./styles.css": "./dist/styles/field.css",
     "./styles/field.css": "./dist/styles/field.css",
-    "./styles/*": "./dist/styles/*"
+    "./styles/components.css": "./dist/styles/components.css",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc && node -e \"const fs = require('fs'); fs.mkdirSync('dist/styles', { recursive: true }); fs.copyFileSync('src/styles/field.css', 'dist/styles/field.css');\"",
+    "build": "tsc && node scripts/build-css.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sam.barfield/field-tokens": "^0.2.7",
+    "@sam.barfield/field-tokens": "^0.3.0",
     "lucide-react": "^0.475.0"
   },
   "peerDependencies": {
@@ -38,5 +39,10 @@
   },
   "publishConfig": {
     "@sam.barfield:registry": "https://gitlab.xencloud.io/api/v4/projects/17/packages/npm/"
-  }
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "license": "MIT"
 }

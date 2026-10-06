@@ -1,7 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useRef, useEffect, useId, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
-import { useThemeSafe } from '../theme';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { useControllableState, useIsomorphicLayoutEffect } from '../utils/hooks.js';
+import { mergeClassNames } from '../utils/polymorphic.js';
 
 /* --- ACCORDION --- */
 export interface AccordionItem {
@@ -13,87 +17,67 @@ export interface AccordionItem {
 
 export interface AccordionProps {
   items: AccordionItem[];
+  /** Controlled list of open item ids. */
+  openIds?: string[];
+  /** Initially open items when uncontrolled. */
   defaultOpenIds?: string[];
+  onOpenChange?: (openIds: string[]) => void;
+  /** Allow several items open at once. Default `false`. */
   allowMultiple?: boolean;
   className?: string;
 }
 
+/**
+ * Vertically stacked, collapsible sections. Each header is a button wired to
+ * its region with `aria-expanded` / `aria-controls`.
+ *
+ * @example
+ * <Accordion allowMultiple items={[{ id: 'billing', title: 'Billing', content: <BillingFaq /> }]} />
+ */
 export const Accordion: React.FC<AccordionProps> = ({
   items,
+  openIds: controlledOpenIds,
   defaultOpenIds = [],
+  onOpenChange,
   allowMultiple = false,
   className = '',
 }) => {
-  const [openIds, setOpenIds] = useState<string[]>(defaultOpenIds);
+  const baseId = useId();
+  const [openIds, setOpenIds] = useControllableState<string[]>({
+    value: controlledOpenIds,
+    defaultValue: defaultOpenIds,
+    onChange: onOpenChange,
+  });
 
   const toggle = (id: string) => {
-    setOpenIds(prev => {
-      const isOpen = prev.includes(id);
-      if (isOpen) {
-        return prev.filter(item => item !== id);
-      } else {
-        return allowMultiple ? [...prev, id] : [id];
-      }
-    });
+    if (openIds.includes(id)) setOpenIds(openIds.filter(item => item !== id));
+    else setOpenIds(allowMultiple ? [...openIds, id] : [id]);
   };
 
   return (
-    <div className={`field-stack gap-2 ${className}`} style={{ gap: '8px' }}>
+    <div className={mergeClassNames('field-accordion', className)}>
       {items.map(item => {
         const isOpen = openIds.includes(item.id);
+        const headerId = `${baseId}-header-${item.id}`;
+        const panelId = `${baseId}-panel-${item.id}`;
         return (
-          <div
-            key={item.id}
-            style={{
-              backgroundColor: 'var(--field-surface-raised)',
-              border: '1px solid var(--field-border-subtle)',
-              borderRadius: 'var(--field-radius-md)',
-              overflow: 'hidden',
-            }}
-          >
-            <button
-              type="button"
-              aria-expanded={isOpen}
-              disabled={item.disabled}
-              onClick={() => toggle(item.id)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--field-text-primary)',
-                fontWeight: 500,
-                fontSize: '0.875rem',
-                cursor: item.disabled ? 'not-allowed' : 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <span style={{ flex: 1, minWidth: 0, display: 'block', textAlign: 'left', marginRight: '12px' }}>
-                {item.title}
-              </span>
-              <ChevronDown
-                size={16}
-                style={{
-                  color: 'var(--field-text-secondary)',
-                  transition: 'transform 0.2s ease',
-                  transform: isOpen ? 'rotate(180deg)' : 'none',
-                }}
-              />
-            </button>
-            {isOpen && (
-              <div
-                style={{
-                  padding: '0 16px 14px 16px',
-                  color: 'var(--field-text-secondary)',
-                  fontSize: '0.875rem',
-                  lineHeight: 1.5,
-                  borderTop: '1px solid var(--field-border-subtle)',
-                  paddingTop: '12px',
-                }}
+          <div key={item.id} className={mergeClassNames('field-accordion-item', isOpen && 'open')}>
+            <h3 className="field-accordion-heading">
+              <button
+                type="button"
+                id={headerId}
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                disabled={item.disabled}
+                onClick={() => toggle(item.id)}
+                className="field-accordion-trigger"
               >
+                <span className="field-accordion-title">{item.title}</span>
+                <ChevronDown size={16} className="field-accordion-chevron" aria-hidden="true" />
+              </button>
+            </h3>
+            {isOpen && (
+              <div id={panelId} role="region" aria-labelledby={headerId} className="field-accordion-content">
                 {item.content}
               </div>
             )}
@@ -105,117 +89,156 @@ export const Accordion: React.FC<AccordionProps> = ({
 };
 
 /* --- TOOLTIP --- */
+export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
+
 export interface TooltipProps {
   content: React.ReactNode;
+  /** The element that triggers the tooltip on hover and focus. */
   children: React.ReactElement;
-  position?: 'top' | 'bottom' | 'left' | 'right';
+  /** Preferred side; flips when there is no room. Default `top`. */
+  position?: TooltipPosition;
+  /** Hover delay before showing, in ms. Default `200`. */
+  delay?: number;
+  /** Disable the tooltip without unmounting the trigger. */
+  disabled?: boolean;
   container?: HTMLElement | null;
   className?: string;
 }
 
+const OPPOSITE: Record<TooltipPosition, TooltipPosition> = {
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
+};
+
+/**
+ * A short text label shown on hover or keyboard focus. The trigger is linked
+ * with `aria-describedby`, and Escape dismisses it.
+ *
+ * @example
+ * <Tooltip content="Copy to clipboard"><IconButton icon={<Copy />} aria-label="Copy" /></Tooltip>
+ */
 export const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
   position = 'top',
+  delay = 200,
+  disabled = false,
   container,
   className = '',
 }) => {
-  const { theme } = useThemeSafe();
+  const tooltipId = useId();
   const [isVisible, setIsVisible] = useState(false);
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [placement, setPlacement] = useState<{ top: number; left: number; side: TooltipPosition } | null>(null);
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const portalProps = usePortalThemeProps(mergeClassNames('field-tooltip', className));
 
-  const updateCoords = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    let top = 0;
-    let left = 0;
+  const updatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const tip = tooltipRef.current;
+    const tipWidth = tip?.offsetWidth ?? 0;
+    const tipHeight = tip?.offsetHeight ?? 0;
+    const gap = 8;
+    const margin = 6;
 
-    switch (position) {
-      case 'top':
-        top = rect.top - 8;
-        left = rect.left + rect.width / 2;
-        break;
-      case 'bottom':
-        top = rect.bottom + 8;
-        left = rect.left + rect.width / 2;
-        break;
-      case 'left':
-        top = rect.top + rect.height / 2;
-        left = rect.left - 8;
-        break;
-      case 'right':
-        top = rect.top + rect.height / 2;
-        left = rect.right + 8;
-        break;
+    const fits = (side: TooltipPosition) => {
+      if (side === 'top') return rect.top - gap - tipHeight >= margin;
+      if (side === 'bottom') return rect.bottom + gap + tipHeight <= window.innerHeight - margin;
+      if (side === 'left') return rect.left - gap - tipWidth >= margin;
+      return rect.right + gap + tipWidth <= window.innerWidth - margin;
+    };
+    const side = fits(position) || !fits(OPPOSITE[position]) ? position : OPPOSITE[position];
+
+    let top: number;
+    let left: number;
+    if (side === 'top' || side === 'bottom') {
+      top = side === 'top' ? rect.top - gap - tipHeight : rect.bottom + gap;
+      left = rect.left + rect.width / 2 - tipWidth / 2;
+    } else {
+      top = rect.top + rect.height / 2 - tipHeight / 2;
+      left = side === 'left' ? rect.left - gap - tipWidth : rect.right + gap;
     }
-    setCoords({ top, left });
+    left = Math.max(margin, Math.min(left, window.innerWidth - tipWidth - margin));
+    top = Math.max(margin, Math.min(top, window.innerHeight - tipHeight - margin));
+    setPlacement({ top, left, side });
+  }, [position]);
+
+  const show = (immediate = false) => {
+    if (disabled) return;
+    clearTimeout(timerRef.current);
+    if (immediate || delay <= 0) setIsVisible(true);
+    else timerRef.current = setTimeout(() => setIsVisible(true), delay);
   };
 
-  const handleMouseEnter = () => {
-    updateCoords();
-    setIsVisible(true);
-  };
-
-  const handleMouseLeave = () => {
+  const hide = () => {
+    clearTimeout(timerRef.current);
     setIsVisible(false);
+    setPlacement(null);
   };
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  useIsomorphicLayoutEffect(() => {
+    if (isVisible) updatePosition();
+  }, [isVisible, updatePosition, content]);
 
   useEffect(() => {
     if (!isVisible) return;
-    const handleScrollOrResize = () => {
-      updateCoords();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') hide();
     };
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isVisible]);
+  }, [isVisible, updatePosition]);
 
-  const getTransform = () => {
-    switch (position) {
-      case 'top':
-        return 'translate(-50%, -100%)';
-      case 'bottom':
-        return 'translate(-50%, 0)';
-      case 'left':
-        return 'translate(-100%, -50%)';
-      case 'right':
-        return 'translate(0, -50%)';
-    }
-  };
-
-  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+  const portalTarget = getPortalTarget(container);
+  const trigger = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<any>, {
+        'aria-describedby': isVisible
+          ? mergeClassNames((children.props as any)['aria-describedby'], tooltipId)
+          : (children.props as any)['aria-describedby'],
+      })
+    : children;
 
   return (
     <>
-      <div
+      <span
         ref={triggerRef}
-        style={{ display: 'inline-flex' }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onFocus={handleMouseEnter}
-        onBlur={handleMouseLeave}
+        className="field-tooltip-trigger"
+        onMouseEnter={() => show()}
+        onMouseLeave={hide}
+        onFocus={() => show(true)}
+        onBlur={hide}
       >
-        {children}
-      </div>
+        {trigger}
+      </span>
       {isVisible &&
+        !disabled &&
         portalTarget &&
         createPortal(
           <div
-            className={`field-tooltip field-scope ${className}`.trim()}
-            data-field-theme={theme.id}
-            data-theme={theme.mode}
+            ref={tooltipRef}
+            id={tooltipId}
             role="tooltip"
+            {...portalProps}
+            data-side={placement?.side ?? position}
             style={{
+              ...portalProps.style,
               position: 'fixed',
-              top: coords.top,
-              left: coords.left,
-              transform: getTransform(),
-              zIndex: 99999,
-              pointerEvents: 'none',
+              top: placement?.top ?? 0,
+              left: placement?.left ?? 0,
+              visibility: placement ? 'visible' : 'hidden',
             }}
           >
             {content}

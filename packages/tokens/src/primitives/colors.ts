@@ -1,4 +1,4 @@
-import { ColorScale } from '../types';
+import { ColorScale } from '../types.js';
 
 export const obsidian: ColorScale = {
   50: '#F5F7FA',

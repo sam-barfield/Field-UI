@@ -1,3 +1,5 @@
+'use client';
+
 import React, {
   createContext,
   useContext,
@@ -8,7 +10,8 @@ import React, {
   useEffect,
 } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
-import { renderPolymorphic } from '../utils/polymorphic';
+import { getInteractiveElementProps, renderPolymorphic } from '../utils/polymorphic.js';
+import { useIsomorphicLayoutEffect } from '../utils/hooks.js';
 
 export type NavbarVariant = 'underline' | 'elastic' | 'pill' | 'rail' | 'ghost';
 export type NavbarShadow = 'none' | 'sm' | 'md' | 'lg' | boolean;
@@ -22,6 +25,12 @@ export interface NavbarContextValue {
   density: 'default' | 'compact';
   floating: boolean;
   isScrolled: boolean;
+  variant: NavbarVariant;
+  animated: boolean;
+  glow: boolean;
+  hoverGlider: boolean;
+  indicatorWidth?: 'full' | 'content' | string | number;
+  indicatorThickness?: string | number;
 }
 
 const NavbarContext = createContext<NavbarContextValue | undefined>(undefined);
@@ -36,6 +45,10 @@ export const useNavbar = (): NavbarContextValue => {
       density: 'default',
       floating: false,
       isScrolled: false,
+      variant: 'underline',
+      animated: true,
+      glow: true,
+      hoverGlider: false,
     };
   }
   return context;
@@ -54,36 +67,59 @@ export const useNavbarMenu = (): NavbarMenuContextValue => useContext(NavbarMenu
 
 /* --- NAVBAR CONTENT CONTEXT --- */
 interface NavbarContentContextValue {
-  variant: NavbarVariant;
-  animated: boolean;
-  glow: boolean;
-  hoverGlider: boolean;
+  variant?: NavbarVariant;
+  animated?: boolean;
+  glow?: boolean;
+  hoverGlider?: boolean;
 }
 
-const NavbarContentContext = createContext<NavbarContentContextValue>({
-  variant: 'underline',
-  animated: true,
-  glow: true,
-  hoverGlider: false,
-});
+const NavbarContentContext = createContext<NavbarContentContextValue>({});
 
 /* --- NAVBAR ROOT --- */
 export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
+  /** Stick to the top of the scroll container. */
   sticky?: boolean;
+  /** Detached, rounded "island" style with margins (implies sticky). */
   floating?: boolean;
+  /** Translucent background with backdrop blur. */
   blurred?: boolean;
+  /** Bottom border. */
   bordered?: boolean;
+  /** `compact` reduces the bar height. */
   density?: 'default' | 'compact';
+  /** Drop shadow strength (`true` = `md`). */
   shadow?: NavbarShadow;
+  /** Effect applied once the page scrolls past `scrollThreshold`: add elevation, shrink the bar, or blur the background. */
   scrollBehavior?: NavbarScrollBehavior;
+  /** Scroll distance in px before `scrollBehavior` / `transparentOnTop` change state. */
   scrollThreshold?: number;
+  /** Element to watch for scrolling instead of `window` (e.g. a scrollable `<main>`). */
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
+  /** Transparent background until the page is scrolled. */
   transparentOnTop?: boolean;
+  /** Max width of the inner content (`sm` 640px … `xl` 1280px, `full`, or any length). */
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | number | string;
+  /** Controlled open state of the mobile `NavbarMenu`. */
   isMenuOpen?: boolean;
+  /** Initial mobile menu state when uncontrolled. */
   defaultMenuOpen?: boolean;
+  /** Called when the mobile menu opens or closes. */
   onMenuOpenChange?: (open: boolean) => void;
+  /** Default indicator style for every `NavbarContent`: `underline`, `elastic` (fluid stretch), `pill`, `rail` or `ghost` (no indicator). */
+  variant?: NavbarVariant;
+  /** Animate the active indicator between items. */
+  animated?: boolean;
+  /** Soft accent glow on the active indicator. */
+  glow?: boolean;
+  /** A spotlight that follows the pointer across items. */
+  hoverGlider?: boolean;
+  /** `full` item width, `content` (text width only), a px number or a % string. */
+  indicatorWidth?: 'full' | 'content' | string | number;
+  /** Line thickness for `underline` / `elastic` indicators. */
+  indicatorThickness?: string | number;
+  /** Accessible name of the inner `<nav>` landmark. Default "Main". */
+  navLabel?: string;
   className?: string;
   style?: React.CSSProperties;
   as?: React.ElementType;
@@ -101,6 +137,23 @@ const resolveMaxWidth = (
   return maxWidth;
 };
 
+/**
+ * Responsive top navigation bar. Compose with `NavbarBrand`, `NavbarContent`
+ * (holding `NavbarItem`s and `NavbarFlyout`s), `NavbarActions`, `NavbarToggle` and
+ * `NavbarMenu` (the mobile drawer). Set `variant` + `animated` for a sliding
+ * active indicator.
+ *
+ * @example
+ * <Navbar sticky blurred variant="elastic">
+ *   <NavbarBrand href="/">Acme</NavbarBrand>
+ *   <NavbarContent>
+ *     <NavbarItem href="/" isActive>Overview</NavbarItem>
+ *     <NavbarItem href="/billing">Billing</NavbarItem>
+ *   </NavbarContent>
+ *   <NavbarActions><NavbarToggle /></NavbarActions>
+ *   <NavbarMenu>…mobile links…</NavbarMenu>
+ * </Navbar>
+ */
 export const Navbar: React.FC<NavbarProps> = ({
   children,
   sticky = false,
@@ -117,6 +170,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   isMenuOpen: controlledOpen,
   defaultMenuOpen = false,
   onMenuOpenChange,
+  variant = 'underline',
+  animated = true,
+  glow = true,
+  hoverGlider = false,
+  indicatorWidth,
+  indicatorThickness,
+  navLabel = 'Main',
   className = '',
   style,
   as: Component = 'header',
@@ -160,8 +220,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [setIsMenuOpen, isMenuOpen]);
 
   const contextValue = useMemo(
-    () => ({ isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled }),
-    [isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled]
+    () => ({ isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness }),
+    [isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness]
   );
 
   const shadowClass = useMemo(() => {
@@ -190,10 +250,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <NavbarContext.Provider value={contextValue}>
-      <Component role="banner" className={classNames} style={style} {...props}>
+      <Component className={classNames} style={style} {...props}>
         <nav
-          role="navigation"
-          aria-label="Main Navigation"
+          aria-label={navLabel}
           className="field-navbar-container"
           style={{ maxWidth: containerMaxWidth }}
         >
@@ -217,6 +276,9 @@ export interface NavbarBrandProps {
   onClick?: React.MouseEventHandler<any>;
 }
 
+/**
+ * Logo / product name slot. Renders a link when `href` is set (or your router link via `as` / `asChild`).
+ */
 export const NavbarBrand: React.FC<NavbarBrandProps> = ({
   children,
   href,
@@ -408,38 +470,61 @@ const computeTargetDimensions = (
 /* --- NAVBAR CONTENT --- */
 export interface NavbarContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  /** Where this group sits in the bar. */
   align?: 'start' | 'center' | 'end';
   gap?: string | number;
+  /** Indicator style for this group (overrides the `Navbar` default). */
   variant?: NavbarVariant;
+  /** `full` item width, `content` (text width only), a px number or a % string. */
   indicatorWidth?: 'full' | 'content' | string | number;
+  /** Deprecated alias of `indicatorWidth`. */
   underlineWidth?: 'full' | 'content' | string | number;
+  /** Line thickness for `underline` / `elastic` indicators. */
   indicatorThickness?: string | number;
+  /** Deprecated alias of `indicatorThickness`. */
   underlineThickness?: string | number;
+  /** Animate the indicator between items. */
   animated?: boolean;
+  /** Soft accent glow on the indicator. */
   glow?: boolean;
+  /** A spotlight that follows the pointer across items. */
   hoverGlider?: boolean;
+  /** Hide this group below the mobile breakpoint (put the links in `NavbarMenu` instead). */
   hideOnMobile?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Group of navigation items. Owns the animated active indicator: the item with
+ * `isActive` is tracked and the indicator slides between items on change.
+ */
 export const NavbarContent: React.FC<NavbarContentProps> = ({
   children,
   align = 'center',
   gap,
-  variant = 'underline',
-  indicatorWidth,
-  underlineWidth,
-  indicatorThickness,
-  underlineThickness,
-  animated = true,
-  glow = true,
-  hoverGlider = false,
+  variant: propVariant,
+  indicatorWidth: propIndicatorWidth,
+  underlineWidth: propUnderlineWidth,
+  indicatorThickness: propIndicatorThickness,
+  underlineThickness: propUnderlineThickness,
+  animated: propAnimated,
+  glow: propGlow,
+  hoverGlider: propHoverGlider,
   hideOnMobile = false,
   className = '',
   style,
   ...props
 }) => {
+  const navbar = useNavbar();
+
+  const variant = propVariant ?? navbar.variant ?? 'underline';
+  const animated = propAnimated ?? navbar.animated ?? true;
+  const glow = propGlow ?? navbar.glow ?? true;
+  const hoverGlider = propHoverGlider ?? navbar.hoverGlider ?? false;
+  const indicatorWidth = propIndicatorWidth ?? propUnderlineWidth ?? navbar.indicatorWidth;
+  const effectiveThickness = propIndicatorThickness ?? propUnderlineThickness ?? navbar.indicatorThickness;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const prevActiveRectRef = useRef<{ left: number; width: number } | null>(null);
@@ -458,11 +543,10 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
     opacity: number;
   } | null>(null);
 
-  const effectiveThickness = indicatorThickness ?? underlineThickness;
-
   const updateActiveIndicator = useCallback(
     (isResize = false) => {
       if (!containerRef.current || !animated || variant === 'ghost') {
+        setActiveIndicator(null);
         return;
       }
 
@@ -476,7 +560,7 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
         const measurementEl = flyoutTrigger || activeEl;
 
         const itemWidthAttr = activeEl.getAttribute('data-indicator-width');
-        const effectiveWidth = itemWidthAttr || indicatorWidth || underlineWidth || 'full';
+        const effectiveWidth = itemWidthAttr || indicatorWidth || 'full';
         const { left: nextLeft, width: nextWidth } = computeTargetDimensions(
           measurementEl,
           containerRect,
@@ -494,6 +578,10 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
           !variantChanged &&
           prevRect !== null &&
           Math.abs(nextLeft - prevRect.left) > 2;
+
+        // A resize during an elastic glide is usually caused by the glide itself: the newly
+        // active item's heavier font weight changes the group's width. Let the animation
+        // finish; the inline position set below takes over when it does.
 
         if (
           shouldAnimateElastic &&
@@ -522,11 +610,21 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
               nextWidth
             );
 
-            animationRef.current = indicatorRef.current.animate(fluidKeyframes, {
+            const animation = indicatorRef.current.animate(fluidKeyframes, {
               duration: 460,
               easing: 'linear',
               fill: 'both',
             });
+            // Once finished, drop the animation so the inline transform/width
+            // (already set to the final position) take over again. Otherwise the
+            // filled final keyframe would pin the indicator after later resizes.
+            animation.onfinish = () => {
+              if (animationRef.current === animation) {
+                animation.cancel();
+                animationRef.current = null;
+              }
+            };
+            animationRef.current = animation;
           }
         }
 
@@ -542,12 +640,12 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
         setActiveIndicator(prev => (prev ? { ...prev, opacity: 0 } : null));
       }
     },
-    [animated, variant, indicatorWidth, underlineWidth]
+    [animated, variant, indicatorWidth]
   );
 
   useEffect(() => {
     updateActiveIndicator();
-  }, [children, updateActiveIndicator]);
+  }, [children, updateActiveIndicator, variant, animated, indicatorWidth, effectiveThickness]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -683,8 +781,11 @@ export interface NavbarItemProps {
   children: React.ReactNode;
   isActive?: boolean;
   disabled?: boolean;
+  /** Indicator style (inherited from `NavbarContent` by default). */
   variant?: NavbarVariant;
+  /** Per-item override of the indicator width. */
   indicatorWidth?: 'full' | 'content' | string | number;
+  /** Deprecated alias of `indicatorWidth`. */
   underlineWidth?: 'full' | 'content' | string | number;
   href?: string;
   onClick?: React.MouseEventHandler<any>;
@@ -694,6 +795,9 @@ export interface NavbarItemProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * A top-level navigation link or button. Mark the current route with `isActive` (sets `aria-current="page"`).
+ */
 export const NavbarItem: React.FC<NavbarItemProps> = ({
   children,
   isActive = false,
@@ -732,18 +836,14 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  const defaultTag = href ? 'a' : 'button';
+  const tag: React.ElementType = as ?? (href ? 'a' : 'button');
 
   return renderPolymorphic(
-    defaultTag,
+    tag,
     {
       asChild,
-      as,
-      href: disabled ? undefined : href,
-      type: !href && (!as || as === 'button') ? 'button' : undefined,
-      disabled,
+      ...(asChild ? { 'aria-disabled': disabled || undefined } : getInteractiveElementProps(tag, { href, disabled })),
       'aria-current': isActive ? 'page' : undefined,
-      'aria-disabled': disabled ? 'true' : undefined,
       'data-active': isActive ? 'true' : undefined,
       'data-indicator-width': indicatorWidth || underlineWidth,
       onClick: disabled ? undefined : handleClick,
@@ -764,12 +864,17 @@ export interface NavbarFlyoutProps {
   isOpen?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Preferred panel alignment relative to the trigger. The panel shifts sideways as needed to stay within the navbar and viewport. */
   align?: 'start' | 'center' | 'end';
+  /** Panel width (number = px). */
   width?: string | number;
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * A dropdown / mega-menu panel opened from a navbar trigger. Becomes an inline accordion inside `NavbarMenu` on mobile.
+ */
 export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
   trigger,
   children,
@@ -785,6 +890,7 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const open = controlledOpen ?? internalOpen;
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const setOpen = useCallback(
     (nextOpen: boolean) => {
@@ -812,6 +918,31 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, setOpen, isInMenu]);
+
+  // Keep the panel inside the navbar's horizontal bounds (and the viewport): shift it
+  // sideways when the preferred alignment would overflow, and cap its width.
+  useIsomorphicLayoutEffect(() => {
+    if (!open || isInMenu) return;
+    const constrain = () => {
+      const panel = panelRef.current;
+      const container = containerRef.current;
+      if (!panel || !container) return;
+      const margin = 8;
+      const navbarRect = (container.closest('.field-navbar') as HTMLElement | null)?.getBoundingClientRect();
+      const minLeft = Math.max(margin, navbarRect?.left ?? margin);
+      const maxRight = Math.min(window.innerWidth - margin, navbarRect?.right ?? window.innerWidth - margin);
+      panel.style.translate = '';
+      panel.style.maxWidth = `${Math.max(0, maxRight - minLeft)}px`;
+      const rect = panel.getBoundingClientRect();
+      let shift = 0;
+      if (rect.right > maxRight) shift = maxRight - rect.right;
+      if (rect.left + shift < minLeft) shift = minLeft - rect.left;
+      if (shift) panel.style.translate = `${shift}px 0`;
+    };
+    constrain();
+    window.addEventListener('resize', constrain);
+    return () => window.removeEventListener('resize', constrain);
+  }, [open, isInMenu, width, align]);
 
   const classNames = [
     'field-navbar-flyout-container',
@@ -906,6 +1037,7 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
 
       {open && (
         <div
+          ref={panelRef}
           className={`field-navbar-flyout-panel field-navbar-flyout-align-${align}`}
           style={{ width: computedWidth }}
           role="dialog"
@@ -922,6 +1054,7 @@ NavbarFlyout.displayName = 'NavbarFlyout';
 
 /* --- FLYOUT GRID --- */
 export interface NavbarFlyoutGridProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Number of equal columns. */
   columns?: number;
   gap?: string | number;
   children: React.ReactNode;
@@ -929,6 +1062,9 @@ export interface NavbarFlyoutGridProps extends React.HTMLAttributes<HTMLDivEleme
   style?: React.CSSProperties;
 }
 
+/**
+ * Grid layout for `NavbarFlyoutItem`s inside a `NavbarFlyout`.
+ */
 export const NavbarFlyoutGrid: React.FC<NavbarFlyoutGridProps> = ({
   columns = 2,
   gap = 16,
@@ -969,6 +1105,9 @@ export interface NavbarFlyoutItemProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * A rich link card (icon, title, description, badge) for use inside a `NavbarFlyout`.
+ */
 export const NavbarFlyoutItem: React.FC<NavbarFlyoutItemProps> = ({
   icon,
   title,
@@ -1036,6 +1175,9 @@ export interface NavbarActionsProps extends React.HTMLAttributes<HTMLDivElement>
   style?: React.CSSProperties;
 }
 
+/**
+ * Right-aligned slot for utility buttons (search, theme toggle, avatar, `NavbarToggle`).
+ */
 export const NavbarActions: React.FC<NavbarActionsProps> = ({
   children,
   gap,
@@ -1061,14 +1203,20 @@ NavbarActions.displayName = 'NavbarActions';
 
 /* --- NAVBAR TOGGLE --- */
 export interface NavbarToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Icon while closed. Defaults to a hamburger. */
   icon?: React.ReactNode;
+  /** Icon while open. Defaults to an X. */
   openIcon?: React.ReactNode;
   'aria-label'?: string;
+  /** `auto` shows the toggle only on small screens; `always` / `never` force it. */
   display?: 'auto' | 'always' | 'never';
   className?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * Hamburger button that opens and closes `NavbarMenu`. Hidden on wide screens unless `display="always"`.
+ */
 export const NavbarToggle: React.FC<NavbarToggleProps> = ({
   icon,
   openIcon,
@@ -1101,6 +1249,7 @@ export const NavbarToggle: React.FC<NavbarToggleProps> = ({
       className={classNames}
       aria-label={ariaLabel}
       aria-expanded={isMenuOpen}
+      aria-controls={isMenuOpen ? 'field-navbar-menu' : undefined}
       onClick={handleClick}
       style={style}
       {...props}
@@ -1119,13 +1268,27 @@ export interface NavbarMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   style?: React.CSSProperties;
 }
 
+/**
+ * The collapsible mobile navigation drawer. Items inside it close the menu when clicked; Escape also closes it.
+ */
 export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   children,
   className = '',
   style,
   ...props
 }) => {
-  const { isMenuOpen } = useNavbar();
+  const { isMenuOpen, setIsMenuOpen } = useNavbar();
+
+  useEffect(() => {
+    if (!isMenuOpen || typeof document === 'undefined') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setIsMenuOpen(false);
+      document.querySelector<HTMLElement>('.field-navbar-toggle')?.focus();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen, setIsMenuOpen]);
 
   if (!isMenuOpen) return null;
 
@@ -1140,8 +1303,9 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   return (
     <NavbarMenuContext.Provider value={{ isInMenu: true }}>
       <div
+        id="field-navbar-menu"
         role="region"
-        aria-label="Mobile Navigation"
+        aria-label="Navigation menu"
         className={classNames}
         style={style}
         {...props}

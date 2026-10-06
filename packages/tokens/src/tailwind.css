@@ -26,17 +26,27 @@
   --color-field-accent-hover: var(--field-accent-hover);
   --color-field-accent-active: var(--field-accent-active);
   --color-field-accent-subtle: var(--field-accent-subtle);
+  --color-field-accent-subtle-hover: var(--field-accent-subtle-hover);
   --color-field-accent-contrast: var(--field-accent-contrast);
 
   --color-field-status-success: var(--field-status-success-base);
   --color-field-status-success-surface: var(--field-status-success-surface);
+  --color-field-status-success-border: var(--field-status-success-border);
+  --color-field-status-success-text: var(--field-status-success-text);
   --color-field-status-warning: var(--field-status-warning-base);
   --color-field-status-warning-surface: var(--field-status-warning-surface);
+  --color-field-status-warning-border: var(--field-status-warning-border);
+  --color-field-status-warning-text: var(--field-status-warning-text);
   --color-field-status-danger: var(--field-status-danger-base);
   --color-field-status-danger-surface: var(--field-status-danger-surface);
+  --color-field-status-danger-border: var(--field-status-danger-border);
+  --color-field-status-danger-text: var(--field-status-danger-text);
   --color-field-status-info: var(--field-status-info-base);
   --color-field-status-info-surface: var(--field-status-info-surface);
+  --color-field-status-info-border: var(--field-status-info-border);
+  --color-field-status-info-text: var(--field-status-info-text);
 
+  --radius-field-none: var(--field-radius-none);
   --radius-field-xs: var(--field-radius-xs);
   --radius-field-sm: var(--field-radius-sm);
   --radius-field-md: var(--field-radius-md);

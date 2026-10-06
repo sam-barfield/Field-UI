@@ -1,0 +1,690 @@
+/**
+ * Component documentation pages. Each page lists the components whose API
+ * tables it shows (from the generated manifest) and the examples folder under
+ * ./examples. Keep prose here; keep props in the library's JSDoc.
+ */
+export type ComponentCategory =
+  | 'Actions'
+  | 'Forms'
+  | 'Layout'
+  | 'Website'
+  | 'Navigation'
+  | 'Data Display'
+  | 'Overlays'
+  | 'Feedback'
+  | 'Typography';
+
+export interface KeyboardRow {
+  keys: string[];
+  description: string;
+}
+
+export interface ComponentPageDef {
+  id: string;
+  name: string;
+  category: ComponentCategory;
+  summary: string;
+  /** Exported components documented on this page (keys in COMPONENT_MANIFEST.json). */
+  api: string[];
+  /** Folder under ./examples. Defaults to `id`. */
+  examples?: string;
+  whenToUse?: string[];
+  whenNotToUse?: string[];
+  accessibility?: string[];
+  keyboard?: KeyboardRow[];
+  related?: string[];
+}
+
+export const CATEGORY_ORDER: ComponentCategory[] = [
+  'Actions',
+  'Forms',
+  'Layout',
+  'Website',
+  'Navigation',
+  'Data Display',
+  'Overlays',
+  'Feedback',
+  'Typography',
+];
+
+export const componentPages: ComponentPageDef[] = [
+  /* ---------------- Actions ---------------- */
+  {
+    id: 'button',
+    name: 'Button',
+    category: 'Actions',
+    summary:
+      'Triggers an action or navigates. Renders a <button> by default, an <a> when given href, or your router link via as / asChild.',
+    api: ['Button', 'IconButton', 'ButtonGroup'],
+    whenToUse: [
+      'Use one primary button per view for the main action; use secondary or outline for the rest.',
+      'Use ghost buttons in toolbars and dense UIs where borders would add noise.',
+      'Use danger only for destructive actions, and confirm irreversible ones in a Modal.',
+      'Use IconButton for compact icon-only actions - it requires an aria-label.',
+    ],
+    whenNotToUse: ['For navigation inside body text use a plain link.', 'For on/off settings use Switch, not a toggle button.'],
+    accessibility: [
+      'isLoading sets aria-busy and disables the button so it cannot be double-submitted.',
+      'Disabled links get aria-disabled, lose their href and are removed from the tab order.',
+      'Icons passed to leftIcon / rightIcon are hidden from screen readers; the label carries the meaning.',
+    ],
+    keyboard: [{ keys: ['Enter'], description: 'Activates the button or follows the link.' }, { keys: ['Space'], description: 'Activates a <button>.' }],
+    related: ['segmented-control', 'dropdown-menu'],
+  },
+  {
+    id: 'segmented-control',
+    name: 'SegmentedControl',
+    category: 'Actions',
+    summary: 'A compact single-choice switcher for 2-5 options, such as view modes or time ranges.',
+    api: ['SegmentedControl'],
+    whenToUse: ['Switching views of the same content (Day / Week / Month).', 'Filtering a list by a small set of mutually exclusive states.'],
+    whenNotToUse: ['More than ~5 options - use Select.', 'Choices inside a form that is submitted later - use RadioGroup.'],
+    accessibility: ['Rendered as a radiogroup with radio buttons; only the selected option is in the tab order.', 'Give the group an aria-label, and give icon-only options their own aria-label.'],
+    keyboard: [{ keys: ['←', '→'], description: 'Move to and select the previous / next option.' }, { keys: ['Home', 'End'], description: 'Select the first / last option.' }],
+    related: ['tabs', 'radio-group'],
+  },
+  {
+    id: 'dropdown-menu',
+    name: 'DropdownMenu',
+    category: 'Actions',
+    summary: 'A menu of actions opened from a button, e.g. row actions or an account menu.',
+    api: ['DropdownMenu', 'DropdownItem', 'DropdownGroup', 'DropdownLabel', 'DropdownDivider'],
+    whenToUse: ['Grouping secondary actions behind a "more" button.', 'Account / profile menus.'],
+    whenNotToUse: ['Choosing a value for a form field - use Select.', 'Navigation with many destinations - use Navbar or Sidebar.'],
+    accessibility: [
+      'The menu renders in a portal, so it is never clipped by tables or scroll containers.',
+      'Focus moves to the first item on open and returns to the trigger on close.',
+      'Destructive items use variant="danger"; disabled items stay visible but cannot be activated.',
+    ],
+    keyboard: [
+      { keys: ['↓'], description: 'From the trigger: open the menu.' },
+      { keys: ['↑', '↓'], description: 'Move between items.' },
+      { keys: ['Home', 'End'], description: 'First / last item.' },
+      { keys: ['Enter'], description: 'Activate the focused item.' },
+      { keys: ['Esc'], description: 'Close and return focus to the trigger.' },
+      { keys: ['A–Z'], description: 'Jump to the next item starting with that letter.' },
+    ],
+    related: ['context-menu', 'popover', 'button'],
+  },
+
+  /* ---------------- Forms ---------------- */
+  {
+    id: 'text-input',
+    name: 'TextInput & TextArea',
+    category: 'Forms',
+    summary: 'Single- and multi-line text fields with label, helper text, error state and adornments.',
+    api: ['TextInput', 'TextArea'],
+    whenToUse: ['Free-form text such as names, emails, search queries and descriptions.'],
+    accessibility: [
+      'label is linked to the input automatically (an id is generated if you do not pass one).',
+      'error sets aria-invalid and is announced; helperText and error are linked with aria-describedby.',
+      'required adds a visual * and native required validation.',
+    ],
+    related: ['number-input', 'select', 'forms-guide'],
+  },
+  {
+    id: 'select',
+    name: 'Select',
+    category: 'Forms',
+    summary: 'A styled single-select dropdown with keyboard support, type-ahead and native form submission.',
+    api: ['Select'],
+    whenToUse: ['Choosing one value from about 5-15 options.'],
+    whenNotToUse: ['2-4 options - consider RadioGroup or SegmentedControl.', 'Long or searchable lists, or multiple values - use Combobox.'],
+    accessibility: [
+      'Implements the WAI-ARIA "select-only combobox" pattern with aria-activedescendant.',
+      'The listbox is portalled, so it works inside modals, cards and tables.',
+      'Pass name to submit the value with a native <form> (a hidden input is rendered).',
+    ],
+    keyboard: [
+      { keys: ['↓', '↑'], description: 'Open the list / move the highlighted option.' },
+      { keys: ['Enter', 'Space'], description: 'Select the highlighted option.' },
+      { keys: ['Home', 'End'], description: 'First / last option.' },
+      { keys: ['Esc'], description: 'Close without changing the value.' },
+      { keys: ['A–Z'], description: 'Type-ahead to the matching option.' },
+    ],
+    related: ['combobox', 'radio-group'],
+  },
+  {
+    id: 'combobox',
+    name: 'Combobox',
+    category: 'Forms',
+    summary: 'A searchable multi-select: type to filter, pick several values, shown as removable chips.',
+    api: ['Combobox'],
+    whenToUse: ['Tags, labels, regions or any multi-value field with many options.'],
+    accessibility: [
+      'role="combobox" lives on the text input, with aria-activedescendant pointing at the highlighted option.',
+      'Chip remove buttons are labelled "Remove <option>".',
+    ],
+    keyboard: [
+      { keys: ['↓', '↑'], description: 'Open / move through matching options.' },
+      { keys: ['Enter'], description: 'Toggle the highlighted option.' },
+      { keys: ['Backspace'], description: 'With an empty search, remove the last chip.' },
+      { keys: ['Esc'], description: 'Close the list.' },
+    ],
+    related: ['select'],
+  },
+  {
+    id: 'number-input',
+    name: 'NumberInput',
+    category: 'Forms',
+    summary: 'Numeric field with stepper buttons, min/max clamping, step rounding and an optional unit.',
+    api: ['NumberInput'],
+    whenToUse: ['Quantities and sizes where users adjust by small increments (instances, GB, retries).'],
+    accessibility: [
+      'Exposed as a spinbutton with aria-valuenow/min/max.',
+      'Typing is free-form; the value is clamped and committed on blur or Enter, so typing "50" with min=10 works as expected.',
+    ],
+    keyboard: [
+      { keys: ['↑', '↓'], description: 'Increase / decrease by step.' },
+      { keys: ['Enter'], description: 'Commit the typed value.' },
+      { keys: ['Esc'], description: 'Discard the typed value.' },
+    ],
+    related: ['slider', 'text-input'],
+  },
+  {
+    id: 'checkbox',
+    name: 'Checkbox',
+    category: 'Forms',
+    summary: 'A native checkbox with Field styling, optional description and an indeterminate state.',
+    api: ['Checkbox'],
+    whenToUse: ['Opt-ins inside forms that are submitted later.', 'Selecting several items from a list.'],
+    whenNotToUse: ['Settings that apply immediately - use Switch.'],
+    accessibility: ['Backed by a real <input type="checkbox">, so labels, forms and screen readers just work.', 'indeterminate sets the native indeterminate state ("mixed").', 'Pass aria-label when there is no visible label (e.g. table row selection).'],
+    keyboard: [{ keys: ['Space'], description: 'Toggle.' }],
+    related: ['switch', 'radio-group'],
+  },
+  {
+    id: 'switch',
+    name: 'Switch',
+    category: 'Forms',
+    summary: 'An on/off toggle for settings that take effect immediately.',
+    api: ['Switch'],
+    whenToUse: ['Enabling features or preferences that apply instantly.'],
+    whenNotToUse: ['Choices that are only applied when a form is submitted - use Checkbox.'],
+    accessibility: ['Native <input type="checkbox" role="switch">, labelled by its label text; description is linked with aria-describedby.'],
+    keyboard: [{ keys: ['Space'], description: 'Toggle.' }],
+    related: ['checkbox'],
+  },
+  {
+    id: 'radio-group',
+    name: 'RadioGroup',
+    category: 'Forms',
+    summary: 'A set of mutually exclusive options with optional descriptions, vertical or horizontal.',
+    api: ['RadioGroup'],
+    whenToUse: ['2-5 options where seeing every choice at once helps (plans, instance tenancy).'],
+    accessibility: ['Native radio inputs share a generated name, so arrow keys and form submission work out of the box.'],
+    keyboard: [{ keys: ['↑', '↓', '←', '→'], description: 'Move the selection.' }, { keys: ['Tab'], description: 'Move into / out of the group.' }],
+    related: ['segmented-control', 'select'],
+  },
+  {
+    id: 'slider',
+    name: 'Slider',
+    category: 'Forms',
+    summary: 'A range input with optional colour-coded threshold zones (healthy / warning / critical).',
+    api: ['Slider'],
+    whenToUse: ['Choosing an approximate value in a range, like thresholds or limits.'],
+    whenNotToUse: ['Exact values - pair with or replace by NumberInput.'],
+    accessibility: ['Native <input type="range">; aria-valuetext includes the unit and the active zone label.'],
+    keyboard: [{ keys: ['←', '→'], description: 'Decrease / increase by step.' }, { keys: ['Home', 'End'], description: 'Min / max.' }, { keys: ['PgUp', 'PgDn'], description: 'Larger jumps.' }],
+    related: ['number-input', 'metrics'],
+  },
+  {
+    id: 'date-picker',
+    name: 'DatePicker & DateRangePicker',
+    category: 'Forms',
+    summary: 'Date fields with a keyboard-accessible calendar popover, min/max limits and range presets.',
+    api: ['DatePicker', 'DateRangePicker'],
+    whenToUse: ['Picking a single day or a start/end range (reports, billing periods, schedules).'],
+    accessibility: [
+      'The calendar is a grid; arrow keys move by day/week and PageUp/PageDown by month.',
+      'Focus moves into the calendar on open and returns to the trigger on close.',
+      'With name, values are submitted as local YYYY-MM-DD (no timezone shift).',
+    ],
+    keyboard: [
+      { keys: ['←', '→'], description: 'Previous / next day.' },
+      { keys: ['↑', '↓'], description: 'Previous / next week.' },
+      { keys: ['PgUp', 'PgDn'], description: 'Previous / next month (Shift: year).' },
+      { keys: ['Home', 'End'], description: 'Start / end of the week.' },
+      { keys: ['Enter'], description: 'Select the focused day.' },
+      { keys: ['Esc'], description: 'Close.' },
+    ],
+    related: ['text-input'],
+  },
+
+  /* ---------------- Layout ---------------- */
+  {
+    id: 'layout',
+    name: 'Box, Flex, Stack & Grid',
+    category: 'Layout',
+    summary: 'Layout primitives for spacing and alignment without writing CSS.',
+    api: ['Stack', 'Flex', 'Grid', 'Box', 'Container', 'Divider'],
+    whenToUse: [
+      'Stack for vertical rhythm, Flex for rows, Grid for columns, Container to centre page content.',
+      'gap and padding accept numbers (px), any CSS length, or spacing tokens like "$4" (16px).',
+      'Grid minChildWidth gives responsive card grids without media queries.',
+      'Every layout prop accepts a breakpoint object, e.g. direction={{ base: "column", md: "row" }} or columns={{ base: 1, md: 3 }}. Breakpoints: sm 640px, md 768px, lg 1024px, xl 1280px.',
+      'hideBelow / hideFrom show content only on larger or smaller screens.',
+    ],
+    related: ['card', 'section', 'styling-guide'],
+  },
+  {
+    id: 'card',
+    name: 'Card',
+    category: 'Layout',
+    summary: 'A raised surface that groups related content, with header, content and footer slots.',
+    api: ['Card', 'CardHeader', 'CardContent', 'CardFooter'],
+    whenToUse: ['Grouping a form section, a chart, or a summary on a dashboard.', 'variant="interactive" for clickable cards (add a link or onClick).'],
+    related: ['metrics', 'layout'],
+  },
+
+  /* ---------------- Website ---------------- */
+  {
+    id: 'section',
+    name: 'Section',
+    category: 'Website',
+    summary: 'A full-width page band with fluid vertical spacing, a background tone or photo, and a centred container. The building block of marketing and brochure pages.',
+    api: ['Section'],
+    whenToUse: [
+      'Every top-level band of a marketing page: hero, features, testimonials, call to action.',
+      'Alternate tone="default" and tone="muted" to separate sections; use accent or inverse sparingly for emphasis.',
+      'Give sections an id for in-page navigation and set --field-scroll-offset to your sticky navbar height.',
+    ],
+    whenNotToUse: ['Grouping content inside an app screen (use Card or Stack).'],
+    accessibility: [
+      'Renders a <section>; label it with aria-labelledby pointing at its heading so it becomes a navigable landmark.',
+      'backgroundImage is decorative (CSS); put meaningful images in an Image with alt text. Check text contrast against your photo and raise overlay if needed.',
+    ],
+    related: ['page-sections', 'layout', 'footer'],
+  },
+  {
+    id: 'page-sections',
+    name: 'Page sections',
+    category: 'Website',
+    summary: 'Copy-paste recipes for common website sections, built from Section, layout and display type: heroes, feature grids, testimonials, pricing, logo rows, calls to action and contact forms.',
+    api: [],
+    whenToUse: ['Starting points for brochure sites and landing pages. Copy the code and change the content.'],
+    related: ['section', 'carousel', 'footer'],
+  },
+  {
+    id: 'footer',
+    name: 'Footer',
+    category: 'Website',
+    summary: 'Site footer with a brand column, titled link columns that wrap on small screens, and a bottom row for copyright and legal links.',
+    api: ['Footer', 'FooterBrand', 'FooterColumn', 'FooterLink', 'FooterBottom'],
+    accessibility: [
+      'Renders a <footer> (contentinfo landmark). Columns that only contain FooterLinks become lists inside a <nav> labelled by the column title.',
+      'Social icon links need an aria-label.',
+    ],
+    related: ['section', 'link', 'cookie-consent'],
+  },
+  {
+    id: 'media',
+    name: 'Image, Gallery & AspectRatio',
+    category: 'Website',
+    summary: 'Images with aspect-ratio cropping, captions and load-error fallbacks; photo galleries with a full-screen lightbox; and fixed-ratio frames for maps and videos.',
+    api: ['Image', 'Gallery', 'Lightbox', 'AspectRatio'],
+    whenToUse: [
+      'Image for any content photo; ratio keeps grids of mixed photos tidy. Pass loading="eager" for the hero image.',
+      'Gallery for portfolios, menus and venue photos. Use thumbnail for smaller tile images.',
+      'AspectRatio for embedded maps, YouTube / Vimeo iframes and videos.',
+    ],
+    accessibility: [
+      'alt is required: describe the image, or pass "" for decorative images.',
+      'Gallery tiles are buttons labelled with the image description; the Lightbox is a modal dialog with focus trap, Escape to close and arrow-key navigation.',
+      'Give every iframe a title.',
+    ],
+    keyboard: [
+      { keys: ['←', '→'], description: 'Previous / next image in the lightbox.' },
+      { keys: ['Esc'], description: 'Close the lightbox.' },
+    ],
+    related: ['carousel', 'section'],
+  },
+  {
+    id: 'carousel',
+    name: 'Carousel',
+    category: 'Website',
+    summary: 'A swipeable row of slides (CSS scroll-snap) with arrows, page dots, a responsive number of slides per view and optional autoplay.',
+    api: ['Carousel', 'CarouselSlide'],
+    whenToUse: ['Testimonials, product or project highlights, photo strips.'],
+    whenNotToUse: ['Key information visitors must see: most people never move past the first slide. Prefer a grid.'],
+    accessibility: [
+      'A labelled region with aria-roledescription="carousel"; each slide is a group labelled "n of total".',
+      'Autoplay pauses on hover and focus, has a visible pause button and is disabled for prefers-reduced-motion.',
+    ],
+    related: ['media', 'page-sections'],
+  },
+  {
+    id: 'link',
+    name: 'Link',
+    category: 'Website',
+    summary: 'Inline text link for body copy, footers and legal text, with tone and underline options and safe external links.',
+    api: ['Link'],
+    whenToUse: ['Links inside sentences. For standalone actions use Button (with href).', 'Router links: as={NextLink} or asChild.'],
+    accessibility: ['Underlined by default so links do not rely on colour alone.', 'external adds target="_blank", rel="noopener noreferrer" and an "(opens in a new tab)" hint for screen readers.'],
+    related: ['button', 'routing-guide'],
+  },
+  {
+    id: 'prose',
+    name: 'Prose',
+    category: 'Website',
+    summary: 'Styles long-form HTML (headings, paragraphs, lists, quotes, images, tables, code) from Markdown or a CMS.',
+    api: ['Prose'],
+    whenToUse: ['About pages, blog posts, privacy policies and terms rendered from Markdown or a CMS.'],
+    accessibility: ['Keep a logical heading order inside the content; sanitise HTML strings before using dangerouslySetInnerHTML.'],
+    related: ['typography', 'section'],
+  },
+  {
+    id: 'cookie-consent',
+    name: 'Cookie consent',
+    category: 'Website',
+    summary: 'A cookie banner with accept, reject and per-category preferences. Choices persist in localStorage and are readable anywhere with useCookieConsent.',
+    api: ['CookieConsent'],
+    whenToUse: [
+      'Any site that sets non-essential cookies (analytics, marketing, embedded media) for visitors in the UK / EU.',
+      'Only load optional scripts once consent[category] is true, and add a "Cookie settings" link (openPreferences) in your footer.',
+      'Bump version when your categories change to ask everyone again.',
+    ],
+    accessibility: [
+      'A non-modal dialog labelled by its title; it does not steal focus or block the page.',
+      'Reject is offered alongside accept, and optional categories start switched off.',
+    ],
+    related: ['footer', 'link'],
+  },
+  {
+    id: 'site-utilities',
+    name: 'SkipLink, BackToTop & Reveal',
+    category: 'Website',
+    summary: 'Small site helpers: a skip-to-content link for keyboard users, a floating back-to-top button and scroll-triggered entrance animations.',
+    api: ['SkipLink', 'BackToTop', 'Reveal'],
+    whenToUse: [
+      'SkipLink first in every page layout, pointing at your <main id="main">.',
+      'BackToTop on long pages such as menus and articles.',
+      'Reveal for subtle entrances on marketing pages; avoid it on app screens.',
+    ],
+    accessibility: ['Reveal is skipped for prefers-reduced-motion, and never hides content that is already on screen or rendered without JavaScript.'],
+    related: ['section', 'page-sections'],
+  },
+
+  /* ---------------- Navigation ---------------- */
+  {
+    id: 'navbar',
+    name: 'Navbar',
+    category: 'Navigation',
+    summary: 'A responsive top navigation bar with animated active indicators, flyout mega-menus and a mobile drawer.',
+    api: ['Navbar', 'NavbarBrand', 'NavbarContent', 'NavbarItem', 'NavbarFlyout', 'NavbarFlyoutGrid', 'NavbarFlyoutItem', 'NavbarActions', 'NavbarToggle', 'NavbarMenu'],
+    whenToUse: ['Top-level navigation across 3-7 sections of an app or marketing site.'],
+    accessibility: [
+      'Renders <header> with a labelled <nav> landmark; the active item gets aria-current="page".',
+      'NavbarToggle exposes aria-expanded and controls the mobile menu; Escape closes the menu.',
+      'Use asChild or as={Link} on items so client-side routers keep working.',
+    ],
+    related: ['sidebar', 'routing-guide'],
+  },
+  {
+    id: 'sidebar',
+    name: 'Sidebar',
+    category: 'Navigation',
+    summary: 'A collapsible application sidebar with groups, nested dropdowns, badges and an icon-only mode.',
+    api: ['Sidebar', 'SidebarHeader', 'SidebarContent', 'SidebarGroup', 'SidebarItem', 'SidebarDropdown', 'SidebarSubItem', 'SidebarFooter', 'SidebarProvider', 'SidebarTrigger'],
+    whenToUse: ['Dashboards and tools with many sections.', 'Wrap in SidebarProvider to collapse it from a button in your header (useSidebar()).'],
+    accessibility: ['Collapsed items keep their accessible name (aria-label) and show a tooltip.', 'The current item is marked aria-current="page".'],
+    related: ['navbar'],
+  },
+  {
+    id: 'tabs',
+    name: 'Tabs',
+    category: 'Navigation',
+    summary: 'Switch between related panels of content. Pair with TabPanel for correct ARIA wiring.',
+    api: ['Tabs', 'TabPanel'],
+    whenToUse: ['Sections of one object (Overview / Logs / Settings).'],
+    whenNotToUse: ['Steps in a process - use Stepper.', 'Filtering a single list - SegmentedControl is lighter.'],
+    accessibility: ['Roving tabindex: only the active tab is tabbable; panels are labelled by their tabs.'],
+    keyboard: [{ keys: ['←', '→'], description: 'Previous / next tab (activates it).' }, { keys: ['Home', 'End'], description: 'First / last tab.' }],
+    related: ['segmented-control'],
+  },
+  {
+    id: 'breadcrumb',
+    name: 'Breadcrumb',
+    category: 'Navigation',
+    summary: 'Shows where the current page sits in a hierarchy and links back up.',
+    api: ['Breadcrumb'],
+    accessibility: ['Labelled nav landmark; the last item is marked aria-current="page".', 'Items can be links, buttons (onClick) or router links (as / asChild).'],
+    related: ['navbar'],
+  },
+  {
+    id: 'pagination',
+    name: 'Pagination',
+    category: 'Navigation',
+    summary: 'Page navigation with a page window, ellipses, item summary and an optional page-size select. A simple variant shows prev/next with a page status.',
+    api: ['Pagination'],
+    accessibility: ['Labelled nav; the current page has aria-current="page" and every button has an accessible label.'],
+    related: ['table'],
+  },
+  {
+    id: 'stepper',
+    name: 'Stepper',
+    category: 'Navigation',
+    summary: 'Shows progress through a multi-step flow such as a wizard or checkout.',
+    api: ['Stepper'],
+    accessibility: ['Rendered as an ordered list; the current step has aria-current="step" and each step announces its status.'],
+    related: ['tabs', 'modal'],
+  },
+
+  /* ---------------- Data Display ---------------- */
+  {
+    id: 'table',
+    name: 'Table',
+    category: 'Data Display',
+    summary: 'Data table with sorting, selection with bulk actions, expandable rows, loading and empty states.',
+    api: ['Table', 'TableHeader', 'TableBody', 'TableRow', 'TableHead', 'TableCell'],
+    whenToUse: [
+      'Data mode (columns + data) covers most tables; use the compound parts for fully custom markup.',
+      'Pass keyExtractor whenever rows can be selected, expanded or re-ordered.',
+      'Use manualSorting with onSortChange when the server sorts.',
+    ],
+    accessibility: ['Sortable headers are buttons with aria-sort.', 'Selection checkboxes are labelled; the bulk bar announces the selection count.'],
+    related: ['pagination', 'empty-state'],
+  },
+  {
+    id: 'metrics',
+    name: 'StatCard, Sparkline & Meter',
+    category: 'Data Display',
+    summary: 'Building blocks for dashboards: KPI tiles, inline trend lines, usage meters and status dots.',
+    api: ['StatCard', 'Sparkline', 'Meter', 'StatusDot'],
+    accessibility: ['Meter uses role="meter" with value text.', 'Sparklines are decorative unless you pass aria-label describing the trend.', 'Never rely on colour alone - pair StatusDot with a label.'],
+    related: ['card'],
+  },
+  {
+    id: 'badge',
+    name: 'Badge & Avatar',
+    category: 'Data Display',
+    summary: 'Small status labels, and user avatars with an initials fallback.',
+    api: ['Badge', 'Avatar', 'AvatarGroup'],
+    whenToUse: ['Badge: status ("Running"), counts, categories.', 'Avatar: people and organisations; falls back to initials if the image is missing or fails.'],
+    related: ['metrics'],
+  },
+  {
+    id: 'tree-view',
+    name: 'TreeView',
+    category: 'Data Display',
+    summary: 'A keyboard-navigable hierarchical list, like a file browser or resource tree.',
+    api: ['TreeView'],
+    accessibility: ['Implements the WAI-ARIA tree pattern with roving focus and aria-level / aria-expanded.'],
+    keyboard: [
+      { keys: ['↑', '↓'], description: 'Previous / next visible node.' },
+      { keys: ['→'], description: 'Expand, or move to the first child.' },
+      { keys: ['←'], description: 'Collapse, or move to the parent.' },
+      { keys: ['Home', 'End'], description: 'First / last node.' },
+      { keys: ['Enter'], description: 'Select.' },
+    ],
+    related: ['table'],
+  },
+  {
+    id: 'timeline',
+    name: 'Timeline',
+    category: 'Data Display',
+    summary: 'A vertical feed of events such as deploys, audit logs or activity.',
+    api: ['Timeline'],
+    related: ['terminal'],
+  },
+  {
+    id: 'empty-state',
+    name: 'EmptyState',
+    category: 'Data Display',
+    summary: 'Explains why a view is empty and what to do next.',
+    api: ['EmptyState'],
+    whenToUse: ['Empty lists, no search results, first-run screens. Always offer a next step when there is one.'],
+    related: ['table'],
+  },
+  {
+    id: 'code-block',
+    name: 'CodeBlock & DiffViewer',
+    category: 'Data Display',
+    summary: 'Read-only code snippets with copy, line numbers, highlighted lines and pluggable syntax highlighting, plus a unified diff view.',
+    api: ['CodeBlock', 'CodeHighlighterProvider', 'DiffViewer', 'CopyButton'],
+    accessibility: ['Scrollable code regions are focusable so keyboard users can scroll them.', 'Diff lines announce "Added" / "Removed".', 'CopyButton falls back to execCommand on insecure (http) origins.'],
+    related: ['terminal'],
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    category: 'Data Display',
+    summary: 'A terminal / log viewer with level badges, auto-scroll and an interactive prompt with history. Use the minimal variant to embed a flat console without window chrome.',
+    api: ['Terminal', 'TerminalHeader', 'TerminalBody', 'TerminalLine', 'TerminalPrompt'],
+    keyboard: [{ keys: ['Enter'], description: 'Submit the command.' }, { keys: ['↑', '↓'], description: 'Browse command history.' }],
+    related: ['code-block', 'timeline'],
+  },
+
+  /* ---------------- Overlays ---------------- */
+  {
+    id: 'modal',
+    name: 'Modal & Drawer',
+    category: 'Overlays',
+    summary: 'Dialogs that block the page: a centred Modal, or a Drawer that slides in from the edge.',
+    api: ['Modal', 'Drawer'],
+    whenToUse: ['Modal: confirmations and short focused tasks.', 'Drawer: details, filters or longer forms while keeping context.'],
+    whenNotToUse: ['Non-blocking hints - use Popover or Tooltip.'],
+    accessibility: [
+      'role="dialog" with aria-modal, labelled by title and described by description.',
+      'Focus is trapped while open and restored to the trigger on close; page scroll is locked (safe with nested overlays).',
+      'Use initialFocusRef to focus a specific field, e.g. the first input.',
+    ],
+    keyboard: [{ keys: ['Esc'], description: 'Close (unless closeOnEscape={false}).' }, { keys: ['Tab'], description: 'Cycles within the dialog.' }],
+    related: ['popover', 'command-palette'],
+  },
+  {
+    id: 'popover',
+    name: 'Popover',
+    category: 'Overlays',
+    summary: 'A floating panel anchored to a trigger for rich, non-blocking content.',
+    api: ['Popover'],
+    whenToUse: ['Details on demand, filters, small forms.'],
+    whenNotToUse: ['Plain text hints - use Tooltip.', 'A list of actions - use DropdownMenu.'],
+    accessibility: ['Trigger gets aria-expanded / aria-controls; Escape and outside clicks close it and return focus.'],
+    keyboard: [{ keys: ['Esc'], description: 'Close and return focus to the trigger.' }],
+    related: ['tooltip', 'dropdown-menu'],
+  },
+  {
+    id: 'tooltip',
+    name: 'Tooltip',
+    category: 'Overlays',
+    summary: 'A short text label shown on hover and keyboard focus.',
+    api: ['Tooltip'],
+    whenToUse: ['Naming icon-only buttons and explaining truncated values.'],
+    whenNotToUse: ['Essential information or anything interactive - tooltips are hidden on touch devices.'],
+    accessibility: ['Linked to the trigger with aria-describedby while visible; Escape dismisses it.'],
+    related: ['popover'],
+  },
+  {
+    id: 'context-menu',
+    name: 'ContextMenu',
+    category: 'Overlays',
+    summary: 'A right-click menu for the wrapped content, also reachable from the keyboard.',
+    api: ['ContextMenu'],
+    accessibility: ['Opens with Shift+F10 or the Menu key on a focused element; arrow keys navigate.', 'Always provide the same actions elsewhere too - context menus are hard to discover.'],
+    keyboard: [{ keys: ['Shift', 'F10'], description: 'Open from the focused element.' }, { keys: ['↑', '↓'], description: 'Move between items.' }, { keys: ['Esc'], description: 'Close.' }],
+    related: ['dropdown-menu'],
+  },
+  {
+    id: 'command-palette',
+    name: 'CommandPalette',
+    category: 'Overlays',
+    summary: 'A ⌘K / Ctrl+K search-and-run dialog for navigation and commands.',
+    api: ['CommandPalette'],
+    accessibility: ['Search input is a combobox controlling the results listbox; focus is trapped and restored.'],
+    keyboard: [{ keys: ['⌘ / Ctrl', 'K'], description: 'Toggle the palette (with onOpen).' }, { keys: ['↑', '↓'], description: 'Move through results.' }, { keys: ['Enter'], description: 'Run the highlighted command.' }, { keys: ['Esc'], description: 'Close.' }],
+    related: ['modal'],
+  },
+
+  /* ---------------- Feedback ---------------- */
+  {
+    id: 'alert',
+    name: 'Alert',
+    category: 'Feedback',
+    summary: 'An inline message for page- or section-level status, optionally dismissible and with actions.',
+    api: ['Alert'],
+    whenToUse: ['Persistent messages tied to a page or section (maintenance notice, quota warning).'],
+    whenNotToUse: ['Transient confirmation of an action - use a toast.'],
+    accessibility: ['danger and warning use role="alert" (announced immediately); info and success use the polite role="status".'],
+    related: ['toast'],
+  },
+  {
+    id: 'toast',
+    name: 'Toast',
+    category: 'Feedback',
+    summary: 'Transient notifications triggered from anywhere with useToast().',
+    api: ['ToastProvider'],
+    whenToUse: ['Confirming an action ("Saved"), background job results, undo prompts.'],
+    accessibility: ['Rendered in a polite live region; danger toasts use role="alert".', 'Use duration: 0 for messages users must act on, and keep them dismissible.'],
+    related: ['alert'],
+  },
+  {
+    id: 'progress',
+    name: 'Progress, Spinner & Skeleton',
+    category: 'Feedback',
+    summary: 'Loading indicators: determinate or indeterminate bars, spinners and content placeholders.',
+    api: ['Progress', 'Spinner', 'Skeleton'],
+    whenToUse: ['Progress for known durations (uploads), Spinner for short unknown waits, Skeleton for loading layouts.'],
+    accessibility: ['Progress is a labelled progressbar; Spinner announces "Loading"; Skeletons are hidden from assistive tech.'],
+    related: ['table'],
+  },
+  {
+    id: 'accordion',
+    name: 'Accordion',
+    category: 'Feedback',
+    summary: 'Collapsible sections for FAQs and progressively disclosed settings.',
+    api: ['Accordion'],
+    accessibility: ['Headers are buttons inside headings with aria-expanded / aria-controls; panels are labelled regions.'],
+    keyboard: [{ keys: ['Enter', 'Space'], description: 'Toggle the focused section.' }],
+    related: ['tabs'],
+  },
+
+  /* ---------------- Typography ---------------- */
+  {
+    id: 'typography',
+    name: 'Heading, Text, Kbd & Code',
+    category: 'Typography',
+    summary: 'Type scale and text presets, keyboard keys and inline code.',
+    api: ['Heading', 'Text', 'Kbd', 'Code'],
+    whenToUse: [
+      'Heading level sets the size; use as to keep the document outline correct (e.g. level={1} as="h2").',
+      'Heading display="sm" to "xl" for fluid hero and section headlines; Text size="xl" for the intro paragraph under them.',
+      'Text renders <p> by default; use as="span" inside inline content.',
+    ],
+    related: ['unfolding-heading'],
+  },
+  {
+    id: 'unfolding-heading',
+    name: 'UnfoldingHeading',
+    category: 'Typography',
+    summary: 'A display heading whose letters are drawn as a wireframe and then materialise into solid type.',
+    api: ['UnfoldingHeading'],
+    whenToUse: ['Hero headlines and section intros on marketing pages - sparingly.'],
+    accessibility: ['The full text is always available to screen readers; the animation is skipped with prefers-reduced-motion.'],
+    related: ['typography'],
+  },
+];
+
+export function getComponentPage(id: string) {
+  return componentPages.find(p => p.id === id);
+}

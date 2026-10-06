@@ -1,7 +1,10 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useThemeSafe } from '../theme';
-import { renderPolymorphic } from '../utils/polymorphic';
+import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { handleListKeyNavigation, useDismissableLayer, useIsomorphicLayoutEffect } from '../utils/hooks.js';
+import { getInteractiveElementProps, mergeClassNames, renderPolymorphic } from '../utils/polymorphic.js';
 
 export interface ContextMenuItem {
   id: string;
@@ -10,64 +13,102 @@ export interface ContextMenuItem {
   onSelect?: () => void;
   variant?: 'default' | 'danger';
   disabled?: boolean;
+  /** Render a separator instead of an item. */
   divider?: boolean;
+  /** Keyboard shortcut hint. */
+  shortcut?: string;
   href?: string;
   asChild?: boolean;
   as?: React.ElementType;
 }
 
 export interface ContextMenuProps {
+  /** The area that opens the menu on right-click (or Shift+F10 / the Menu key when focused). */
   children: React.ReactNode;
   items: ContextMenuItem[];
   container?: HTMLElement | null;
   className?: string;
 }
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({
-  children,
-  items,
-  container,
-  className = '',
-}) => {
-  const { theme } = useThemeSafe();
-  const [isOpen, setIsOpen] = useState(false);
-  const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const menuRef = useRef<HTMLDivElement>(null);
+const ITEM_SELECTOR = '[role="menuitem"]';
 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const x = Math.min(e.clientX, (typeof window !== 'undefined' ? window.innerWidth : 1000) - 200);
-    const y = Math.min(e.clientY, (typeof window !== 'undefined' ? window.innerHeight : 1000) - (items.length * 36));
-    setCoords({ x, y });
-    setIsOpen(true);
+/**
+ * A right-click menu for the wrapped content. Also opens from the keyboard
+ * with Shift+F10 or the Menu key, and supports arrow-key navigation.
+ *
+ * @example
+ * <ContextMenu items={[{ id: 'copy', label: 'Copy ARN', onSelect: copy }]}>
+ *   <TableRow>…</TableRow>
+ * </ContextMenu>
+ */
+export const ContextMenu: React.FC<ContextMenuProps> = ({ children, items, container, className = '' }) => {
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const portalProps = usePortalThemeProps(mergeClassNames('field-context-menu', className));
+  const isOpen = anchor !== null;
+
+  const openAt = (x: number, y: number) => {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+    setPosition(null);
+    setAnchor({ x, y });
   };
+
+  const close = (returnFocus = true) => {
+    setAnchor(null);
+    if (returnFocus) returnFocusRef.current?.focus?.();
+  };
+
+  useDismissableLayer(isOpen, { refs: [menuRef], onDismiss: () => close(true) });
+
+  // Measure the rendered menu and keep it inside the viewport.
+  useIsomorphicLayoutEffect(() => {
+    if (!anchor || !menuRef.current) return;
+    const { offsetWidth, offsetHeight } = menuRef.current;
+    const margin = 8;
+    setPosition({
+      left: Math.max(margin, Math.min(anchor.x, window.innerWidth - offsetWidth - margin)),
+      top: Math.max(margin, Math.min(anchor.y, window.innerHeight - offsetHeight - margin)),
+    });
+  }, [anchor]);
+
+  useEffect(() => {
+    if (!isOpen || !position) return;
+    menuRef.current
+      ?.querySelector<HTMLElement>(`${ITEM_SELECTOR}:not([disabled]):not([aria-disabled="true"])`)
+      ?.focus({ preventScroll: true });
+  }, [isOpen, position]);
 
   useEffect(() => {
     if (!isOpen) return;
-
-    const handlePointerDown = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
+    const handleScroll = () => close(false);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleScroll);
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
     };
   }, [isOpen]);
 
-  const portalTarget = container || (typeof document !== 'undefined' ? document.body : null);
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    openAt(e.clientX, e.clientY);
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+      e.preventDefault();
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      openAt(rect.left + 8, rect.bottom);
+    }
+  };
+
+  const portalTarget = getPortalTarget(container);
 
   return (
     <>
-      <div onContextMenu={handleContextMenu} className={className} style={{ display: 'contents' }}>
+      <div onContextMenu={handleContextMenu} onKeyDown={handleTriggerKeyDown} className="field-context-menu-trigger">
         {children}
       </div>
 
@@ -76,23 +117,33 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         createPortal(
           <div
             ref={menuRef}
-            className="field-context-menu field-scope"
-            data-field-theme={theme.id}
-            data-theme={theme.mode}
-            style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
             role="menu"
+            tabIndex={-1}
+            {...portalProps}
+            style={{
+              ...portalProps.style,
+              left: position?.left ?? anchor.x,
+              top: position?.top ?? anchor.y,
+              visibility: position ? 'visible' : 'hidden',
+            }}
+            onKeyDown={e => {
+              if (handleListKeyNavigation(e, menuRef.current, ITEM_SELECTOR)) return;
+              if (e.key === 'Tab') close(false);
+            }}
           >
             {items.map((item, idx) => {
               if (item.divider) {
-                return <hr key={item.id ?? `div-${idx}`} className="field-dropdown-divider" />;
+                return <div role="separator" key={item.id ?? `div-${idx}`} className="field-dropdown-divider" />;
               }
 
-              const itemClass = `field-dropdown-item ${item.variant === 'danger' ? 'variant-danger' : ''}`;
-              const handleClick = (e?: React.MouseEvent) => {
-                if (!item.disabled) {
-                  item.onSelect?.();
-                  setIsOpen(false);
+              const itemClass = mergeClassNames('field-dropdown-item', item.variant === 'danger' && 'variant-danger');
+              const handleClick = (e: React.MouseEvent) => {
+                if (item.disabled) {
+                  e.preventDefault();
+                  return;
                 }
+                item.onSelect?.();
+                close(true);
               };
 
               if (item.asChild && React.isValidElement(item.label)) {
@@ -101,7 +152,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                     {renderPolymorphic('button', {
                       asChild: true,
                       role: 'menuitem',
-                      disabled: item.disabled,
+                      tabIndex: -1,
+                      'aria-disabled': item.disabled || undefined,
                       className: itemClass,
                       onClick: handleClick,
                       children: item.label,
@@ -110,21 +162,20 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 );
               }
 
-              const defaultTag = item.href && !item.disabled ? 'a' : 'button';
+              const tag: React.ElementType = item.as ?? (item.href ? 'a' : 'button');
               return (
                 <React.Fragment key={item.id}>
-                  {renderPolymorphic(defaultTag, {
-                    as: item.as,
+                  {renderPolymorphic(tag, {
                     role: 'menuitem',
-                    href: item.disabled ? undefined : item.href,
-                    type: !item.href && (!item.as || item.as === 'button') ? 'button' : undefined,
-                    disabled: item.disabled,
+                    tabIndex: -1,
+                    ...getInteractiveElementProps(tag, { href: item.href, disabled: item.disabled }),
                     className: itemClass,
                     onClick: handleClick,
                     children: (
                       <>
-                        {item.icon && <span style={{ display: 'inline-flex' }}>{item.icon}</span>}
-                        <span>{item.label}</span>
+                        {item.icon && <span className="field-dropdown-item-icon" aria-hidden="true">{item.icon}</span>}
+                        <span className="field-dropdown-item-label">{item.label}</span>
+                        {item.shortcut && <span className="field-dropdown-item-shortcut">{item.shortcut}</span>}
                       </>
                     ),
                   })}

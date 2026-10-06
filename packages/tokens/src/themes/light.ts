@@ -1,4 +1,4 @@
-import { FieldSemanticTokens, FieldTheme } from '../types';
+import { FieldSemanticTokens, FieldTheme } from '../types.js';
 
 export const lightSemantics: FieldSemanticTokens = {
   name: 'Field Architectural Light',

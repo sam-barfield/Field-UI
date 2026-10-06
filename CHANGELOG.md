@@ -2,6 +2,62 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [0.3.0] - 2026-10-06
+
+A review and hardening release focused on correctness, accessibility and developer experience. Most APIs are unchanged; see **Breaking changes** before upgrading.
+
+### Breaking changes
+- Packages are now proper ES modules (`"type": "module"`, explicit `.js` import paths). Bundlers are unaffected; Node, Vitest and SSR now load them without extra config.
+- `exports` maps are explicit: use `@sam.barfield/field-react/styles.css` (or `styles/components.css`); the old `./styles/*` wildcard is gone.
+- Markup changes that may affect custom CSS: `Tabs` root is now `.field-tabs` (the list stays in `.field-tabs-container`); `Stepper` and `Timeline` render `<ol>` / `<li>`; `Modal` / `Drawer` titles are `<h2 class="field-modal-title">`; Switch/Checkbox/Radio use visually hidden native inputs; `Select`, `Combobox`, `DropdownMenu`, `Popover` and date picker popovers render in a portal.
+- `ButtonGroup` no longer leaks `attached` to the DOM; `attached={false}` now actually spaces buttons.
+
+### Fixed
+- `Table` called hooks after an early return (Rules of Hooks violation); uncontrolled selection with only `onSelectionChange` did not update; string sorting is now locale/numeric aware.
+- Modal/Drawer/command palette overlays painted an opaque background over the page (portal roots matched the base `[data-field-theme]` rule).
+- Modal/Drawer had no focus trap or focus restore and could unlock page scroll while another overlay was open.
+- `Select` options were not keyboard navigable and Escape did not work once open; dropdowns were clipped inside modals and tables.
+- `Switch` exposed two `role="switch"` elements and the visible one had no accessible name; `Checkbox` dropped `aria-label`; `RadioGroup` had no arrow-key support.
+- `NumberInput` clamped on every keystroke (typing `50` with `min=10` produced `10`) and accumulated floating-point errors.
+- `Combobox` had two tab stops and `role="combobox"` on a div; added arrow keys, Backspace to remove chips and Escape.
+- `DatePicker` disabled today when `minDate` had a time component, ignored its `style` prop, was controlled-only, and submitted a UTC-shifted date; now uncontrolled-capable, keyboard navigable and submits local `YYYY-MM-DD`.
+- Links rendered by `Button`, `IconButton`, `Sidebar*`, `Tabs`, dropdown and context menu items received `type="button"` / `disabled`.
+- Elastic navbar indicator stayed pinned to an old position after resizes (`fill: 'both'` animation never released).
+- `UnfoldingHeading` fired `onComplete` twice in StrictMode and generated SSR-unsafe random ids.
+- `asChild` read `element.ref`, which warns in React 19.
+- Light-mode CSS selectors targeted `[data-field-theme='light']` (never set); they now use `[data-theme='light']`.
+- `themeToTypeScript` imported from a non-existent package name.
+- Elastic navbar indicator only animated between some items: the active item's heavier font weight resized the group and the resize handler cancelled the glide.
+- `NavbarFlyout` panels overflowed the navbar / viewport; they now shift sideways and cap their width to stay in bounds.
+- `Button` labels with rich content (e.g. avatar + name) had no gap between children.
+- Consecutive selected options in `Select` / `Combobox` merged into one block; options now have a small gap.
+- `Text` / `Heading` with long unbroken tokens (identifiers, URLs) overflowed their container; they now wrap.
+- `TerminalPrompt` submit button had no accessible name and skipped history reset.
+
+### Added
+- `createTheme` / `createThemePair` to build themes by overriding only the tokens you need.
+- `ThemeProvider` `defaultMode="system"` and `storageKey` (persist the chosen mode); variables are applied before paint.
+- Default theme variables ship inside `styles.css`; `@sam.barfield/field-tokens/tokens.css` and `themes/<pair>.css` for JS-free theming; light themes get softer shadows; `--field-ease-in/out/in-out` tokens.
+- `'use client'` directives for Next.js App Router.
+- `TabPanel`; controlled/uncontrolled support across Accordion, Tabs, Popover, DropdownMenu, RadioGroup, Slider, Switch, Checkbox, Select, TreeView and date pickers.
+- Toasts: variants with icons, actions (e.g. Undo), positions, `limit`, replace-by-id, `dismissAll`.
+- `Alert` `actions`, `StatCard` `invertTrendColors`, `Progress` indeterminate/variants, `Spinner` label, `Skeleton` `circle`, `Card` `padding`, `Drawer` `side`, `Text` `as`/`mono`/`truncate`/status tones, `Heading` `as`, layout `padding`/`as`/`$` spacing tokens, `Grid` `minChildWidth`, `Table` `onRowClick`/`density`/`stickyHeader`/`manualSorting`/controlled sorting, `CommandPalette` `keywords`, `DateRangePicker` `presets`/`minDate`/`maxDate`, `CopyButton` `iconOnly` and insecure-origin fallback.
+- Pluggable syntax highlighting for `CodeBlock`: a `highlighter` prop and `CodeHighlighterProvider` render `field-token-*` classes coloured by theme tokens (the docs use Prism via `prism-react-renderer`).
+- `Pagination` `variant="simple"` (prev/next with a page status) and `showFirstLast`.
+- Website building blocks: `Section` (page bands with tones, fluid spacing, background images), `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery` + `Lightbox`, `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` + `useCookieConsent`, `SkipLink`, `BackToTop` and `Reveal`.
+- Responsive props: layout props on `Flex`, `Stack`, `Grid`, `Box`, `Container` and `align` on `Heading` / `Text` accept breakpoint objects (`{ base, sm, md, lg, xl }`); `hideBelow` / `hideFrom`; `breakpoints`, `useMediaQuery`, `usePrefersReducedMotion`. `Container maxWidth` presets (`sm`…`xl`, `prose`).
+- Display type: `Heading display="sm" | "md" | "lg" | "xl"` (fluid), `Text size="xl"` and `align`. Headings now use `--field-font-display` and balance their lines.
+- Website theme presets (light-first, with fonts): `roasteryPair` (cafés), `workshopPair` (trades), `storefrontPair` (e-commerce), `sagePair` (wellness), `counselPair` (professional); `businessThemePairs`. Themes and `createTheme` / `createThemePair` accept `fonts`.
+- `ThemeScope` forwards HTML attributes (`id`, `aria-*`, …) to its element.
+- `Terminal` `variant="minimal"` for flat embedded consoles; `TerminalHeader` `icon={null}`, `TerminalLine` `showBadge`, `TerminalPrompt` `prompt` and `showSubmitButton`.
+- Full keyboard support: menus (arrows, Home/End, type-ahead), TreeView (WAI-ARIA tree), calendar grid, tabs, segmented control, context menu (Shift+F10).
+
+### Docs & tooling
+- New "Website" docs category (Section, Page sections recipes, Footer, media, Carousel, Link, Prose, Cookie consent, site utilities), a "Building a website" guide, website themes in the theme picker, and a "Business Website" example that switches between the five presets.
+- `docs/COMPONENT_MANIFEST.json` is now generated from the TypeScript source and JSDoc (`npm run docs:manifest`); every prop is documented.
+- Rebuilt showcase as a docs site: getting-started and topic guides (installation, theming, styling & Tailwind, routing, forms, accessibility, SSR, AI assistants), and a page per component with live examples whose code is the real source, generated API tables, usage guidance, accessibility and keyboard reference.
+- Rewrote `docs/AGENTS.md` (removed non-existent Sidebar props from recipes), `README.md`, `CLAUDE.md` and the component lifecycle rule.
+
 ## [0.2.7] - 2026-09-22
 
 ### Top Navigation (`Navbar`) & Fluid Motion Engine

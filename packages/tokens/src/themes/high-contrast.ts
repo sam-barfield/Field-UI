@@ -1,4 +1,4 @@
-import { FieldSemanticTokens, FieldTheme } from '../types';
+import { FieldSemanticTokens, FieldTheme } from '../types.js';
 
 export const highContrastDarkSemantics: FieldSemanticTokens = {
   name: 'Field High-Contrast Dark',

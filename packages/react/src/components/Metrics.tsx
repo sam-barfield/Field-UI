@@ -1,35 +1,37 @@
+'use client';
+
 import React from 'react';
+import { mergeClassNames } from '../utils/polymorphic.js';
 
 /* --- StatusDot / LiveIndicator --- */
 export type StatusDotType = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 export interface StatusDotProps {
+  /** Colour / meaning of the dot. */
   status?: StatusDotType;
+  /** Animated ring for "live" states. Respects reduced motion. */
   pulse?: boolean;
   label?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export const StatusDot: React.FC<StatusDotProps> = ({
-  status = 'info',
-  pulse = false,
-  label,
-  size = 'md',
-  className = '',
-}) => {
-  const sizeMap = {
-    sm: 6,
-    md: 8,
-    lg: 10,
-  };
-  const dimension = sizeMap[size];
+const DOT_SIZES = { sm: 6, md: 8, lg: 10 };
 
+/**
+ * A coloured dot indicating health or connection state, optionally labelled.
+ *
+ * @example
+ * <StatusDot status="success" pulse label="Live" />
+ */
+export const StatusDot: React.FC<StatusDotProps> = ({ status = 'info', pulse = false, label, size = 'md', className = '' }) => {
+  const dimension = DOT_SIZES[size];
   return (
-    <span className={`field-status-dot-wrapper ${className}`}>
+    <span className={mergeClassNames('field-status-dot-wrapper', className)}>
       <span
-        className={`field-status-dot ${status} ${pulse ? 'pulse' : ''}`}
+        className={mergeClassNames('field-status-dot', status, pulse && 'pulse')}
         style={{ width: `${dimension}px`, height: `${dimension}px` }}
+        aria-hidden="true"
       />
       {label && <span>{label}</span>}
     </span>
@@ -38,15 +40,36 @@ export const StatusDot: React.FC<StatusDotProps> = ({
 
 /* --- Sparkline --- */
 export interface SparklineProps {
+  /** Values to plot, oldest first. */
   data: number[];
+  /** Status keyword or any CSS colour. */
   color?: 'accent' | 'success' | 'warning' | 'danger' | (string & {});
+  /** Width in px. */
   width?: number;
+  /** Height in px. */
   height?: number;
+  /** Line thickness in px. */
   strokeWidth?: number;
+  /** Fill the area under the line. Default `true`. */
   filled?: boolean;
+  /** Describe the trend for screen readers (otherwise the chart is decorative). */
+  'aria-label'?: string;
   className?: string;
 }
 
+const SPARK_COLORS: Record<string, string> = {
+  accent: 'var(--field-accent-primary)',
+  success: 'var(--field-status-success-base)',
+  warning: 'var(--field-status-warning-base)',
+  danger: 'var(--field-status-danger-base)',
+};
+
+/**
+ * A tiny inline trend line with no axes. Pair with a number in a `StatCard`.
+ *
+ * @example
+ * <Sparkline data={[4, 6, 5, 9, 12]} color="success" aria-label="Requests trending up" />
+ */
 export const Sparkline: React.FC<SparklineProps> = ({
   data,
   color = 'accent',
@@ -54,6 +77,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
   height = 32,
   strokeWidth = 2,
   filled = true,
+  'aria-label': ariaLabel,
   className = '',
 }) => {
   if (!data || data.length === 0) return null;
@@ -69,36 +93,24 @@ export const Sparkline: React.FC<SparklineProps> = ({
   const points = data.map((val, idx) => {
     const x = padding + (idx / (data.length - 1 || 1)) * usableWidth;
     const y = height - padding - ((val - min) / range) * usableHeight;
-    return `${x},${y}`;
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
 
   const pathD = `M ${points.join(' L ')}`;
   const fillD = `${pathD} L ${width - padding},${height} L ${padding},${height} Z`;
-
-  const colorMap: Record<string, string> = {
-    accent: 'var(--field-accent-primary)',
-    success: 'var(--field-status-success-base)',
-    warning: 'var(--field-status-warning-base)',
-    danger: 'var(--field-status-danger-base)',
-  };
-  const strokeColor = colorMap[color] || color;
+  const strokeColor = SPARK_COLORS[color] || color;
 
   return (
     <svg
       width={width}
       height={height}
-      className={`field-sparkline ${className}`}
+      className={mergeClassNames('field-sparkline', className)}
       viewBox={`0 0 ${width} ${height}`}
-      style={{ overflow: 'visible' }}
+      role={ariaLabel ? 'img' : undefined}
+      aria-label={ariaLabel}
+      aria-hidden={ariaLabel ? undefined : true}
     >
-      {filled && (
-        <path
-          d={fillD}
-          fill={strokeColor}
-          fillOpacity={0.15}
-          stroke="none"
-        />
-      )}
+      {filled && <path d={fillD} fill={strokeColor} fillOpacity={0.15} stroke="none" />}
       <path
         d={pathD}
         fill="none"
@@ -116,13 +128,23 @@ export interface MeterProps {
   value: number;
   min?: number;
   max?: number;
-  label?: string;
+  label?: React.ReactNode;
+  /** Text on the right of the header. Defaults to the percentage. */
   valueLabel?: string;
+  /** Percentage at which the bar turns amber. Default 75. */
   warningThreshold?: number;
+  /** Percentage at which the bar turns red. Default 90. */
   dangerThreshold?: number;
   className?: string;
 }
 
+/**
+ * Shows a measurement within a known range (disk usage, quota), turning amber
+ * and red past the thresholds.
+ *
+ * @example
+ * <Meter label="Disk" value={412} max={500} valueLabel="412 / 500 GB" />
+ */
 export const Meter: React.FC<MeterProps> = ({
   value,
   min = 0,
@@ -133,38 +155,33 @@ export const Meter: React.FC<MeterProps> = ({
   dangerThreshold = 90,
   className = '',
 }) => {
+  const labelId = React.useId();
+  const span = max - min || 1;
   const clamped = Math.min(Math.max(value, min), max);
-  const percentage = Math.round(((clamped - min) / (max - min)) * 100);
+  const percentage = Math.round(((clamped - min) / span) * 100);
 
   let statusClass = 'normal';
-  if (percentage >= dangerThreshold) {
-    statusClass = 'danger';
-  } else if (percentage >= warningThreshold) {
-    statusClass = 'warning';
-  }
+  if (percentage >= dangerThreshold) statusClass = 'danger';
+  else if (percentage >= warningThreshold) statusClass = 'warning';
 
   return (
-    <div className={`field-meter-container ${className}`}>
-      <meter
-        min={min}
-        max={max}
-        value={clamped}
-        aria-label={label}
-        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
-      >
-        {percentage}%
-      </meter>
+    <div className={mergeClassNames('field-meter-container', className)}>
       {(label || valueLabel) && (
         <div className="field-meter-header">
-          {label && <span>{label}</span>}
-          <span>{valueLabel || `${percentage}%`}</span>
+          {label && <span id={labelId}>{label}</span>}
+          <span aria-hidden="true">{valueLabel || `${percentage}%`}</span>
         </div>
       )}
-      <div className="field-meter-track">
-        <div
-          className={`field-meter-fill ${statusClass}`}
-          style={{ width: `${percentage}%` }}
-        />
+      <div
+        className="field-meter-track"
+        role="meter"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={clamped}
+        aria-valuetext={valueLabel || `${percentage}%`}
+        aria-labelledby={label ? labelId : undefined}
+      >
+        <div className={`field-meter-fill ${statusClass}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );

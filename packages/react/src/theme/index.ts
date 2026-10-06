@@ -1,2 +1,3 @@
-export * from './types';
-export * from './ThemeProvider';
+export * from './types.js';
+export * from './ThemeProvider.js';
+export * from './usePortalTheme.js';

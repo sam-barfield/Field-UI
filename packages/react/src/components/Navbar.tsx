@@ -872,7 +872,9 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
   const handleClick = (e: React.MouseEvent<any>) => {
     if (disabled) return;
     onClick?.(e);
-    if (isInMenu && !e.defaultPrevented) {
+    // A flyout trigger opens its accordion; only real items close the mobile menu.
+    const isFlyoutTrigger = !!(e.currentTarget as Element).closest('.field-navbar-flyout-trigger');
+    if (isInMenu && !isFlyoutTrigger && !e.defaultPrevented) {
       setIsMenuOpen(false);
     }
   };

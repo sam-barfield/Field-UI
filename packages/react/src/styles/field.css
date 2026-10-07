@@ -295,7 +295,7 @@ html[data-field-theme] {
 /* Button Variants */
 /* Primary: Tactile illuminated core with 1px top specular highlight */
 .field-btn-primary {
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
   border: 1px solid var(--field-border-highlight);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--field-border-highlight);
@@ -689,8 +689,8 @@ html[data-field-theme] {
   outline-offset: 2px;
 }
 .field-switch.checked {
-  background-color: var(--field-accent-text);
-  border-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
 }
 .field-switch-thumb {
   width: 18px;
@@ -730,8 +730,8 @@ html[data-field-theme] {
   outline-offset: 2px;
 }
 .field-checkbox.checked {
-  background-color: var(--field-accent-text);
-  border-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
   color: var(--field-accent-contrast, #FFFFFF);
 }
 .field-switch-sm {
@@ -1323,7 +1323,7 @@ html[data-field-theme] {
 }
 .field-tab-trigger.active {
   color: var(--field-text-primary);
-  border-bottom-color: var(--field-accent-text);
+  border-bottom-color: var(--field-accent-primary);
 }
 
 @media (max-width: 640px) {
@@ -1629,7 +1629,7 @@ html[data-field-theme] {
 }
 .field-progress-bar {
   height: 100%;
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   border-radius: var(--field-radius-full);
   transition: width var(--field-duration-normal) var(--field-ease-default);
 }
@@ -2187,9 +2187,9 @@ html[data-field-theme] {
   flex-shrink: 0;
 }
 .field-terminal-prompt-enter:hover {
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
-  border-color: var(--field-accent-text);
+  border-color: var(--field-accent-primary);
 }
 
 /* Minimal variant: flat panel for embedding in consoles and dashboards. */
@@ -2273,7 +2273,7 @@ button.field-datepicker-trigger {
   border-color: var(--field-border-strong);
 }
 .field-datepicker-trigger.active {
-  border-color: var(--field-accent-text);
+  border-color: var(--field-accent-primary);
   box-shadow: 0 0 0 2px var(--field-accent-subtle);
 }
 .field-datepicker.disabled .field-datepicker-trigger {
@@ -2456,20 +2456,20 @@ button.field-datepicker-trigger {
   font-weight: 600;
 }
 .field-datepicker-day.selected {
-  background-color: var(--field-accent-text) !important;
+  background-color: var(--field-accent-primary) !important;
   color: var(--field-accent-contrast) !important;
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 .field-datepicker-day.range-start {
-  background-color: var(--field-accent-text) !important;
+  background-color: var(--field-accent-primary) !important;
   color: var(--field-accent-contrast) !important;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   font-weight: 600;
 }
 .field-datepicker-day.range-end {
-  background-color: var(--field-accent-text) !important;
+  background-color: var(--field-accent-primary) !important;
   color: var(--field-accent-contrast) !important;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -2762,7 +2762,7 @@ button.field-datepicker-trigger {
   outline-offset: 2px;
 }
 .field-radio-button.checked {
-  border-color: var(--field-accent-text);
+  border-color: var(--field-accent-primary);
 }
 .field-radio-button.disabled {
   cursor: not-allowed;
@@ -2771,7 +2771,7 @@ button.field-datepicker-trigger {
   width: 8px;
   height: 8px;
   border-radius: var(--field-radius-full);
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
 }
 .field-radio-content {
   display: flex;
@@ -3295,8 +3295,8 @@ button.field-datepicker-trigger {
   border-color: var(--field-border-strong);
 }
 .field-pagination-btn.active {
-  background-color: var(--field-accent-text);
-  border-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
 }
 .field-pagination-btn:disabled {
@@ -3623,8 +3623,8 @@ button.field-datepicker-trigger {
   color: #FFFFFF;
 }
 .field-step-item.active .field-step-circle {
-  background-color: var(--field-accent-text);
-  border-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
+  border-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
   box-shadow: 0 0 0 3px var(--field-accent-subtle);
 }
@@ -4120,7 +4120,7 @@ button.field-datepicker-trigger {
   border-radius: var(--field-radius-full);
   transition: width var(--field-duration-normal) var(--field-ease-default);
 }
-.field-meter-fill.normal { background-color: var(--field-accent-text); }
+.field-meter-fill.normal { background-color: var(--field-accent-primary); }
 .field-meter-fill.warning { background-color: var(--field-status-warning-base); }
 .field-meter-fill.danger { background-color: var(--field-status-danger-base); }
 
@@ -4389,7 +4389,7 @@ button.field-datepicker-trigger {
   bottom: -1px;
   left: 0;
   height: 2px;
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   border-radius: 2px 2px 0 0;
   z-index: 2;
 }
@@ -4407,7 +4407,7 @@ button.field-datepicker-trigger {
   bottom: -1px;
   left: 0;
   height: 2.5px;
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   border-radius: var(--field-radius-full);
   z-index: 2;
   transform-origin: center bottom;
@@ -4801,7 +4801,7 @@ button.field-datepicker-trigger {
 .field-navbar-toggle.open {
   background-color: var(--field-surface-subtle);
   color: var(--field-accent-text);
-  border-color: var(--field-accent-text);
+  border-color: var(--field-accent-primary);
 }
 
 /* --- Animated Hamburger-to-X Morph --- */
@@ -5069,7 +5069,7 @@ button.field-datepicker-trigger {
 
 /* Accent band: brand colour background, contrast text, inverted buttons. */
 .field-section-accent {
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   --field-text-primary: var(--field-accent-contrast);
   --field-text-secondary: color-mix(in srgb, var(--field-accent-contrast) 86%, transparent);
   --field-text-tertiary: color-mix(in srgb, var(--field-accent-contrast) 72%, transparent);
@@ -5284,7 +5284,7 @@ body:has(.field-back-to-top) .field-footer-bottom {
   z-index: 2000;
   padding: var(--field-space-2) var(--field-space-4);
   border-radius: var(--field-radius-md);
-  background-color: var(--field-accent-text);
+  background-color: var(--field-accent-primary);
   color: var(--field-accent-contrast);
   font-family: var(--field-font-sans);
   font-weight: 600;
@@ -5539,7 +5539,7 @@ body:has(.field-back-to-top) .field-footer-bottom {
   background-color: var(--field-border-strong);
   transition: width var(--field-duration-fast) var(--field-ease-out), background-color var(--field-duration-fast) var(--field-ease-default);
 }
-.field-carousel-dot.active::before { width: 20px; background-color: var(--field-accent-text); }
+.field-carousel-dot.active::before { width: 20px; background-color: var(--field-accent-primary); }
 
 /* --- Cookie consent --- */
 .field-cookie-consent {

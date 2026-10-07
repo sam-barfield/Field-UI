@@ -5,39 +5,53 @@ import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Skeleton } from './Primitives.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** `interactive` adds hover elevation for clickable cards. */
+export interface CardProps extends React.HTMLAttributes<HTMLElement> {
+  /** `interactive` adds hover elevation for clickable cards. Defaults to `interactive` when `href` is set. */
   variant?: 'default' | 'interactive';
   /** Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`. */
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Makes the whole card a link (renders an `<a>`, or `as`). Do not nest other links or buttons inside. */
+  href?: string;
+  /** Link target, used with `href`. */
+  target?: string;
+  /** Link rel, used with `href`. */
+  rel?: string;
+  /** Element or component to render, e.g. `as="article"` or a router link with `href`. */
+  as?: React.ElementType;
   children: React.ReactNode;
 }
 
 /**
  * A raised surface for grouping related content. Compose with `CardHeader`,
- * `CardContent` and `CardFooter`.
+ * `CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make
+ * the whole card a link.
  *
  * @example
  * <Card>
  *   <CardHeader><Heading level={4}>Usage</Heading></CardHeader>
  *   <CardContent>…</CardContent>
  * </Card>
+ * <Card as={RouterLink} href="/pricing"><Heading level={3}>Pricing</Heading></Card>
  */
-export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ variant = 'default', padding = 'md', children, className = '', ...props }, ref) => {
+export const Card = forwardRef<HTMLElement, CardProps>(
+  ({ variant, padding = 'md', href, as, children, className = '', ...props }, ref) => {
+    const Tag: React.ElementType = as ?? (href ? 'a' : 'div');
+    const resolvedVariant = variant ?? (href ? 'interactive' : 'default');
     return (
-      <div
+      <Tag
         ref={ref}
+        href={href}
         className={mergeClassNames(
           'field-card',
-          variant === 'interactive' && 'field-card-interactive',
+          resolvedVariant === 'interactive' && 'field-card-interactive',
+          href && 'field-card-link',
           padding !== 'md' && `field-card-padding-${padding}`,
           className
         )}
         {...props}
       >
         {children}
-      </div>
+      </Tag>
     );
   }
 );

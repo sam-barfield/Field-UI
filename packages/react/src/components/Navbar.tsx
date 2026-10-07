@@ -25,6 +25,8 @@ export interface NavbarContextValue {
   density: 'default' | 'compact';
   floating: boolean;
   isScrolled: boolean;
+  /** True while `collapseBelow` has switched the bar to the mobile layout. */
+  isCollapsed: boolean;
   variant: NavbarVariant;
   animated: boolean;
   glow: boolean;
@@ -45,6 +47,7 @@ export const useNavbar = (): NavbarContextValue => {
       density: 'default',
       floating: false,
       isScrolled: false,
+      isCollapsed: false,
       variant: 'underline',
       animated: true,
       glow: true,
@@ -100,6 +103,12 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   transparentOnTop?: boolean;
   /** Max width of the inner content (`sm` 640px … `xl` 1280px, `full`, or any length). */
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | number | string;
+  /**
+   * Switch to the mobile layout (`NavbarToggle` shown, `hideOnMobile` content hidden) while the
+   * navbar is narrower than this: `sm` 640px … `xl` 1280px or a px number. Use it when many
+   * top-level items need more room than the default. The built-in 768px collapse always applies.
+   */
+  collapseBelow?: 'sm' | 'md' | 'lg' | 'xl' | number;
   /** Controlled open state of the mobile `NavbarMenu`. */
   isMenuOpen?: boolean;
   /** Initial mobile menu state when uncontrolled. */
@@ -124,6 +133,10 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   style?: React.CSSProperties;
   as?: React.ElementType;
 }
+
+const COLLAPSE_BREAKPOINTS = { sm: 640, md: 768, lg: 1024, xl: 1280 } as const;
+/** Width of the container query in field.css that always collapses the bar. */
+const DEFAULT_COLLAPSE_WIDTH = 768;
 
 const resolveMaxWidth = (
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | number | string
@@ -167,6 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   scrollContainerRef,
   transparentOnTop = false,
   maxWidth = 'full',
+  collapseBelow,
   isMenuOpen: controlledOpen,
   defaultMenuOpen = false,
   onMenuOpenChange,
@@ -184,8 +198,36 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(defaultMenuOpen);
   const isMenuOpen = controlledOpen ?? internalOpen;
+  const rootRef = useRef<HTMLElement | null>(null);
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const collapseWidth =
+    collapseBelow === undefined
+      ? undefined
+      : Math.max(
+          DEFAULT_COLLAPSE_WIDTH,
+          typeof collapseBelow === 'number' ? collapseBelow : COLLAPSE_BREAKPOINTS[collapseBelow]
+        );
+
+  // Same measurement as the CSS container query: the navbar's own inline size.
+  useIsomorphicLayoutEffect(() => {
+    const el = rootRef.current;
+    if (!el || collapseWidth === undefined) {
+      setIsCollapsed(false);
+      return;
+    }
+    const measure = () => setIsCollapsed(el.clientWidth < collapseWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measure);
+      return () => window.removeEventListener('resize', measure);
+    }
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [collapseWidth]);
 
   useEffect(() => {
     if (scrollBehavior === 'none' && !transparentOnTop) return;
@@ -219,9 +261,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     setIsMenuOpen(!isMenuOpen);
   }, [setIsMenuOpen, isMenuOpen]);
 
+  // Close the mobile menu when the bar grows back into the full layout.
+  useEffect(() => {
+    if (collapseWidth !== undefined && !isCollapsed && isMenuOpen) {
+      const el = rootRef.current;
+      if (el && el.clientWidth >= collapseWidth) setIsMenuOpen(false);
+    }
+  }, [collapseWidth, isCollapsed, isMenuOpen, setIsMenuOpen]);
+
   const contextValue = useMemo(
-    () => ({ isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness }),
-    [isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness]
+    () => ({ isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, isCollapsed, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness }),
+    [isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, isCollapsed, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness]
   );
 
   const shadowClass = useMemo(() => {
@@ -241,6 +291,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     scrollBehavior !== 'none' ? `field-navbar-scroll-${scrollBehavior}` : '',
     transparentOnTop && !isScrolled ? 'field-navbar-transparent' : '',
     isScrolled ? 'field-navbar-scrolled' : '',
+    isCollapsed ? 'field-navbar-collapsed' : '',
     className,
   ]
     .filter(Boolean)
@@ -250,7 +301,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <NavbarContext.Provider value={contextValue}>
-      <Component className={classNames} style={style} {...props}>
+      <Component ref={rootRef} className={classNames} style={style} {...props}>
         <nav
           aria-label={navLabel}
           className="field-navbar-container"
@@ -874,6 +925,8 @@ export interface NavbarFlyoutProps {
 
 /**
  * A dropdown / mega-menu panel opened from a navbar trigger. Becomes an inline accordion inside `NavbarMenu` on mobile.
+ * The panel closes when a link inside it is clicked, on Escape (focus returns to the trigger),
+ * on an outside click, and when keyboard focus leaves it.
  */
 export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
   trigger,
@@ -902,22 +955,46 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
 
   useEffect(() => {
     if (!open || isInMenu) return;
+    const isOutside = (target: EventTarget | null) =>
+      !!containerRef.current && !containerRef.current.contains(target as Node);
+    const focusTrigger = () => {
+      const trigger = containerRef.current?.querySelector<HTMLElement>('.field-navbar-flyout-trigger');
+      const target = trigger?.matches('[role="button"]')
+        ? trigger
+        : trigger?.querySelector<HTMLElement>('button, a[href], [tabindex]');
+      target?.focus();
+    };
+
     const handlePointerDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (isOutside(e.target)) setOpen(false);
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+      const active = document.activeElement;
+      const hadFocus = !isOutside(active) || active === document.body;
+      setOpen(false);
+      // The panel unmounts, so focus inside it would fall back to <body>.
+      if (hadFocus) focusTrigger();
+    };
+    const handleFocusIn = (e: FocusEvent) => {
+      if (isOutside(e.target)) setOpen(false);
     };
 
     document.addEventListener('mousedown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('focusin', handleFocusIn);
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('focusin', handleFocusIn);
     };
   }, [open, setOpen, isInMenu]);
+
+  // Close after navigating from inside the panel (client-side routers keep the navbar mounted).
+  const handlePanelClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.defaultPrevented) return;
+    if ((e.target as Element).closest('a[href], .field-navbar-flyout-item')) setOpen(false);
+  };
 
   // Keep the panel inside the navbar's horizontal bounds (and the viewport): shift it
   // sideways when the preferred alignment would overflow, and cap its width.
@@ -1042,6 +1119,7 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
           style={{ width: computedWidth }}
           role="dialog"
           aria-modal="false"
+          onClick={handlePanelClick}
         >
           {children}
         </div>
@@ -1269,7 +1347,7 @@ export interface NavbarMenuProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * The collapsible mobile navigation drawer. Items inside it close the menu when clicked; Escape also closes it.
+ * The collapsible mobile navigation drawer. Clicking any link inside it closes the menu; Escape also closes it.
  */
 export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   children,
@@ -1292,6 +1370,11 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
 
   if (!isMenuOpen) return null;
 
+  // NavbarItem / NavbarFlyoutItem close the menu themselves; this covers plain links and Buttons with href.
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!e.defaultPrevented && (e.target as Element).closest('a[href]')) setIsMenuOpen(false);
+  };
+
   const classNames = [
     'field-navbar-menu',
     'open',
@@ -1310,7 +1393,7 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
         style={style}
         {...props}
       >
-        <div className="field-navbar-menu-content">
+        <div className="field-navbar-menu-content" onClick={handleClick}>
           {children}
         </div>
       </div>

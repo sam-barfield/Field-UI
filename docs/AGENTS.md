@@ -105,8 +105,17 @@ const acme = createThemePair({
 // roasteryPair (cafés), workshopPair (trades), storefrontPair (shops), sagePair (wellness), counselPair (professional)
 <ThemeProvider themePair={roasteryPair} defaultMode="light">…</ThemeProvider>
 
-// Themes can set fonts: display (headings) and sans (body)
-createThemePair({ id: 'acme', shared: { fonts: { display: '"Fraunces", Georgia, serif' } } });
+// Themes can set fonts: display (headings) and sans (body), plus heading weight / tracking / width
+createThemePair({ id: 'acme', shared: { fonts: { display: '"Fraunces", Georgia, serif' }, typography: { displayWeight: 800 } } });
+
+// Brand colour that can't be both a fill and readable text in dark mode (reds, yellows):
+// accent.text is the accent as foreground (links, active nav); band themes photo / inverse bands.
+createThemePair({
+  id: 'brand',
+  dark: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF', text: '#FF6B61' } } },
+  band: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF' } } },
+  checkContrast: true, // warns about every pairing below WCAG AA; or call checkThemeContrast(theme)
+});
 ```
 
 ---
@@ -126,6 +135,7 @@ createThemePair({ id: 'acme', shared: { fonts: { display: '"Fraunces", Georgia, 
 | `--field-accent-primary` / `-hover` / `-active` | Brand / primary actions |
 | `--field-accent-subtle` | Tinted accent backgrounds |
 | `--field-accent-contrast` | Text on top of `accent-primary` |
+| `--field-accent-text` | Accent as text on surfaces (links, active nav); defaults to `accent-primary` |
 | `--field-status-{success,warning,danger,info}-{base,surface,border,text}` | Status colours |
 | `--field-space-1` … `--field-space-24` | 4px scale (`--field-space-1_5` = 6px) |
 | `--field-radius-xs` / `-sm` / `-md` / `-lg` / `-xl` / `-full` | 3 / 6 / 8 / 12 / 16 px / pill (default theme) |
@@ -330,5 +340,9 @@ showToast({ title: 'Saved', variant: 'success', action: { label: 'Undo', onClick
 - **CookieConsent**: mount once; gate optional scripts on `useCookieConsent().consent?.analytics`; `openPreferences()` for a footer "Cookie settings" link.
 - **Link** for inline text links (underlined by default, `external` for new tabs); **Button** with `href` for standalone actions.
 - **Badge** sizes `sm | md | lg`; **Alert** has `actions` and `onClose`; **StatCard** has `invertTrendColors`.
+- **Navbar**: `collapseBelow="lg"` (or px) collapses to the toggle + `NavbarMenu` earlier than the default 768px; put desktop links in `<NavbarContent hideOnMobile>`. Flyouts close on link click, focus-out, outside click and Escape, so no controlled state is needed for client-side routing. In `NavbarMenu`, use `NavbarItem`s inside `NavbarFlyout` accordions.
+- **Card** with `href` (and `as={Link}`) is a whole-card link; don't nest links or buttons inside it. **EmptyState** `titleAs="h1"` for 404 pages. **Select** puts `id` on its focusable trigger, so error summaries can link to `#id`.
+- **Stack** (default `align="stretch"`) leaves direct `img` / `svg` / `video` children at their own width. **Grid** `align="center"` vertically centres cells (e.g. text beside an image).
+- **Checkbox** takes `error` like the other form controls (required consent boxes).
 - **Narrow screens**: horizontal **Stepper** shows only the current step's label below 640px (keep titles short, or use `orientation="vertical"`); **SegmentedControl** scrolls inside its box when labels don't fit; **TerminalHeader** children wrap below the title; **UnfoldingHeading** `lg` / `xl` shrink on phones. Wrap rows of buttons with `<Flex wrap="wrap">` and stack grids with `columns={{ base: 1, md: 3 }}`; fixed multi-column layouts are the usual cause of mobile overflow.
 - Components are marked `'use client'`, so they can be imported in Next.js Server Components; hooks still need a client component.

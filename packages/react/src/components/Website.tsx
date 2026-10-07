@@ -17,13 +17,17 @@ interface SurfaceProps extends React.HTMLAttributes<HTMLElement> {
   forceDark?: boolean;
 }
 
-/** Renders a plain element, or a ThemeScope when the tone needs the opposite (or dark) theme. */
+/**
+ * Renders a plain element, or a ThemeScope when the tone needs the opposite (or dark) theme.
+ * Forced-dark bands use the pair's `band` theme when it has one.
+ */
 const Surface: React.FC<SurfaceProps> = ({ as, tone, forceDark, className, children, ...props }) => {
-  const { mode } = useThemeSafe();
+  const { mode, themePair } = useThemeSafe();
   if (tone === 'inverse' || forceDark) {
     const scopeMode = forceDark ? 'dark' : mode === 'dark' ? 'light' : 'dark';
+    const bandTheme = scopeMode === 'dark' ? themePair?.band : undefined;
     return (
-      <ThemeScope as={as} mode={scopeMode} className={className} {...props}>
+      <ThemeScope as={as} mode={scopeMode} theme={bandTheme} className={className} {...props}>
         {children}
       </ThemeScope>
     );
@@ -47,7 +51,10 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   spacing?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   /** Wraps children in a `Container` of this width. Pass `false` for full-bleed content. Default `xl`. */
   container?: ContainerProps['maxWidth'] | false;
-  /** Cover image behind the content. The section switches to dark text styles and adds `overlay`. */
+  /**
+   * Cover image behind the content. The section switches to the dark theme (or the pair's
+   * `band` theme, see `createThemePair`) and adds `overlay`.
+   */
   backgroundImage?: string;
   /** Darkness of the overlay over `backgroundImage`, 0 to 1. Default `0.55`. */
   overlay?: number;

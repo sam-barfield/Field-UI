@@ -297,10 +297,38 @@ export const acme = createThemePair({
         <C>display</C> is used by headings, <C>sans</C> by body text and controls.
       </P>
       <P>
-        For a single theme use <C>createTheme({'{'} id, base, semantics, radii, fonts {'}'})</C>. The{' '}
+        For a single theme use <C>createTheme({'{'} id, base, semantics, radii, fonts, typography {'}'})</C>. The{' '}
         <DocLink to="theme-editor">Theme Editor</DocLink> lets you design a theme visually and export it as CSS, DTCG
         JSON or TypeScript.
       </P>
+    </Section>
+
+    <Section id="brand-colours" title="Brand colours that fight dark mode">
+      <P>
+        <C>accent.primary</C> is a fill (buttons, with <C>accent.contrast</C> text on it). <C>accent.text</C> is the
+        accent as foreground: links, <C>{'Text tone="accent"'}</C>, active nav items. It defaults to the primary colour.
+        Set it when one colour can't do both, typically a red or yellow brand in dark mode. Use <C>band</C> to give
+        photo and inverse bands their own dark theme, and <C>typography</C> for heading weight, tracking and width.
+      </P>
+      <Snippet
+        code={`import { createThemePair, checkThemeContrast } from '@sam.barfield/field-tokens';
+
+export const brand = createThemePair({
+  id: 'brand',
+  shared: {
+    fonts: { display: '"Archivo", system-ui, sans-serif', sans: '"Lato", system-ui, sans-serif' },
+    typography: { displayWeight: 800, headingTracking: 0.5 },
+  },
+  light: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF' } } },
+  // Dark mode: white text on red fills, a lighter red wherever red is text.
+  dark: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF', text: '#FF6B61' } } },
+  // Photo bands keep the true brand red.
+  band: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF' } } },
+  checkContrast: true, // console.warn every pairing below WCAG AA while you design
+});
+
+checkThemeContrast(brand.dark).filter(c => !c.pass); // or check in a test / script`}
+      />
     </Section>
 
     <Section id="scoped" title="Scoped themes">
@@ -444,7 +472,7 @@ const TOKEN_GROUPS: { title: string; vars: string[]; note?: string }[] = [
   { title: 'Surfaces', vars: ['--field-surface-base', '--field-surface-raised', '--field-surface-overlay', '--field-surface-sunken', '--field-surface-subtle', '--field-surface-active'], note: 'base is the page; raised is cards; overlay is popovers and dialogs; sunken is inputs and wells.' },
   { title: 'Text', vars: ['--field-text-primary', '--field-text-secondary', '--field-text-tertiary', '--field-text-disabled', '--field-text-inverse'] },
   { title: 'Borders', vars: ['--field-border-subtle', '--field-border-default', '--field-border-strong', '--field-border-focus'] },
-  { title: 'Accent', vars: ['--field-accent-primary', '--field-accent-hover', '--field-accent-active', '--field-accent-subtle', '--field-accent-contrast'], note: 'contrast is the text colour to use on top of accent-primary.' },
+  { title: 'Accent', vars: ['--field-accent-primary', '--field-accent-hover', '--field-accent-active', '--field-accent-subtle', '--field-accent-contrast', '--field-accent-text'], note: 'contrast is the text colour on top of accent-primary; accent-text is the accent used as text on surfaces (links, active nav).' },
   { title: 'Status (success, warning, danger, info)', vars: ['--field-status-success-base', '--field-status-success-surface', '--field-status-success-border', '--field-status-success-text'], note: 'Same four tokens for each status.' },
   { title: 'Spacing', vars: ['--field-space-1 (4px)', '--field-space-2 (8px)', '--field-space-3 (12px)', '--field-space-4 (16px)', '--field-space-6 (24px)', '--field-space-8 (32px)'], note: 'Half steps use an underscore: --field-space-1_5 = 6px.' },
   { title: 'Radius, shadow, type, motion', vars: ['--field-radius-sm … --field-radius-xl, --field-radius-full', '--field-shadow-xs … --field-shadow-xl', '--field-font-sans, --field-font-mono', '--field-duration-fast, --field-ease-default'] },

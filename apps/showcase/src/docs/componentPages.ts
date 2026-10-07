@@ -138,6 +138,7 @@ export const componentPages: ComponentPageDef[] = [
       'Implements the WAI-ARIA "select-only combobox" pattern with aria-activedescendant.',
       'The listbox is portalled, so it works inside modals, cards and tables.',
       'Pass name to submit the value with a native <form> (a hidden input is rendered).',
+      'id goes on the focusable trigger button, so an error summary can link to #id and the label is associated with it.',
     ],
     keyboard: [
       { keys: ['↓', '↑'], description: 'Open the list / move the highlighted option.' },
@@ -277,7 +278,12 @@ export const componentPages: ComponentPageDef[] = [
     category: 'Layout',
     summary: 'A raised surface that groups related content, with header, content and footer slots.',
     api: ['Card', 'CardHeader', 'CardContent', 'CardFooter'],
-    whenToUse: ['Grouping a form section, a chart, or a summary on a dashboard.', 'variant="interactive" for clickable cards (add a link or onClick).'],
+    whenToUse: [
+      'Grouping a form section, a chart, or a summary on a dashboard.',
+      'href (plus as={Link} for a router) makes the whole card a link with hover elevation.',
+    ],
+    whenNotToUse: ['Link cards that also contain buttons or other links: nested interactive elements are invalid. Put a link in the card title instead.'],
+    accessibility: ['A card with href renders an <a>, so it is focusable and opens with Enter. Avoid role="link" with onClick, which needs its own keyboard handling.'],
     related: ['metrics', 'layout'],
   },
 
@@ -297,6 +303,7 @@ export const componentPages: ComponentPageDef[] = [
     accessibility: [
       'Renders a <section>; label it with aria-labelledby pointing at its heading so it becomes a navigable landmark.',
       'backgroundImage is decorative (CSS); put meaningful images in an Image with alt text. Check text contrast against your photo and raise overlay if needed.',
+      'Photo and inverse bands on a light page use the dark theme, or the pair\'s band theme when createThemePair({ band }) sets one (e.g. to keep the true brand colour on photos).',
     ],
     related: ['page-sections', 'layout', 'footer'],
   },
@@ -416,10 +423,14 @@ export const componentPages: ComponentPageDef[] = [
     category: 'Navigation',
     summary: 'A responsive top navigation bar with animated active indicators, flyout mega-menus and a mobile drawer.',
     api: ['Navbar', 'NavbarBrand', 'NavbarContent', 'NavbarItem', 'NavbarFlyout', 'NavbarFlyoutGrid', 'NavbarFlyoutItem', 'NavbarActions', 'NavbarToggle', 'NavbarMenu'],
-    whenToUse: ['Top-level navigation across 3-7 sections of an app or marketing site.'],
+    whenToUse: [
+      'Top-level navigation across 3-7 sections of an app or marketing site.',
+      'Many or long top-level items: set collapseBelow="lg" (or a px width) so the bar switches to the toggle and menu before items collide. The default collapse is 768px.',
+    ],
     accessibility: [
       'Renders <header> with a labelled <nav> landmark; the active item gets aria-current="page".',
       'NavbarToggle exposes aria-expanded and controls the mobile menu; Escape closes the menu.',
+      'A NavbarFlyout closes when a link inside it is clicked, when focus leaves it, on outside click and on Escape (focus returns to the trigger).',
       'Use asChild or as={Link} on items so client-side routers keep working.',
     ],
     related: ['sidebar', 'routing-guide'],
@@ -545,6 +556,7 @@ export const componentPages: ComponentPageDef[] = [
     summary: 'Explains why a view is empty and what to do next.',
     api: ['EmptyState'],
     whenToUse: ['Empty lists, no search results, first-run screens. Always offer a next step when there is one.'],
+    accessibility: ['The title is a <div> by default; set titleAs="h1" (404 pages) or "h2" when it should be a heading.'],
     related: ['table'],
   },
   {

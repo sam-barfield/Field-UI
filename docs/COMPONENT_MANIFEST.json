@@ -1,7 +1,7 @@
 {
   "name": "Field Design System Component Manifest",
   "package": "@sam.barfield/field-react",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "generatedBy": "scripts/generate-manifest.mjs - do not edit by hand",
   "components": {
     "Accordion": {
@@ -405,19 +405,38 @@
     "Card": {
       "category": "Data Display",
       "source": "packages/react/src/components/Card.tsx",
-      "description": "A raised surface for grouping related content. Compose with `CardHeader`,\n`CardContent` and `CardFooter`.",
+      "description": "A raised surface for grouping related content. Compose with `CardHeader`,\n`CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make\nthe whole card a link.",
       "props": {
         "variant": {
           "type": "\"default\" | \"interactive\"",
           "required": false,
-          "default": "'default'",
-          "description": "`interactive` adds hover elevation for clickable cards."
+          "description": "`interactive` adds hover elevation for clickable cards. Defaults to `interactive` when `href` is set."
         },
         "padding": {
           "type": "\"none\" | \"sm\" | \"md\" | \"lg\"",
           "required": false,
           "default": "'md'",
           "description": "Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`."
+        },
+        "href": {
+          "type": "string",
+          "required": false,
+          "description": "Makes the whole card a link (renders an `<a>`, or `as`). Do not nest other links or buttons inside."
+        },
+        "target": {
+          "type": "string",
+          "required": false,
+          "description": "Link target, used with `href`."
+        },
+        "rel": {
+          "type": "string",
+          "required": false,
+          "description": "Link rel, used with `href`."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Element or component to render, e.g. `as=\"article\"` or a router link with `href`."
         },
         "children": {
           "type": "ReactNode",
@@ -426,10 +445,10 @@
         }
       },
       "inherits": [
-        "HTMLAttributes<HTMLDivElement>"
+        "HTMLAttributes<HTMLElement>"
       ],
       "examples": [
-        "<Card>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n</Card>"
+        "<Card>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n</Card>\n<Card as={RouterLink} href=\"/pricing\"><Heading level={3}>Pricing</Heading></Card>"
       ]
     },
     "CardContent": {
@@ -575,6 +594,11 @@
           "default": "false",
           "description": "Shows a dash and reports \"mixed\" to assistive tech (e.g. a partially selected \"select all\")."
         },
+        "error": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Error message shown under the checkbox; also sets `aria-invalid` and links the message with `aria-describedby`."
+        },
         "className": {
           "type": "string",
           "required": false,
@@ -585,7 +609,7 @@
         "NativeCheckboxProps"
       ],
       "examples": [
-        "<Checkbox label=\"I accept the terms\" checked={accepted} onChange={setAccepted} />"
+        "<Checkbox label=\"I accept the terms\" checked={accepted} onChange={setAccepted} />\n<Checkbox id=\"consent\" required label=\"I agree to the privacy policy\" error={errors.consent} />"
       ]
     },
     "Code": {
@@ -1618,6 +1642,12 @@
           "required": false,
           "description": "Call to action, e.g. a primary `Button`."
         },
+        "titleAs": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "default": "'div'",
+          "description": "Element for the title, e.g. `h1` on a 404 page or `h2` inside a page section. Default `div`."
+        },
         "className": {
           "type": "string",
           "required": false,
@@ -1917,6 +1947,11 @@
           "required": false,
           "default": "16",
           "description": "Space between cells; accepts a breakpoint object."
+        },
+        "align": {
+          "type": "Responsive<\"center\" | \"stretch\" | \"end\" | \"start\" | \"baseline\">",
+          "required": false,
+          "description": "Vertical alignment of items within their row (`align-items`). Default `stretch`; accepts a breakpoint object."
         },
         "children": {
           "type": "ReactNode",
@@ -2435,6 +2470,11 @@
           "default": "'full'",
           "description": "Max width of the inner content (`sm` 640px … `xl` 1280px, `full`, or any length)."
         },
+        "collapseBelow": {
+          "type": "number | \"sm\" | \"md\" | \"lg\" | \"xl\"",
+          "required": false,
+          "description": "Switch to the mobile layout (`NavbarToggle` shown, `hideOnMobile` content hidden) while the\nnavbar is narrower than this: `sm` 640px … `xl` 1280px or a px number. Use it when many\ntop-level items need more room than the default. The built-in 768px collapse always applies."
+        },
         "isMenuOpen": {
           "type": "boolean",
           "required": false,
@@ -2673,7 +2713,7 @@
     "NavbarFlyout": {
       "category": "Navigation",
       "source": "packages/react/src/components/Navbar.tsx",
-      "description": "A dropdown / mega-menu panel opened from a navbar trigger. Becomes an inline accordion inside `NavbarMenu` on mobile.",
+      "description": "A dropdown / mega-menu panel opened from a navbar trigger. Becomes an inline accordion inside `NavbarMenu` on mobile.\nThe panel closes when a link inside it is clicked, on Escape (focus returns to the trigger),\non an outside click, and when keyboard focus leaves it.",
       "props": {
         "trigger": {
           "type": "ReactNode",
@@ -2893,7 +2933,7 @@
     "NavbarMenu": {
       "category": "Navigation",
       "source": "packages/react/src/components/Navbar.tsx",
-      "description": "The collapsible mobile navigation drawer. Items inside it close the menu when clicked; Escape also closes it.",
+      "description": "The collapsible mobile navigation drawer. Clicking any link inside it closes the menu; Escape also closes it.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -3419,7 +3459,7 @@
         "backgroundImage": {
           "type": "string",
           "required": false,
-          "description": "Cover image behind the content. The section switches to dark text styles and adds `overlay`."
+          "description": "Cover image behind the content. The section switches to the dark theme (or the pair's\n`band` theme, see `createThemePair`) and adds `overlay`."
         },
         "overlay": {
           "type": "number",
@@ -4298,7 +4338,7 @@
           "type": "Responsive<\"center\" | \"stretch\" | \"flex-end\" | \"flex-start\">",
           "required": false,
           "default": "'stretch'",
-          "description": "Horizontal alignment of children; accepts a breakpoint object."
+          "description": "Horizontal alignment of children; accepts a breakpoint object. With the default `stretch`,\ndirect `img`, `svg`, `video` and `canvas` children keep their own width so they are not distorted."
         },
         "children": {
           "type": "ReactNode",

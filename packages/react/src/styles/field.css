@@ -115,18 +115,21 @@ html[data-field-theme] {
   text-wrap: balance;
   font-family: var(--field-font-display, var(--field-font-sans));
   color: var(--field-text-primary);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  /* Theme typography: --field-heading-weight / --field-display-weight, a tracking multiplier and font-stretch. */
+  font-weight: var(--field-heading-weight, 600);
+  font-stretch: var(--field-heading-stretch, normal);
+  --field-heading-ls: -0.02em;
+  letter-spacing: calc(var(--field-heading-ls) * var(--field-heading-tracking, 1));
 }
-.field-heading-1 { font-size: 2.25rem; line-height: 2.5rem; letter-spacing: -0.025em; font-weight: 700; }
-.field-heading-2 { font-size: 1.75rem; line-height: 2rem; letter-spacing: -0.02em; font-weight: 600; }
-.field-heading-3 { font-size: 1.25rem; line-height: 1.625rem; letter-spacing: -0.015em; font-weight: 600; }
-.field-heading-4 { font-size: 1.05rem; line-height: 1.5rem; letter-spacing: -0.01em; font-weight: 600; }
+.field-heading-1 { font-size: 2.25rem; line-height: 2.5rem; --field-heading-ls: -0.025em; font-weight: var(--field-display-weight, 700); }
+.field-heading-2 { font-size: 1.75rem; line-height: 2rem; --field-heading-ls: -0.02em; }
+.field-heading-3 { font-size: 1.25rem; line-height: 1.625rem; --field-heading-ls: -0.015em; }
+.field-heading-4 { font-size: 1.05rem; line-height: 1.5rem; --field-heading-ls: -0.01em; }
 /* Display sizes: fluid between phone and desktop for hero and section headlines. */
-.field-heading.field-heading-display-sm { font-size: clamp(1.875rem, 1.45rem + 1.8vw, 2.5rem); line-height: 1.12; letter-spacing: -0.025em; font-weight: 700; }
-.field-heading.field-heading-display-md { font-size: clamp(2.125rem, 1.5rem + 2.8vw, 3.25rem); line-height: 1.08; letter-spacing: -0.03em; font-weight: 700; }
-.field-heading.field-heading-display-lg { font-size: clamp(2.5rem, 1.6rem + 4vw, 4.25rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; }
-.field-heading.field-heading-display-xl { font-size: clamp(2.75rem, 1.4rem + 6vw, 5.5rem); line-height: 1; letter-spacing: -0.04em; font-weight: 750; }
+.field-heading.field-heading-display-sm { font-size: clamp(1.875rem, 1.45rem + 1.8vw, 2.5rem); line-height: 1.12; --field-heading-ls: -0.025em; font-weight: var(--field-display-weight, 700); }
+.field-heading.field-heading-display-md { font-size: clamp(2.125rem, 1.5rem + 2.8vw, 3.25rem); line-height: 1.08; --field-heading-ls: -0.03em; font-weight: var(--field-display-weight, 700); }
+.field-heading.field-heading-display-lg { font-size: clamp(2.5rem, 1.6rem + 4vw, 4.25rem); line-height: 1.04; --field-heading-ls: -0.035em; font-weight: var(--field-display-weight, 700); }
+.field-heading.field-heading-display-xl { font-size: clamp(2.75rem, 1.4rem + 6vw, 5.5rem); line-height: 1; --field-heading-ls: -0.04em; font-weight: calc(var(--field-display-weight, 700) + 50); }
 
 .field-text {
   margin: 0;
@@ -138,7 +141,7 @@ html[data-field-theme] {
 .field-text-primary { color: var(--field-text-primary); }
 .field-text-secondary { color: var(--field-text-secondary); }
 .field-text-tertiary { color: var(--field-text-tertiary); }
-.field-text-accent { color: var(--field-accent-primary); }
+.field-text-accent { color: var(--field-accent-text); }
 .field-text-success { color: var(--field-status-success-text); }
 .field-text-warning { color: var(--field-status-warning-text); }
 .field-text-danger { color: var(--field-status-danger-text); }
@@ -292,7 +295,7 @@ html[data-field-theme] {
 /* Button Variants */
 /* Primary: Tactile illuminated core with 1px top specular highlight */
 .field-btn-primary {
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   color: var(--field-accent-contrast);
   border: 1px solid var(--field-border-highlight);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--field-border-highlight);
@@ -639,6 +642,18 @@ html[data-field-theme] {
 .field-checkbox-root .field-checkbox {
   margin-top: 1px;
 }
+.field-checkbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-space-1);
+}
+/* Line the message up with the label text (checkbox width + gap). */
+.field-checkbox-field > .field-error-text {
+  padding-inline-start: calc(18px + var(--field-space-2));
+}
+.field-checkbox-root.error .field-checkbox {
+  border-color: var(--field-status-danger-base);
+}
 .field-control-input:focus-visible + .field-switch,
 .field-control-input:focus-visible + .field-checkbox,
 .field-control-input:focus-visible + .field-radio-button {
@@ -674,8 +689,8 @@ html[data-field-theme] {
   outline-offset: 2px;
 }
 .field-switch.checked {
-  background-color: var(--field-accent-primary);
-  border-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
+  border-color: var(--field-accent-text);
 }
 .field-switch-thumb {
   width: 18px;
@@ -715,8 +730,8 @@ html[data-field-theme] {
   outline-offset: 2px;
 }
 .field-checkbox.checked {
-  background-color: var(--field-accent-primary);
-  border-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
+  border-color: var(--field-accent-text);
   color: var(--field-accent-contrast, #FFFFFF);
 }
 .field-switch-sm {
@@ -978,6 +993,15 @@ html[data-field-theme] {
   outline: 2px solid var(--field-border-focus);
   outline-offset: 2px;
 }
+.field-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.field-card-link:focus-visible {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 2px;
+}
 
 /* --- Badges & Tags --- */
 .field-badge {
@@ -1013,7 +1037,7 @@ html[data-field-theme] {
 }
 .field-badge-accent {
   background-color: var(--field-accent-subtle);
-  color: var(--field-accent-hover, var(--field-accent-primary));
+  color: var(--field-accent-text);
   border-color: var(--field-accent-border, color-mix(in srgb, var(--field-accent-primary) 28%, transparent));
 }
 .field-badge-success {
@@ -1299,7 +1323,7 @@ html[data-field-theme] {
 }
 .field-tab-trigger.active {
   color: var(--field-text-primary);
-  border-bottom-color: var(--field-accent-primary);
+  border-bottom-color: var(--field-accent-text);
 }
 
 @media (max-width: 640px) {
@@ -1385,7 +1409,7 @@ html[data-field-theme] {
   flex-shrink: 0;
 }
 .field-table-sort-icon.active {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 
 /* --- Stat Card --- */
@@ -1605,7 +1629,7 @@ html[data-field-theme] {
 }
 .field-progress-bar {
   height: 100%;
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   border-radius: var(--field-radius-full);
   transition: width var(--field-duration-normal) var(--field-ease-default);
 }
@@ -1664,7 +1688,7 @@ html[data-field-theme] {
   height: 28px;
   border-radius: var(--field-radius-sm);
   background-color: var(--field-accent-subtle);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 .field-sidebar-title {
   font-size: 0.875rem;
@@ -1772,7 +1796,7 @@ html[data-field-theme] {
 }
 .field-sidebar-item.active {
   background-color: var(--field-surface-subtle);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   font-weight: 600;
   border-color: var(--field-border-default);
 }
@@ -1789,7 +1813,7 @@ html[data-field-theme] {
   height: 18px;
 }
 .field-sidebar-item.active .field-sidebar-item-icon {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 .field-sidebar-item-label {
   flex: 1;
@@ -1881,7 +1905,7 @@ html[data-field-theme] {
 }
 .field-sidebar-subitem.active {
   background-color: var(--field-surface-subtle);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   font-weight: 600;
 }
 .field-sidebar-subitem-label {
@@ -1991,7 +2015,7 @@ html[data-field-theme] {
 .field-terminal-dots .dot-maximize { background-color: #10B981; }
 
 .field-terminal-icon {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   flex-shrink: 0;
 }
 
@@ -2100,7 +2124,7 @@ html[data-field-theme] {
 }
 
 .field-terminal-line.level-cmd {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   font-weight: 600;
 }
 .field-terminal-line.level-info .field-terminal-text { color: var(--field-text-primary); }
@@ -2127,7 +2151,7 @@ html[data-field-theme] {
   user-select: none;
   flex-shrink: 0;
 }
-.field-terminal-prompt-label .user { color: var(--field-accent-primary); }
+.field-terminal-prompt-label .user { color: var(--field-accent-text); }
 .field-terminal-prompt-label .sep { color: var(--field-text-tertiary); }
 .field-terminal-prompt-label .path { color: var(--field-status-success-base); }
 .field-terminal-prompt-label .symbol { color: var(--field-text-secondary); margin-left: 2px; }
@@ -2163,9 +2187,9 @@ html[data-field-theme] {
   flex-shrink: 0;
 }
 .field-terminal-prompt-enter:hover {
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   color: var(--field-accent-contrast);
-  border-color: var(--field-accent-primary);
+  border-color: var(--field-accent-text);
 }
 
 /* Minimal variant: flat panel for embedding in consoles and dashboards. */
@@ -2249,7 +2273,7 @@ button.field-datepicker-trigger {
   border-color: var(--field-border-strong);
 }
 .field-datepicker-trigger.active {
-  border-color: var(--field-accent-primary);
+  border-color: var(--field-accent-text);
   box-shadow: 0 0 0 2px var(--field-accent-subtle);
 }
 .field-datepicker.disabled .field-datepicker-trigger {
@@ -2263,7 +2287,7 @@ button.field-datepicker-trigger {
 }
 .field-datepicker-trigger:hover .field-datepicker-icon,
 .field-datepicker-trigger.active .field-datepicker-icon {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 
 .field-datepicker-value {
@@ -2432,20 +2456,20 @@ button.field-datepicker-trigger {
   font-weight: 600;
 }
 .field-datepicker-day.selected {
-  background-color: var(--field-accent-primary) !important;
+  background-color: var(--field-accent-text) !important;
   color: var(--field-accent-contrast) !important;
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 .field-datepicker-day.range-start {
-  background-color: var(--field-accent-primary) !important;
+  background-color: var(--field-accent-text) !important;
   color: var(--field-accent-contrast) !important;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   font-weight: 600;
 }
 .field-datepicker-day.range-end {
-  background-color: var(--field-accent-primary) !important;
+  background-color: var(--field-accent-text) !important;
   color: var(--field-accent-contrast) !important;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -2453,7 +2477,7 @@ button.field-datepicker-trigger {
 }
 .field-datepicker-day.in-range {
   background-color: var(--field-accent-subtle);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   border-radius: 0;
 }
 .field-datepicker-day:disabled {
@@ -2555,7 +2579,7 @@ button.field-datepicker-trigger {
 }
 .field-spinner-wrapper {
   display: inline-flex;
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 
 /* ==========================================================================
@@ -2677,7 +2701,7 @@ button.field-datepicker-trigger {
 }
 .field-select-check {
   flex-shrink: 0;
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 .field-select-option.selected {
   background-color: var(--field-accent-subtle);
@@ -2738,7 +2762,7 @@ button.field-datepicker-trigger {
   outline-offset: 2px;
 }
 .field-radio-button.checked {
-  border-color: var(--field-accent-primary);
+  border-color: var(--field-accent-text);
 }
 .field-radio-button.disabled {
   cursor: not-allowed;
@@ -2747,7 +2771,7 @@ button.field-datepicker-trigger {
   width: 8px;
   height: 8px;
   border-radius: var(--field-radius-full);
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
 }
 .field-radio-content {
   display: flex;
@@ -2936,7 +2960,7 @@ button.field-datepicker-trigger {
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   cursor: pointer;
 }
 .field-toast-action:hover {
@@ -3152,7 +3176,7 @@ button.field-datepicker-trigger {
   color: var(--field-text-secondary);
 }
 .field-command-item.selected .field-command-item-icon {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
 }
 .field-command-item-desc {
   font-size: 0.75rem;
@@ -3271,8 +3295,8 @@ button.field-datepicker-trigger {
   border-color: var(--field-border-strong);
 }
 .field-pagination-btn.active {
-  background-color: var(--field-accent-primary);
-  border-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
+  border-color: var(--field-accent-text);
   color: var(--field-accent-contrast);
 }
 .field-pagination-btn:disabled {
@@ -3432,8 +3456,9 @@ button.field-datepicker-trigger {
 .field-empty-state-title {
   font-size: 1.0625rem;
   font-weight: 600;
+  line-height: 1.4;
   color: var(--field-text-primary);
-  margin-bottom: 6px;
+  margin: 0 0 6px;
 }
 .field-empty-state-desc {
   font-size: 0.875rem;
@@ -3598,8 +3623,8 @@ button.field-datepicker-trigger {
   color: #FFFFFF;
 }
 .field-step-item.active .field-step-circle {
-  background-color: var(--field-accent-primary);
-  border-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
+  border-color: var(--field-accent-text);
   color: var(--field-accent-contrast);
   box-shadow: 0 0 0 3px var(--field-accent-subtle);
 }
@@ -4095,7 +4120,7 @@ button.field-datepicker-trigger {
   border-radius: var(--field-radius-full);
   transition: width var(--field-duration-normal) var(--field-ease-default);
 }
-.field-meter-fill.normal { background-color: var(--field-accent-primary); }
+.field-meter-fill.normal { background-color: var(--field-accent-text); }
 .field-meter-fill.warning { background-color: var(--field-status-warning-base); }
 .field-meter-fill.danger { background-color: var(--field-status-danger-base); }
 
@@ -4345,7 +4370,7 @@ button.field-datepicker-trigger {
 }
 
 .field-navbar-item-ghost.active {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   background-color: color-mix(in srgb, var(--field-accent-primary) 10%, transparent);
 }
 
@@ -4364,7 +4389,7 @@ button.field-datepicker-trigger {
   bottom: -1px;
   left: 0;
   height: 2px;
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   border-radius: 2px 2px 0 0;
   z-index: 2;
 }
@@ -4382,7 +4407,7 @@ button.field-datepicker-trigger {
   bottom: -1px;
   left: 0;
   height: 2.5px;
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   border-radius: var(--field-radius-full);
   z-index: 2;
   transform-origin: center bottom;
@@ -4611,7 +4636,7 @@ button.field-datepicker-trigger {
   border-radius: var(--field-radius-sm);
   background-color: var(--field-surface-raised);
   border: 1px solid var(--field-border-default);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -4674,6 +4699,13 @@ button.field-datepicker-trigger {
   padding: 0;
   height: auto;
   width: auto;
+  flex: 1;
+  background-color: transparent;
+}
+
+/* An active trigger highlights the whole row, not just its label. */
+.field-navbar-flyout-container.in-menu .field-navbar-flyout-trigger:has(.field-navbar-item.active) {
+  background-color: var(--field-surface-active);
 }
 
 .field-navbar-flyout-accordion {
@@ -4693,16 +4725,30 @@ button.field-datepicker-trigger {
   gap: 6px !important;
 }
 
+/* Inside the mobile menu, flyout cards become plain rows. */
 .field-navbar-flyout-accordion .field-navbar-flyout-item {
-  padding: 8px 10px;
-  background-color: var(--field-surface-base);
-  border: 1px solid var(--field-border-subtle);
-  border-radius: var(--field-radius-sm);
+  align-items: center;
+  padding: var(--field-space-2) var(--field-space-3);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .field-navbar-flyout-accordion .field-navbar-flyout-item:hover {
   background-color: var(--field-surface-subtle);
-  border-color: var(--field-border-strong);
+  border-color: transparent;
+}
+
+.field-navbar-flyout-accordion .field-navbar-flyout-item-icon {
+  width: auto;
+  height: auto;
+  margin-top: 0;
+  background: none;
+  border: 0;
+}
+
+.field-navbar-flyout-accordion .field-navbar-flyout-item-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4754,8 +4800,8 @@ button.field-datepicker-trigger {
 
 .field-navbar-toggle.open {
   background-color: var(--field-surface-subtle);
-  color: var(--field-accent-primary);
-  border-color: var(--field-accent-primary);
+  color: var(--field-accent-text);
+  border-color: var(--field-accent-text);
 }
 
 /* --- Animated Hamburger-to-X Morph --- */
@@ -4880,7 +4926,7 @@ button.field-datepicker-trigger {
 
 .field-navbar-menu .field-navbar-item.active {
   background-color: var(--field-surface-active);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   font-weight: 600;
 }
 
@@ -4901,6 +4947,15 @@ button.field-datepicker-trigger {
 /* ==========================================================================
    Responsive Navbar Behavior (Container Queries + Media Queries)
    ========================================================================== */
+
+/* `collapseBelow`: Navbar measures itself and adds this class below the chosen width. */
+.field-navbar-collapsed .field-navbar-toggle:not(.field-navbar-toggle-never) {
+  display: inline-flex;
+}
+
+.field-navbar-collapsed .field-navbar-hide-mobile {
+  display: none !important;
+}
 
 @container field-navbar (max-width: 768px) {
   .field-navbar-toggle:not(.field-navbar-toggle-never) {
@@ -5014,7 +5069,7 @@ button.field-datepicker-trigger {
 
 /* Accent band: brand colour background, contrast text, inverted buttons. */
 .field-section-accent {
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   --field-text-primary: var(--field-accent-contrast);
   --field-text-secondary: color-mix(in srgb, var(--field-accent-contrast) 86%, transparent);
   --field-text-tertiary: color-mix(in srgb, var(--field-accent-contrast) 72%, transparent);
@@ -5025,7 +5080,7 @@ button.field-datepicker-trigger {
 }
 .field-section-accent .field-btn-primary {
   background-color: var(--field-accent-contrast);
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   border-color: transparent;
   box-shadow: none;
 }
@@ -5058,7 +5113,7 @@ button.field-datepicker-trigger {
 
 /* --- Link --- */
 .field-link {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
   text-underline-offset: 0.18em;
@@ -5143,6 +5198,10 @@ button.field-link {
   font-size: 0.875rem;
   color: var(--field-text-tertiary);
 }
+/* Keep right-aligned footer links clear of the floating back-to-top button. */
+body:has(.field-back-to-top) .field-footer-bottom {
+  padding-inline-end: calc(var(--field-space-12) + var(--field-space-6));
+}
 
 /* --- Prose --- */
 .field-prose {
@@ -5159,8 +5218,9 @@ button.field-link {
 .field-prose :is(h1, h2, h3, h4) {
   font-family: var(--field-font-display, var(--field-font-sans));
   color: var(--field-text-primary);
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: calc(var(--field-heading-weight, 600) + 50);
+  font-stretch: var(--field-heading-stretch, normal);
+  letter-spacing: calc(-0.02em * var(--field-heading-tracking, 1));
   line-height: 1.2;
   text-wrap: balance;
   margin: 1.8em 0 0.6em;
@@ -5171,7 +5231,7 @@ button.field-link {
 .field-prose h4 { font-size: 1.05em; }
 .field-prose :is(strong, b) { color: var(--field-text-primary); font-weight: 600; }
 .field-prose a {
-  color: var(--field-accent-primary);
+  color: var(--field-accent-text);
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
@@ -5224,7 +5284,7 @@ button.field-link {
   z-index: 2000;
   padding: var(--field-space-2) var(--field-space-4);
   border-radius: var(--field-radius-md);
-  background-color: var(--field-accent-primary);
+  background-color: var(--field-accent-text);
   color: var(--field-accent-contrast);
   font-family: var(--field-font-sans);
   font-weight: 600;
@@ -5260,6 +5320,12 @@ button.field-link {
 }
 .field-back-to-top.visible { opacity: 1; transform: none; pointer-events: auto; }
 .field-back-to-top:hover { background-color: var(--field-surface-active); }
+
+/* Stack's default stretch would distort media with fixed dimensions (e.g. a logo with width/height attributes). */
+.field-stack-stretch > :is(img, svg, video, canvas) {
+  align-self: flex-start;
+  max-width: 100%;
+}
 
 /* --- Reveal --- */
 .field-reveal {
@@ -5473,7 +5539,7 @@ button.field-link {
   background-color: var(--field-border-strong);
   transition: width var(--field-duration-fast) var(--field-ease-out), background-color var(--field-duration-fast) var(--field-ease-default);
 }
-.field-carousel-dot.active::before { width: 20px; background-color: var(--field-accent-primary); }
+.field-carousel-dot.active::before { width: 20px; background-color: var(--field-accent-text); }
 
 /* --- Cookie consent --- */
 .field-cookie-consent {

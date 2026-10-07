@@ -260,7 +260,10 @@ export const Flex: React.FC<FlexProps> = ({
 export interface StackProps extends LayoutProps {
   /** Space between children. Default 16px. Accepts a breakpoint object. */
   gap?: Responsive<SpaceValue>;
-  /** Horizontal alignment of children; accepts a breakpoint object. */
+  /**
+   * Horizontal alignment of children; accepts a breakpoint object. With the default `stretch`,
+   * direct `img`, `svg`, `video` and `canvas` children keep their own width so they are not distorted.
+   */
   align?: Responsive<'flex-start' | 'center' | 'flex-end' | 'stretch'>;
   children: React.ReactNode;
 }
@@ -283,7 +286,11 @@ export const Stack: React.FC<StackProps> = ({
   applyResponsive(acc, 'ai', 'alignItems', align, undefined, 'stretch');
   applyLayoutBase(acc, { padding, hideBelow, hideFrom });
   return (
-    <Tag className={mergeClassNames('field-stack', ...acc.classes, className)} style={{ ...acc.style, ...style }} {...props}>
+    <Tag
+      className={mergeClassNames('field-stack', align === 'stretch' && 'field-stack-stretch', ...acc.classes, className)}
+      style={{ ...acc.style, ...style }}
+      {...props}
+    >
       {children}
     </Tag>
   );
@@ -296,6 +303,8 @@ export interface GridProps extends LayoutProps {
   minChildWidth?: number | string;
   /** Space between cells; accepts a breakpoint object. */
   gap?: Responsive<SpaceValue>;
+  /** Vertical alignment of items within their row (`align-items`). Default `stretch`; accepts a breakpoint object. */
+  align?: Responsive<'start' | 'center' | 'end' | 'stretch' | 'baseline'>;
   children: React.ReactNode;
 }
 
@@ -315,6 +324,7 @@ export const Grid: React.FC<GridProps> = ({
   columns = 1,
   minChildWidth,
   gap = 16,
+  align,
   padding,
   hideBelow,
   hideFrom,
@@ -331,6 +341,7 @@ export const Grid: React.FC<GridProps> = ({
     applyResponsive(acc, 'gtc', 'gridTemplateColumns', columns, toGridTemplate, 1);
   }
   applyResponsive(acc, 'gap', 'gap', gap, resolveSpace, 16);
+  applyResponsive(acc, 'ai', 'alignItems', align, undefined, 'stretch');
   applyLayoutBase(acc, { padding, hideBelow, hideFrom });
 
   return (

@@ -2,9 +2,35 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
-## [0.3.1] - 2026-10-06
+## [0.3.1] - 2026-10-07
+
+Fixes and additions from building a full client website (SNB Electronic Services) with a custom brand theme.
+
+### Added
+- Theme token `accent.text` (`--field-accent-text`): the accent used as text on surfaces (links, `Text tone="accent"`, active nav items, outline buttons). Defaults to `accent.primary`. Lets a brand keep white text on its fill in dark mode while links use a lighter tint.
+- `createThemePair({ band })`: a dedicated dark theme for forced-dark bands (`Section backgroundImage`, `tone="inverse"` on a light page), exposed as `pair.band`. Bands previously always used `pair.dark`.
+- Theme `typography` (`headingWeight`, `displayWeight`, `headingTracking`, `headingStretch`) for display fonts that need different weight, letter-spacing or width. New CSS variables `--field-heading-weight`, `--field-display-weight`, `--field-heading-tracking`, `--field-heading-stretch`.
+- `contrastRatio()`, `checkThemeContrast()` and the `checkContrast` option on `createTheme` / `createThemePair`, which warns about every text / surface pairing below WCAG AA.
+- `Navbar collapseBelow` (`sm`–`xl` or px) switches to the toggle and `NavbarMenu` earlier than the built-in 768px, for bars with many top-level items.
+- `Card href` / `as`: a whole-card link (defaults to `variant="interactive"`).
+- `EmptyState titleAs`, e.g. `h1` on a 404 page.
+- `Checkbox error`: shows a message under the checkbox, sets `aria-invalid` and links it with `aria-describedby` (consent boxes no longer need a hand-built error).
+- `Grid align` (`align-items`, accepts a breakpoint object), so grids no longer need `style={{ alignItems }}`.
+
+### Changed
+- `Select` puts `id` on its focusable trigger (previously `${id}-trigger`), so `<label for>` and error-summary links to `#id` reach it.
+- `NavbarFlyoutItem`s inside the mobile `NavbarMenu` render as plain rows (no card border or icon box) and are vertically centred.
 
 ### Fixed
+- `NavbarFlyout` stayed open after clicking a link inside it (client-side routing), stayed open when keyboard focus moved past it, and left focus on `<body>` after Escape. It now closes in all three cases and Escape returns focus to the trigger.
+- `NavbarMenu` closes when any link inside it is clicked, not only `NavbarItem`s.
+- An active `NavbarItem` used as a flyout trigger in the mobile menu highlights the whole row.
+- `BackToTop` covered right-aligned `FooterBottom` links at the end of the page.
+- `Stack` with the default `align="stretch"` distorted `img` / `svg` / `video` children with fixed dimensions (e.g. a logo).
+- `Badge variant="accent"` text used `accent.hover`; it now uses `accent.text`.
+- Docs: the interactive Card example used `role="link"` with `onClick` and no keyboard support; it now uses `href`.
+
+### Fixed (layout)
 - Mobile and narrow-container layout fixes, found by a responsive sweep of every docs page at 375, 768, 850 and 1280px:
   - `Stepper` (horizontal): labels overlapped on phones. Below 640px only the active step shows its label (the others stay available to screen readers), and labels truncate in other narrow containers.
   - `UnfoldingHeading`: headings never wrapped and ran off-screen. The container is capped at its parent's width, and the `lg` / `xl` sizes scale down on phones (desktop sizes unchanged).

@@ -28,6 +28,7 @@
   --color-field-accent-subtle: var(--field-accent-subtle);
   --color-field-accent-subtle-hover: var(--field-accent-subtle-hover);
   --color-field-accent-contrast: var(--field-accent-contrast);
+  --color-field-accent-text: var(--field-accent-text);
 
   --color-field-status-success: var(--field-status-success-base);
   --color-field-status-success-surface: var(--field-status-success-surface);

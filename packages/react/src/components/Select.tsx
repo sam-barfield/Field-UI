@@ -193,20 +193,20 @@ function SelectInner<T extends string = string>(
         required={required}
       />
       {label && (
-        <FieldLabel id={`${id}-label`} htmlFor={`${id}-trigger`} required={required}>
+        <FieldLabel id={`${id}-label`} htmlFor={id} required={required}>
           {label}
         </FieldLabel>
       )}
       <button
         ref={triggerRef}
-        id={`${id}-trigger`}
+        id={id}
         type="button"
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
         aria-activedescendant={isOpen && activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
-        aria-labelledby={label ? `${id}-label ${id}-trigger` : undefined}
+        aria-labelledby={label ? `${id}-label ${id}` : undefined}
         aria-label={!label ? ariaLabel : undefined}
         aria-invalid={error ? true : undefined}
         aria-required={required || undefined}

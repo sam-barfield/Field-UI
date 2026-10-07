@@ -35,6 +35,7 @@ export const fieldTailwindPreset = {
             active: 'var(--field-accent-active)',
             subtle: 'var(--field-accent-subtle)',
             contrast: 'var(--field-accent-contrast)',
+            text: 'var(--field-accent-text)',
           },
           status: {
             success: {

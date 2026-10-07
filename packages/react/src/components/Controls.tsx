@@ -119,6 +119,8 @@ export interface CheckboxProps extends NativeCheckboxProps {
   disabled?: boolean;
   /** Shows a dash and reports "mixed" to assistive tech (e.g. a partially selected "select all"). */
   indeterminate?: boolean;
+  /** Error message shown under the checkbox; also sets `aria-invalid` and links the message with `aria-describedby`. */
+  error?: React.ReactNode;
   className?: string;
 }
 
@@ -128,6 +130,7 @@ export interface CheckboxProps extends NativeCheckboxProps {
  *
  * @example
  * <Checkbox label="I accept the terms" checked={accepted} onChange={setAccepted} />
+ * <Checkbox id="consent" required label="I agree to the privacy policy" error={errors.consent} />
  */
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   (
@@ -139,6 +142,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       onChange,
       disabled = false,
       indeterminate = false,
+      error,
       className = '',
       id: customId,
       style,
@@ -156,10 +160,13 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       if (inputRef.current) inputRef.current.indeterminate = indeterminate;
     }, [indeterminate]);
 
-    return (
+    const describedBy =
+      [description && `${id}-desc`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
+
+    const control = (
       <label
         htmlFor={id}
-        className={mergeClassNames('field-checkbox-root', disabled && 'disabled', className)}
+        className={mergeClassNames('field-checkbox-root', disabled && 'disabled', !!error && 'error', className)}
         style={style}
       >
         <input
@@ -169,7 +176,8 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           className="field-control-input"
           checked={isChecked}
           disabled={disabled}
-          aria-describedby={description ? `${id}-desc` : undefined}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
           onChange={e => {
             if (controlledChecked === undefined) setChecked(e.target.checked);
             onChange?.(e.target.checked, e);
@@ -201,6 +209,15 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           </span>
         )}
       </label>
+    );
+
+    if (!error) return control;
+    // The message sits outside the <label> so it is not read as part of the checkbox's name.
+    return (
+      <div className="field-checkbox-field">
+        {control}
+        <FieldMessage id={id} error={error} />
+      </div>
     );
   }
 );

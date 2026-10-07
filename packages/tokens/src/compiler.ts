@@ -15,6 +15,7 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
   const activeRadii = { ...radii, ...theme.radiiOverrides };
   const activeShadows = theme.mode === 'light' ? lightShadows : shadows;
   const activeFonts = { ...typography.fonts, ...theme.fonts };
+  const headings = theme.typography ?? {};
 
   const vars: Record<string, string> = {
     // Surfaces
@@ -47,6 +48,7 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-accent-subtle-hover': theme.semantics.accent.subtleHover,
     '--field-accent-border': theme.semantics.accent.subtleHover,
     '--field-accent-contrast': theme.semantics.accent.contrast,
+    '--field-accent-text': theme.semantics.accent.text ?? theme.semantics.accent.primary,
 
     // Status: Success
     '--field-status-success-base': theme.semantics.status.success.base,
@@ -94,6 +96,12 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-font-sans': activeFonts.sans,
     '--field-font-mono': activeFonts.mono,
     '--field-font-display': activeFonts.display,
+
+    // Headings
+    '--field-heading-weight': String(headings.headingWeight ?? 600),
+    '--field-display-weight': String(headings.displayWeight ?? 700),
+    '--field-heading-tracking': String(headings.headingTracking ?? 1),
+    '--field-heading-stretch': headings.headingStretch ?? 'normal',
 
     // Transitions & Easings
     '--field-duration-instant': motion.durations.instant,
@@ -188,6 +196,7 @@ export function themeToDtcgJson(theme: FieldTheme): string {
         subtle: color(s.accent.subtle),
         subtleHover: color(s.accent.subtleHover),
         contrast: color(s.accent.contrast),
+        text: color(s.accent.text ?? s.accent.primary),
       },
       status: {
         success: statusGroup(s.status.success),

@@ -12,6 +12,8 @@ export interface EmptyStateProps {
   description?: React.ReactNode;
   /** Call to action, e.g. a primary `Button`. */
   action?: React.ReactNode;
+  /** Element for the title, e.g. `h1` on a 404 page or `h2` inside a page section. Default `div`. */
+  titleAs?: React.ElementType;
   className?: string;
 }
 
@@ -22,11 +24,11 @@ export interface EmptyStateProps {
  * <EmptyState icon={<Inbox />} title="No buckets yet" description="Create one to start storing objects."
  *   action={<Button variant="primary">Create bucket</Button>} />
  */
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action, className = '' }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action, titleAs: TitleTag = 'div', className = '' }) => {
   return (
     <div className={mergeClassNames('field-empty-state', className)}>
       {icon && <div className="field-empty-state-icon" aria-hidden="true">{icon}</div>}
-      <div className="field-empty-state-title">{title}</div>
+      <TitleTag className="field-empty-state-title">{title}</TitleTag>
       {description && <div className="field-empty-state-desc">{description}</div>}
       {action && <div className="field-empty-state-action">{action}</div>}
     </div>

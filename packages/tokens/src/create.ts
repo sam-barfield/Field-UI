@@ -1,6 +1,7 @@
-import { FieldPrimitiveTokens, FieldSemanticTokens, FieldTheme, FieldThemePair } from './types.js';
+import { FieldPrimitiveTokens, FieldSemanticTokens, FieldTheme, FieldThemePair, FieldTypographyOverrides } from './types.js';
 import { darkTheme } from './themes/dark.js';
 import { lightTheme } from './themes/light.js';
+import { checkThemeContrast } from './contrast.js';
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
 
@@ -21,6 +22,13 @@ export interface CreateThemeOptions {
   radii?: Partial<FieldPrimitiveTokens['radii']>;
   /** Font stack overrides, e.g. `{ display: '"Fraunces", Georgia, serif' }`. Load the webfont yourself. */
   fonts?: Partial<FieldPrimitiveTokens['typography']['fonts']>;
+  /** Heading weight, tracking and width, e.g. `{ displayWeight: 800, headingTracking: 0.5 }`. */
+  typography?: FieldTypographyOverrides;
+  /**
+   * Check WCAG contrast of the resulting theme and `console.warn` every failing pairing
+   * (see `checkThemeContrast`). Useful while designing a brand theme; leave it off in production.
+   */
+  checkContrast?: boolean;
 }
 
 function mergeGroup<T extends object>(base: T, override?: DeepPartial<T>): T {
@@ -52,7 +60,7 @@ export function createTheme(options: CreateThemeOptions): FieldTheme {
   const base = options.base ?? (mode === 'light' ? lightTheme : darkTheme);
   const label = options.label ?? options.id;
 
-  return {
+  const theme: FieldTheme = {
     id: options.id,
     label,
     mode,
@@ -63,16 +71,36 @@ export function createTheme(options: CreateThemeOptions): FieldTheme {
     },
     radiiOverrides: { ...base.radiiOverrides, ...options.radii },
     fonts: base.fonts || options.fonts ? { ...base.fonts, ...options.fonts } : undefined,
+    typography:
+      base.typography || options.typography ? { ...base.typography, ...options.typography } : undefined,
   };
+
+  if (options.checkContrast) {
+    const failures = checkThemeContrast(theme).filter(check => !check.pass);
+    for (const f of failures) {
+      console.warn(
+        `[field] ${theme.id}: ${f.label} is ${f.ratio.toFixed(2)}:1 (needs ${f.minimum}:1) - ${f.foreground} on ${f.background}`
+      );
+    }
+  }
+
+  return theme;
 }
 
 export interface CreateThemePairOptions {
   id: string;
   label?: string;
-  /** Overrides applied to both modes (radii, shared status colours, ...). */
-  shared?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts'>;
-  dark?: Omit<CreateThemeOptions, 'id' | 'mode'> & { id?: string };
-  light?: Omit<CreateThemeOptions, 'id' | 'mode'> & { id?: string };
+  /** Overrides applied to both modes (radii, fonts, heading typography, shared status colours, ...). */
+  shared?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography'>;
+  dark?: Omit<CreateThemeOptions, 'id' | 'mode' | 'checkContrast'> & { id?: string };
+  light?: Omit<CreateThemeOptions, 'id' | 'mode' | 'checkContrast'> & { id?: string };
+  /**
+   * Overrides for forced-dark bands (photo sections, `tone="inverse"` on a light page), applied on
+   * top of the pair's dark theme. Omit it and bands use the dark theme unchanged.
+   */
+  band?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography' | 'label'> & { id?: string };
+  /** Check WCAG contrast of every generated theme and `console.warn` failures. */
+  checkContrast?: boolean;
 }
 
 /**
@@ -85,6 +113,15 @@ export interface CreateThemePairOptions {
  *   light: { semantics: { accent: { primary: '#BE123C' } } },
  * });
  * <ThemeProvider themePair={acme}>…</ThemeProvider>
+ *
+ * @example
+ * // Dark mode uses a lighter red for links; photo bands keep the true brand red.
+ * createThemePair({
+ *   id: 'brand',
+ *   light: { semantics: { accent: { primary: '#D00000' } } },
+ *   dark: { semantics: { accent: { primary: '#FF5C52', contrast: '#140405' } } },
+ *   band: { semantics: { accent: { primary: '#D00000', contrast: '#FFFFFF' } } },
+ * });
  */
 export function createThemePair(options: CreateThemePairOptions): FieldThemePair {
   const label = options.label ?? options.id;
@@ -101,8 +138,25 @@ export function createThemePair(options: CreateThemePairOptions): FieldThemePair
       ),
       radii: { ...options.shared?.radii, ...variant.radii },
       fonts: options.shared?.fonts || variant.fonts ? { ...options.shared?.fonts, ...variant.fonts } : undefined,
+      typography:
+        options.shared?.typography || variant.typography
+          ? { ...options.shared?.typography, ...variant.typography }
+          : undefined,
+      checkContrast: options.checkContrast,
     });
   };
 
-  return { id: options.id, label, dark: build('dark'), light: build('light') };
+  const dark = build('dark');
+  const pair: FieldThemePair = { id: options.id, label, dark, light: build('light') };
+  if (options.band) {
+    pair.band = createTheme({
+      ...options.band,
+      id: options.band.id ?? `${options.id}-band`,
+      label: options.band.label ?? `${label} Band`,
+      base: dark,
+      mode: 'dark',
+      checkContrast: options.checkContrast,
+    });
+  }
+  return pair;
 }

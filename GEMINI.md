@@ -53,6 +53,7 @@ When asked about application navigation or shell layouts:
 1. **Top Navigation (`Navbar`)**:
    - Use the **`Navbar` compound suite** (`<Navbar>`, `<NavbarBrand>`, `<NavbarContent>`, `<NavbarItem>`, `<NavbarActions>`, `<NavbarToggle>`, `<NavbarMenu>`).
    - Supports `sticky`, `blurred` (backdrop filter), `bordered`, `density="default" | "compact"`, and responsive mobile drawer.
+   - Many top-level items: `collapseBelow="lg"` (or px) collapses to `NavbarToggle` + `NavbarMenu` earlier than 768px; put desktop links in `<NavbarContent hideOnMobile>`. `NavbarFlyout` closes itself on link click, focus-out, outside click and Escape.
    - High-polish animated variants via `<Navbar variant="underline" | "elastic" | "pill" | "rail" | "ghost" animated glow>`:
      - `variant="underline"` (default): Flush accent bottom glider smoothly transitioning between active items.
      - `variant="elastic"`: Organic spring-physics squash-and-stretch bouncing underline that deforms dynamically across tab transitions.

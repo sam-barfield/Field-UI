@@ -102,7 +102,15 @@ export interface FieldSemanticTokens {
     active: string;
     subtle: string;
     subtleHover: string;
+    /** Text and icons on `primary` fills (buttons, badges). */
     contrast: string;
+    /**
+     * Accent used as foreground on surfaces (links, `Text tone="accent"`, active nav items).
+     * Defaults to `primary`. Set it when no single colour works both as a fill behind
+     * `contrast` text and as readable text on `surfaces.base` (common for red or yellow
+     * brands in dark mode).
+     */
+    text?: string;
   };
   status: {
     success: {
@@ -132,6 +140,18 @@ export interface FieldSemanticTokens {
   };
 }
 
+/** Heading typography overrides. Every field is optional; omitted values keep Field's defaults. */
+export interface FieldTypographyOverrides {
+  /** Weight of level 2–4 headings and prose headings. Default `600`. */
+  headingWeight?: number;
+  /** Weight of level 1 and display headings. Default `700`. */
+  displayWeight?: number;
+  /** Multiplier for the negative heading letter-spacing: `0` removes it, `1` is the default, `1.5` is tighter. */
+  headingTracking?: number;
+  /** `font-stretch` for headings, e.g. `'condensed'` or `'87.5%'` with a variable-width font. Default `normal`. */
+  headingStretch?: string;
+}
+
 export interface FieldTheme {
   id: string;
   label: string;
@@ -143,6 +163,8 @@ export interface FieldTheme {
    * Fonts are not loaded for you: add the webfont (e.g. a Google Fonts link) yourself.
    */
   fonts?: Partial<FieldPrimitiveTokens['typography']['fonts']>;
+  /** Heading weight, tracking and width overrides. */
+  typography?: FieldTypographyOverrides;
 }
 
 export interface FieldThemePair {
@@ -150,5 +172,11 @@ export interface FieldThemePair {
   label: string;
   dark: FieldTheme;
   light: FieldTheme;
+  /**
+   * Dark theme for forced-dark bands: `Section backgroundImage` and `tone="inverse"` on a light
+   * page. Defaults to `dark`. Use it when the bands need different tokens from dark mode, e.g.
+   * the true brand colour with white button text on a photo, where dark mode uses a lighter tint.
+   */
+  band?: FieldTheme;
 }
 

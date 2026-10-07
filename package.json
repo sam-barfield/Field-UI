@@ -1,6 +1,6 @@
 {
   "name": "field-design-system",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Field Design System: Precision-crafted, dark-first design system with React client libraries, interactive sticker sheet, and theme editor.",
   "workspaces": [

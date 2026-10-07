@@ -14,7 +14,8 @@ export type Route =
 export const DEFAULT_ROUTE: Route = { page: 'docs', slug: 'introduction' };
 
 export function parseHash(hash: string): Route {
-  const [, section, slug] = hash.replace(/^#/, '').split('/');
+  // Drop any ?query (e.g. a shared theme on #/theme-editor?theme=...).
+  const [, section, slug] = hash.replace(/^#/, '').split('?')[0].split('/');
   switch (section) {
     case 'docs':
       return { page: 'docs', slug: slug || 'introduction' };

@@ -22,7 +22,7 @@ const NAV_ITEMS: { label: string; href: string; match: (r: Route) => boolean }[]
   { label: 'Docs', href: '#/docs/introduction', match: r => r.page === 'docs' },
   { label: 'Components', href: '#/components/button', match: r => r.page === 'components' },
   { label: 'Sticker Sheet', href: '#/sticker-sheet', match: r => r.page === 'sticker-sheet' },
-  { label: 'Theme Editor', href: '#/theme-editor', match: r => r.page === 'theme-editor' },
+  { label: 'Theme Builder', href: '#/theme-editor', match: r => r.page === 'theme-editor' },
   { label: 'Examples', href: '#/examples', match: r => r.page === 'examples' },
 ];
 

@@ -313,9 +313,15 @@ export const acme = createThemePair({
         <C>display</C> is used by headings, <C>sans</C> by body text and controls.
       </P>
       <P>
-        For a single theme use <C>createTheme({'{'} id, base, semantics, radii, fonts, typography {'}'})</C>. The{' '}
-        <DocLink to="theme-editor">Theme Editor</DocLink> lets you design a theme visually and export it as CSS, DTCG
-        JSON or TypeScript.
+        For a single theme use <C>createTheme({'{'} id, base, semantics, radii, fonts, typography {'}'})</C>.
+      </P>
+      <P>
+        The quickest way to get the values is the <DocLink to="theme-editor">Theme Builder</DocLink>. Start from the
+        closest preset, set your brand colour (it derives hover states, tints, button text and a readable text tint for
+        you), generate neutrals, pick fonts, and watch a light and a dark preview update as you go. The Contrast tab
+        checks every pairing in both modes and fixes failures with the smallest lightness change. Export the result as
+        the <C>createThemePair</C> code above, containing only what differs from Field's defaults. Save a snapshot
+        before a big change and use Compare to see exactly which tokens moved.
       </P>
     </Section>
 

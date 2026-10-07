@@ -1,5 +1,5 @@
 import { contrastRatio, type FieldSemanticTokens } from '@sam.barfield/field-react';
-import { adjustLightness, bestContrastText, fixContrast, hsl, withAlpha } from './color';
+import { adjustLightness, alphaOf, atLightness, bestContrastText, fixContrast, hsl, lightnessOf, mix, withAlpha } from './color';
 
 type Mode = 'light' | 'dark';
 type Accent = FieldSemanticTokens['accent'];
@@ -31,6 +31,90 @@ export function deriveAccent(primary: string, mode: Mode, surfaces: FieldSemanti
     contrast,
     ...(text.toUpperCase() !== primary.toUpperCase() ? { text } : {}),
   };
+}
+
+/** Moves `fg` until it reaches `min` against every background (in order). */
+function passOn(fg: string, backgrounds: string[], min: number, canvas: string): string {
+  return backgrounds.reduce((color, bg) => fixContrast(color, bg, min, canvas) ?? color, fg);
+}
+
+/**
+ * The colour between `fg` and `bg` that is as close to `bg` as possible while keeping `target`
+ * contrast against it. Tiers built this way keep their spacing on any surface colour.
+ */
+function mixToContrast(fg: string, bg: string, target: number, canvas: string): string {
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const t = (lo + hi) / 2;
+    if (contrastRatio(mix(fg, bg, t), bg, canvas) >= target) lo = t;
+    else hi = t;
+  }
+  return mix(fg, bg, lo);
+}
+
+/**
+ * Re-derives one token group from its seed token (surfaces.base, text.primary, accent.primary,
+ * borders.default or status.*.base), leaving every other group untouched.
+ */
+export function deriveGroup(groupId: string, semantics: FieldSemanticTokens, mode: Mode): FieldSemanticTokens {
+  const s = structuredClone(semantics);
+  const page = s.surfaces.base;
+  const surfaces = [s.surfaces.base, s.surfaces.raised, s.surfaces.sunken];
+
+  switch (groupId) {
+    case 'surfaces': {
+      const base = s.surfaces.base;
+      const l = lightnessOf(base);
+      const at = (delta: number) => atLightness(base, Math.min(100, Math.max(0, l + delta)));
+      // Light themes: cards are white (or a step lighter), wells darker. Dark themes: every layer above the page is lighter.
+      s.surfaces =
+        mode === 'light'
+          ? { base, raised: l >= 96 ? '#FFFFFF' : at(3), overlay: l >= 96 ? '#FFFFFF' : at(3), sunken: at(-4), subtle: at(-2.5), active: at(-8) }
+          : { base, raised: at(3.5), overlay: at(6.5), sunken: at(-2), subtle: at(7.5), active: at(11.5) };
+      break;
+    }
+    case 'text': {
+      const primary = s.text.primary;
+      s.text = {
+        primary,
+        // Targets against the page: about 7.5:1 and 5:1, then at least 4.5:1 on every surface.
+        secondary: passOn(mixToContrast(primary, page, 7.5, page), surfaces, 4.5, page),
+        tertiary: passOn(mixToContrast(primary, page, 5, page), surfaces, 4.5, page),
+        inverse: page,
+        disabled: mix(primary, page, 0.72),
+      };
+      break;
+    }
+    case 'accent':
+      s.accent = deriveAccent(s.accent.primary, mode, s.surfaces);
+      break;
+    case 'borders': {
+      const def = s.borders.default;
+      const a = alphaOf(def);
+      s.borders = {
+        ...s.borders,
+        // Translucent defaults scale their alpha; an opaque default mixes towards the page / text.
+        subtle: a < 1 ? withAlpha(def, a * 0.55) : mix(def, page, 0.45),
+        strong: a < 1 ? withAlpha(def, Math.min(1, a * 1.85)) : mix(def, s.text.primary, 0.3),
+      };
+      break;
+    }
+    default: {
+      const status = groupId as keyof FieldSemanticTokens['status'];
+      if (!(status in s.status)) break;
+      const base = s.status[status].base;
+      const surface = withAlpha(base, mode === 'light' ? 0.08 : 0.12);
+      s.status[status] = {
+        base,
+        surface,
+        border: withAlpha(base, mode === 'light' ? 0.22 : 0.3),
+        // Text sits on the page and on its own tinted surface, so it must pass on both.
+        text: passOn(adjustLightness(base, mode === 'light' ? -8 : 15), [page, surface], 4.5, page),
+      };
+    }
+  }
+  return s;
 }
 
 /**

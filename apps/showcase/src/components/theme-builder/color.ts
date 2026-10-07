@@ -53,6 +53,24 @@ export function hsl(h: number, s: number, l: number): string {
   return `#${hex2((r + m) * 255)}${hex2((g + m) * 255)}${hex2((b + m) * 255)}`;
 }
 
+/** Lightness (0-100) of a colour. */
+export function lightnessOf(color: string): number {
+  return toHsl(color).l;
+}
+
+/** The same hue and saturation at an absolute lightness (0-100). */
+export function atLightness(color: string, lightness: number): string {
+  const { h, s } = toHsl(color);
+  return hsl(h, s, lightness);
+}
+
+/** Opaque mix of two colours in sRGB: `t` 0 is `a`, 1 is `b`. */
+export function mix(a: string, b: string, t: number): string {
+  const ca = parseColor(a) ?? [0, 0, 0, 1];
+  const cb = parseColor(b) ?? [0, 0, 0, 1];
+  return `#${[0, 1, 2].map(i => hex2(ca[i] + (cb[i] - ca[i]) * t)).join('')}`;
+}
+
 /** Shift lightness by `delta` percentage points, keeping hue, saturation and alpha. */
 export function adjustLightness(color: string, delta: number): string {
   const { h, s, l } = toHsl(color);

@@ -12,13 +12,15 @@ interface ColorFieldProps {
   /** Extra info after the label, e.g. a contrast ratio. */
   meta?: React.ReactNode;
   optional?: boolean;
+  /** Extra control after the inputs, e.g. a "generate from this" button. */
+  action?: React.ReactNode;
 }
 
 /**
  * A colour swatch (native picker) plus a text field that accepts any CSS colour the contrast
  * checker understands. The picker keeps the current alpha; the text field commits on blur / Enter.
  */
-export function ColorField({ label, value, onChange, placeholder, meta, optional }: ColorFieldProps) {
+export function ColorField({ label, value, onChange, placeholder, meta, optional, action }: ColorFieldProps) {
   const id = useId();
   const [text, setText] = useState(value ?? '');
   useEffect(() => setText(value ?? ''), [value]);
@@ -66,6 +68,7 @@ export function ColorField({ label, value, onChange, placeholder, meta, optional
             <IconButton variant="ghost" size="sm" icon={<X size={14} />} aria-label={`Clear ${label}`} onClick={() => onChange(undefined)} />
           </Tooltip>
         )}
+        {action}
       </div>
     </div>
   );

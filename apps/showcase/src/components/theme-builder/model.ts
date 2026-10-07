@@ -19,20 +19,23 @@ export interface TokenGroup {
   title: string;
   hint: string;
   paths: string[];
+  /** The token the rest of the group can be generated from. */
+  seed: string;
 }
 
 const STATUSES = ['success', 'warning', 'danger', 'info'] as const;
 
 export const TOKEN_GROUPS: TokenGroup[] = [
-  { id: 'surfaces', title: 'Surfaces', hint: 'base is the page, raised is cards, overlay is menus and dialogs, sunken is inputs and wells.', paths: ['base', 'raised', 'overlay', 'sunken', 'subtle', 'active'].map(k => `surfaces.${k}`) },
-  { id: 'text', title: 'Text', hint: 'primary for headings and body, secondary for supporting copy, tertiary for captions and meta. All three must pass 4.5:1.', paths: ['primary', 'secondary', 'tertiary', 'inverse', 'disabled'].map(k => `text.${k}`) },
-  { id: 'accent', title: 'Accent', hint: 'primary is the button fill with contrast text on it. text is the accent as text (links, active nav); leave it empty to reuse primary.', paths: ['primary', 'hover', 'active', 'subtle', 'subtleHover', 'contrast', 'text'].map(k => `accent.${k}`) },
-  { id: 'borders', title: 'Borders', hint: 'Translucent borders adapt to any surface. focus is the keyboard focus ring and needs 3:1 against the page.', paths: ['subtle', 'default', 'strong', 'focus', 'highlight'].map(k => `borders.${k}`) },
+  { id: 'surfaces', seed: 'surfaces.base', title: 'Surfaces', hint: 'base is the page, raised is cards, overlay is menus and dialogs, sunken is inputs and wells.', paths: ['base', 'raised', 'overlay', 'sunken', 'subtle', 'active'].map(k => `surfaces.${k}`) },
+  { id: 'text', seed: 'text.primary', title: 'Text', hint: 'primary for headings and body, secondary for supporting copy, tertiary for captions and meta. All three must pass 4.5:1.', paths: ['primary', 'secondary', 'tertiary', 'inverse', 'disabled'].map(k => `text.${k}`) },
+  { id: 'accent', seed: 'accent.primary', title: 'Accent', hint: 'primary is the button fill with contrast text on it. text is the accent as text (links, active nav); leave it empty to reuse primary.', paths: ['primary', 'hover', 'active', 'subtle', 'subtleHover', 'contrast', 'text'].map(k => `accent.${k}`) },
+  { id: 'borders', seed: 'borders.default', title: 'Borders', hint: 'Translucent borders adapt to any surface. focus is the keyboard focus ring and needs 3:1 against the page.', paths: ['default', 'subtle', 'strong', 'focus', 'highlight'].map(k => `borders.${k}`) },
   ...STATUSES.map(status => ({
     id: status,
     title: `Status: ${status}`,
     hint: status === 'danger' ? 'Keep danger a visibly different hue from your accent, or errors look like branding.' : 'base for icons and dots, surface and border for alerts, text for readable status copy.',
     paths: ['base', 'surface', 'border', 'text'].map(k => `status.${status}.${k}`),
+    seed: `status.${status}.base`,
   })),
 ];
 

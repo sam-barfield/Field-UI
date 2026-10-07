@@ -4,6 +4,12 @@
    ========================================================================== */
 
 /* --- Reset & Base --- */
+/* Remove the browser's default 8px body margin so full-width bands (Navbar, Section,
+   Footer) reach the window edges. :where() keeps specificity at zero, so any app rule wins. */
+:where(body) {
+  margin: 0;
+}
+
 /* Only the document root and explicit theme scopes paint a background;
    portalled layers also carry data-field-theme but must stay transparent. */
 .field-scope,

@@ -24,8 +24,8 @@ export const roasteryPair: FieldThemePair = createThemePair({
     semantics: {
       surfaces: { base: '#FBF7F1', raised: '#FFFFFF', overlay: '#FFFFFF', sunken: '#F3ECE2', subtle: '#EFE6DA', active: '#E6D9C8' },
       borders: { subtle: 'rgba(68, 40, 20, 0.10)', default: 'rgba(68, 40, 20, 0.16)', strong: 'rgba(68, 40, 20, 0.28)', focus: '#B4532A', highlight: 'rgba(180, 83, 42, 0.2)' },
-      text: { primary: '#2B1D14', secondary: '#5E4A3C', tertiary: '#806A5A', inverse: '#FBF7F1', disabled: '#B9A999' },
-      accent: { primary: '#B4532A', hover: '#9C4422', active: '#833A1D', subtle: 'rgba(180, 83, 42, 0.10)', subtleHover: 'rgba(180, 83, 42, 0.18)', contrast: '#FFFFFF' },
+      text: { primary: '#2B1D14', secondary: '#5E4A3C', tertiary: '#7C6657', inverse: '#FBF7F1', disabled: '#B9A999' },
+      accent: { primary: '#B4532A', hover: '#9C4422', active: '#833A1D', subtle: 'rgba(180, 83, 42, 0.10)', subtleHover: 'rgba(180, 83, 42, 0.18)', contrast: '#FFFFFF', text: '#A84D27' },
     },
   },
   dark: {
@@ -50,8 +50,8 @@ export const workshopPair: FieldThemePair = createThemePair({
     semantics: {
       surfaces: { base: '#F7F8FA', raised: '#FFFFFF', overlay: '#FFFFFF', sunken: '#EDF0F4', subtle: '#E6EAF0', active: '#DCE2EA' },
       borders: { subtle: 'rgba(15, 27, 45, 0.08)', default: 'rgba(15, 27, 45, 0.14)', strong: 'rgba(15, 27, 45, 0.26)', focus: '#C2410C', highlight: 'rgba(194, 65, 12, 0.2)' },
-      text: { primary: '#0F1B2D', secondary: '#3B4A5E', tertiary: '#5F6F84', inverse: '#F7F8FA', disabled: '#A3AEBC' },
-      accent: { primary: '#C2410C', hover: '#9A3412', active: '#7C2D12', subtle: 'rgba(194, 65, 12, 0.08)', subtleHover: 'rgba(194, 65, 12, 0.16)', contrast: '#FFFFFF' },
+      text: { primary: '#0F1B2D', secondary: '#3B4A5E', tertiary: '#5E6E83', inverse: '#F7F8FA', disabled: '#A3AEBC' },
+      accent: { primary: '#C2410C', hover: '#9A3412', active: '#7C2D12', subtle: 'rgba(194, 65, 12, 0.08)', subtleHover: 'rgba(194, 65, 12, 0.16)', contrast: '#FFFFFF', text: '#BB3F0C' },
     },
   },
   dark: {
@@ -102,8 +102,8 @@ export const sagePair: FieldThemePair = createThemePair({
     semantics: {
       surfaces: { base: '#F6F7F3', raised: '#FFFFFF', overlay: '#FFFFFF', sunken: '#ECEFE7', subtle: '#E5E9DF', active: '#D9DFD1' },
       borders: { subtle: 'rgba(31, 42, 34, 0.08)', default: 'rgba(31, 42, 34, 0.14)', strong: 'rgba(31, 42, 34, 0.26)', focus: '#4F7A5A', highlight: 'rgba(79, 122, 90, 0.2)' },
-      text: { primary: '#1F2A22', secondary: '#4A574D', tertiary: '#6A786E', inverse: '#F6F7F3', disabled: '#AAB4AC' },
-      accent: { primary: '#4F7A5A', hover: '#42684C', active: '#36553E', subtle: 'rgba(79, 122, 90, 0.10)', subtleHover: 'rgba(79, 122, 90, 0.18)', contrast: '#FFFFFF' },
+      text: { primary: '#1F2A22', secondary: '#4A574D', tertiary: '#606D64', inverse: '#F6F7F3', disabled: '#AAB4AC' },
+      accent: { primary: '#4F7A5A', hover: '#42684C', active: '#36553E', subtle: 'rgba(79, 122, 90, 0.10)', subtleHover: 'rgba(79, 122, 90, 0.18)', contrast: '#FFFFFF', text: '#497153' },
     },
   },
   dark: {

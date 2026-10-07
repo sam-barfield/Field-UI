@@ -19,6 +19,13 @@ Fixes and additions from building a complete multi-page marketing site with a cu
 - Showcase: the Theme Editor is now a Theme Builder for light / dark pairs. Live previews of both modes (navbar, buttons, cards, form errors, alerts, accent and photo bands); brand colour with derived accent states and text tint; neutral generator; fonts (Google Fonts previews) and heading typography; every token editable per mode, plus the band theme; a contrast tab with one-click fixes (including moving `status.danger` away from the brand hue); compare against the starting point, any preset or a saved snapshot, with side-by-side previews and a token diff; undo / redo; export as `createThemePair` code, CSS, JSON or DTCG; share links and import.
 
 ### Changed
+- Built-in themes now meet WCAG AA for every text / surface pairing in both modes (`checkThemeContrast` reports no failures). Changes are minimal lightness adjustments:
+  - Tertiary text is darker (light themes) or lighter (dark themes) in the default, Titanium Amber, Hyper Violet, Roastery, Workshop and Sage themes. The default light theme's tertiary moved most: `#94A3B8` → `#5C6F8A`.
+  - Links and active nav text use `accent.text` where the brand colour is not readable as text: default dark (`#487CEE`), Titanium Amber light (`#A05804`), Emerald Precision light (`#047857`), Hyper Violet (`#9864F1`), Roastery, Workshop and Sage light, and the default light theme (on accent tints).
+  - Default dark and Hyper Violet hover states are deeper so white button text stays readable.
+  - Titanium Amber light buttons use dark text (`#1C1917`) on the amber fill, with a lighter hover; Emerald Precision light's fill is slightly deeper (`#059669` → `#04855D`) to keep white text.
+  - `status.warning.text` (and Titanium Amber's info text) is `#AD5009` on light themes.
+- `createTheme` / `createThemePair`: overriding `accent.primary` without `accent.text` no longer inherits the base theme's `accent.text` (which would have given links the base theme's colour); it falls back to the new primary.
 - `Select` puts `id` on its focusable trigger (previously `${id}-trigger`), so `<label for>` and error-summary links to `#id` reach it.
 - `NavbarFlyoutItem`s inside the mobile `NavbarMenu` render as plain rows (no card border or icon box) and are vertically centred.
 

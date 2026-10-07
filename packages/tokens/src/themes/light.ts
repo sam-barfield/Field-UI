@@ -21,7 +21,7 @@ export const lightSemantics: FieldSemanticTokens = {
   text: {
     primary: '#0F172A',
     secondary: '#475569',
-    tertiary: '#94A3B8',
+    tertiary: '#5C6F8A',
     inverse: '#F8FAFC',
     disabled: '#CBD5E1',
   },
@@ -32,6 +32,8 @@ export const lightSemantics: FieldSemanticTokens = {
     subtle: 'rgba(37, 99, 235, 0.08)',
     subtleHover: 'rgba(37, 99, 235, 0.15)',
     contrast: '#FFFFFF',
+    // A touch darker than primary so links stay above 4.5:1 on accent-subtle tints.
+    text: '#2060EB',
   },
   status: {
     success: {
@@ -44,7 +46,7 @@ export const lightSemantics: FieldSemanticTokens = {
       base: '#D97706',
       surface: 'rgba(217, 119, 6, 0.08)',
       border: 'rgba(217, 119, 6, 0.2)',
-      text: '#B45309',
+      text: '#AD5009',
     },
     danger: {
       base: '#DC2626',

@@ -31,7 +31,7 @@ export const titaniumAmberTheme: FieldTheme = {
     text: {
       primary: '#F5F5F7',
       secondary: '#A1A1AA',
-      tertiary: '#71717A',
+      tertiary: '#7F7F88',
       inverse: '#0C0C0D',
       disabled: '#52525B',
     },
@@ -168,17 +168,19 @@ export const hyperVioletTheme: FieldTheme = {
     text: {
       primary: '#F5F3FF',
       secondary: '#C4B5FD',
-      tertiary: '#8B5CF6',
+      tertiary: '#8E61F6',
       inverse: '#090810',
       disabled: '#5B21B6',
     },
     accent: {
       primary: '#7C3AED',
-      hover: '#8B5CF6',
+      hover: '#8452F5',
       active: '#6D28D9',
       subtle: 'rgba(124, 58, 237, 0.16)',
       subtleHover: 'rgba(124, 58, 237, 0.26)',
       contrast: '#FFFFFF',
+      // A lighter violet for links and active nav, readable on the near-black page.
+      text: '#9864F1',
     },
     status: {
       success: {
@@ -234,17 +236,20 @@ export const titaniumAmberLightTheme: FieldTheme = {
     text: {
       primary: '#1C1917',
       secondary: '#57534E',
-      tertiary: '#78716C',
+      tertiary: '#716B66',
       inverse: '#FAF8F5',
       disabled: '#A8A29E',
     },
     accent: {
       primary: '#D97706',
-      hover: '#B45309',
-      active: '#92400E',
+      // Amber is too light for white text (3.2:1), so buttons use dark text and hover lightens.
+      hover: '#E08A0F',
+      active: '#C86E06',
       subtle: 'rgba(217, 119, 6, 0.1)',
       subtleHover: 'rgba(217, 119, 6, 0.18)',
-      contrast: '#FFFFFF',
+      contrast: '#1C1917',
+      // A deeper amber for links and active nav text on the light page.
+      text: '#A05804',
     },
     status: {
       success: {
@@ -257,7 +262,7 @@ export const titaniumAmberLightTheme: FieldTheme = {
         base: '#D97706',
         surface: 'rgba(217, 119, 6, 0.08)',
         border: 'rgba(217, 119, 6, 0.2)',
-        text: '#B45309',
+        text: '#AD5009',
       },
       danger: {
         base: '#DC2626',
@@ -269,7 +274,7 @@ export const titaniumAmberLightTheme: FieldTheme = {
         base: '#D97706',
         surface: 'rgba(217, 119, 6, 0.08)',
         border: 'rgba(217, 119, 6, 0.2)',
-        text: '#B45309',
+        text: '#AD5009',
       },
     },
   },
@@ -310,12 +315,14 @@ export const emeraldPrecisionLightTheme: FieldTheme = {
       disabled: '#6EE7B7',
     },
     accent: {
-      primary: '#059669',
+      // A slightly deeper emerald than #059669 so white button text reaches 4.5:1.
+      primary: '#04855D',
       hover: '#047857',
       active: '#065F46',
       subtle: 'rgba(5, 150, 105, 0.1)',
       subtleHover: 'rgba(5, 150, 105, 0.18)',
       contrast: '#FFFFFF',
+      text: '#047857',
     },
     status: {
       success: {
@@ -328,7 +335,7 @@ export const emeraldPrecisionLightTheme: FieldTheme = {
         base: '#D97706',
         surface: 'rgba(217, 119, 6, 0.08)',
         border: 'rgba(217, 119, 6, 0.2)',
-        text: '#B45309',
+        text: '#AD5009',
       },
       danger: {
         base: '#DC2626',

@@ -60,12 +60,21 @@ export function createTheme(options: CreateThemeOptions): FieldTheme {
   const base = options.base ?? (mode === 'light' ? lightTheme : darkTheme);
   const label = options.label ?? options.id;
 
+  const semantics = mergeGroup(base.semantics, options.semantics as DeepPartial<FieldSemanticTokens>);
+  // accent.text is tuned to the base's accent colour. A new accent.primary without its own
+  // text would otherwise inherit links in the base theme's colour, so fall back to primary.
+  const accentOverride = options.semantics?.accent;
+  if (accentOverride?.primary !== undefined && accentOverride.text === undefined) {
+    const { text: _inherited, ...accent } = semantics.accent;
+    semantics.accent = accent;
+  }
+
   const theme: FieldTheme = {
     id: options.id,
     label,
     mode,
     semantics: {
-      ...mergeGroup(base.semantics, options.semantics as DeepPartial<FieldSemanticTokens>),
+      ...semantics,
       name: label,
       mode,
     },

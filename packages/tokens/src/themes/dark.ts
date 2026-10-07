@@ -21,17 +21,20 @@ export const darkSemantics: FieldSemanticTokens = {
   text: {
     primary: '#F3F6FA',
     secondary: '#9BA3AF',
-    tertiary: '#636D7E',
+    tertiary: '#758092',
     inverse: '#090B0E',
     disabled: '#424A59',
   },
   accent: {
     primary: '#2563EB',
-    hover: '#3B82F6',
+    // White text needs a deeper hover than the lighter #3B82F6 (3.7:1).
+    hover: '#1B6EF5',
     active: '#1D4ED8',
     subtle: 'rgba(37, 99, 235, 0.14)',
     subtleHover: 'rgba(37, 99, 235, 0.22)',
     contrast: '#FFFFFF',
+    // #2563EB is too dark to read as text on the near-black page; links use a lighter blue.
+    text: '#487CEE',
   },
   status: {
     success: {

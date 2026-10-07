@@ -138,13 +138,15 @@ const Installation: React.FC = () => (
       <Snippet code={`import '@sam.barfield/field-react/styles.css';`} />
       <P>
         It contains the component styles <em>and</em> the default theme variables (dark on <C>:root</C>, light under{' '}
-        <C>[data-theme="light"]</C>), so the page is styled before React hydrates. If you define all theme variables
-        yourself, import <C>@sam.barfield/field-react/styles/components.css</C> instead.
+        <C>[data-theme="light"]</C>), so the page is styled before React hydrates. It also removes the browser's
+        default <C>body</C> margin so full-width bands reach the edges of the window; the reset has zero specificity,
+        so any <C>body</C> rule of your own still wins. If you define all theme variables yourself, import{' '}
+        <C>@sam.barfield/field-react/styles/components.css</C> instead.
       </P>
       <H3>Fonts</H3>
       <P>
-        Field uses Inter and JetBrains Mono, falling back to system fonts. They are not bundled; load them however you
-        prefer, for example:
+        Field uses Inter and JetBrains Mono, falling back to system fonts. They are not bundled. The quickest way to
+        try them is Google Fonts:
       </P>
       <Snippet
         language="html"
@@ -152,6 +154,20 @@ const Installation: React.FC = () => (
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />`}
       />
+      <P>
+        For production, self-host them instead. A third-party stylesheet blocks the first render while the browser
+        connects to another origin; with Fontsource the font files ship in your own bundle. Import only the weights
+        you use, and the <C>latin</C> subset if your content is English:
+      </P>
+      <Snippet
+        code={`// npm install @fontsource-variable/inter @fontsource/jetbrains-mono
+import '@fontsource-variable/inter';              // one variable file covers every weight
+import '@fontsource/jetbrains-mono/latin-400.css';`}
+      />
+      <P>
+        A variable font registers under its own family name (<C>"Inter Variable"</C>), so put it first in your theme's
+        font stack: <C>{'fonts: { sans: \'"Inter Variable", "Inter", system-ui, sans-serif\' }'}</C>.
+      </P>
     </Section>
 
     <Section id="providers" title="4. Add the providers">
@@ -305,10 +321,17 @@ export const acme = createThemePair({
 
     <Section id="brand-colours" title="Brand colours that fight dark mode">
       <P>
-        <C>accent.primary</C> is a fill (buttons, with <C>accent.contrast</C> text on it). <C>accent.text</C> is the
-        accent as foreground: links, <C>{'Text tone="accent"'}</C>, active nav items. It defaults to the primary colour.
-        Set it when one colour can't do both, typically a red or yellow brand in dark mode. Use <C>band</C> to give
-        photo and inverse bands their own dark theme, and <C>typography</C> for heading weight, tracking and width.
+        The accent does two jobs. <C>accent.primary</C> is a <em>fill</em>: buttons, toggles and indicators, with{' '}
+        <C>accent.contrast</C> text on top. <C>accent.text</C> is the accent as <em>foreground</em>: links,{' '}
+        <C>{'Text tone="accent"'}</C>, active nav items and accent icons. It defaults to the primary colour, which is
+        fine for most blues and greens. Strong reds, oranges and yellows are different: a red dark enough to carry white
+        button text is too dark to read as text on a near-black page. Keep the true brand colour as the fill and give
+        dark mode a lighter tint for text.
+      </P>
+      <P>
+        <C>band</C> gives photo and inverse sections their own dark theme, for when they need different tokens from dark
+        mode. <C>typography</C> tunes headings for your display font: geometric and grotesque faces often want a
+        heavier <C>displayWeight</C> and less negative tracking than Field's defaults.
       </P>
       <Snippet
         code={`import { createThemePair, checkThemeContrast } from '@sam.barfield/field-tokens';
@@ -328,6 +351,14 @@ export const brand = createThemePair({
 });
 
 checkThemeContrast(brand.dark).filter(c => !c.pass); // or check in a test / script`}
+      />
+      <List
+        items={[
+          <>Check both modes. A colour that works on white often fails on a dark surface, and the other way round.</>,
+          <>Pick <C>status.danger</C> so it can't be mistaken for the brand: with a red brand, a raspberry or pink-leaning danger keeps error states distinct. Always pair error colour with text too.</>,
+          <>Test <C>tone="accent"</C> sections: their secondary text is a slightly lighter mix of <C>accent.contrast</C>, so aim for at least 5:1 between <C>accent.contrast</C> and <C>accent.primary</C>.</>,
+          <>Put <C>checkThemeContrast</C> in a unit test (see <DocLink to="docs/frameworks">Testing</DocLink>) so a later colour tweak can't quietly break AA.</>,
+        ]}
       />
     </Section>
 
@@ -387,7 +418,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <List
         items={[
           <>Choose a <DocLink to="docs/theming">website theme</DocLink> and load its fonts, or build your own with <C>createThemePair</C>.</>,
-          <>Use <DocLink to="components/navbar">Navbar</DocLink> with <C>sticky</C> for the header and set <C>--field-scroll-offset</C> on <C>{'<html>'}</C> to its height so in-page anchors land below it.</>,
+          <>Use <DocLink to="components/navbar">Navbar</DocLink> with <C>sticky</C> for the header and set <C>--field-scroll-offset</C> on <C>{'<html>'}</C> to its height so in-page anchors land below it. If the top-level items need more room than a tablet has, set <C>collapseBelow</C> so the bar switches to the menu before they collide.</>,
           <><DocLink to="components/cookie-consent">CookieConsent</DocLink> once at the root; read choices with <C>useCookieConsent()</C> before loading analytics.</>,
         ]}
       />
@@ -441,6 +472,7 @@ const isDesktop = useMediaQuery(\`(min-width: \${breakpoints.md}px)\`);`}
         items={[
           <><DocLink to="components/typography">Heading display</DocLink> sizes and <C>Text size="xl"</C> for fluid hero type.</>,
           <><DocLink to="components/footer">Footer</DocLink> with brand, link columns and a legal row.</>,
+          <><DocLink to="components/card">Card</DocLink> with <C>href</C> for whole-card links (service tiles, blog posts). Keep other links and buttons out of a link card.</>,
           <><DocLink to="components/media">Image, Gallery, Lightbox and AspectRatio</DocLink> for photos, portfolios, maps and video.</>,
           <><DocLink to="components/carousel">Carousel</DocLink> for reviews and highlights.</>,
           <><DocLink to="components/link">Link</DocLink> for text links and <DocLink to="components/prose">Prose</DocLink> for CMS / Markdown content.</>,
@@ -454,14 +486,25 @@ const isDesktop = useMediaQuery(\`(min-width: \${breakpoints.md}px)\`);`}
     </Section>
 
     <Section id="performance" title="Performance">
+      <P>
+        Field itself is light: JavaScript is tree-shaken, so a full brochure site (theme, navbar, sections, gallery,
+        carousel, forms, footer, cookie banner) ships about 21 KB of Field code gzipped, and the stylesheet is a single
+        cached file of about 23 KB. Most of a site's weight is its own images, fonts and page code:
+      </P>
       <List
         items={[
-          <>JavaScript is tree-shaken: a full brochure site (theme, navbar, sections, gallery, carousel, forms, footer, cookie banner) ships about 21 KB of Field code, gzipped.</>,
-          <>The stylesheet is a single file (about 23 KB gzipped) and is cached after the first visit.</>,
-          <>Images lazy-load by default; pass <C>loading="eager"</C> to the hero image and use <C>srcSet</C> / <C>sizes</C> for responsive images.</>,
-          <>Render on the server (Next.js, Remix, Astro) so content is visible and indexable before JavaScript loads.</>,
+          <><strong>Images</strong> are usually the biggest win. Convert photos to WebP or AVIF (often 70-80% smaller than JPEG/PNG), give <C>Image</C> its <C>width</C> and <C>height</C> so the layout doesn't jump, pass <C>loading="eager"</C> to the hero image only (everything else lazy-loads), and use <C>srcSet</C> / <C>sizes</C> for images shown at very different widths. <C>Section backgroundImage</C> is scaled to cover, so keep banner photos full size there.</>,
+          <><strong>Fonts:</strong> self-host them (see <DocLink to="docs/installation">Installation</DocLink>) rather than loading a third-party stylesheet that blocks the first render.</>,
+          <><strong>Page code:</strong> in a single-page app, lazy-load routes with <C>React.lazy</C>. Give the <C>Suspense</C> fallback <C>min-height: 100vh</C> so the footer stays below the fold while a page loads; a short fallback makes the footer visibly jump (layout shift).</>,
+          <><strong>Server rendering</strong> (Next.js, Remix, Astro) makes content visible and indexable before JavaScript runs; a client-only app can't paint until its bundle has loaded.</>,
+          <>Single-page apps usually serve <C>index.html</C> for unknown paths, including <C>/robots.txt</C>. Add a real <C>public/robots.txt</C> so search engines don't read your HTML as rules.</>,
         ]}
       />
+      <Callout tone="info" title="Measure the production build">
+        Run Lighthouse (Chrome DevTools, or <C>npx lighthouse &lt;url&gt;</C>) against a production build served by{' '}
+        <C>vite preview</C> or your host. A dev server ships unminified code and per-module requests, so its scores are
+        not meaningful. Check mobile as well as desktop: Lighthouse simulates a mid-range phone on a slow connection.
+      </Callout>
     </Section>
   </DocPage>
 );
@@ -475,13 +518,18 @@ const TOKEN_GROUPS: { title: string; vars: string[]; note?: string }[] = [
   { title: 'Accent', vars: ['--field-accent-primary', '--field-accent-hover', '--field-accent-active', '--field-accent-subtle', '--field-accent-contrast', '--field-accent-text'], note: 'contrast is the text colour on top of accent-primary; accent-text is the accent used as text on surfaces (links, active nav).' },
   { title: 'Status (success, warning, danger, info)', vars: ['--field-status-success-base', '--field-status-success-surface', '--field-status-success-border', '--field-status-success-text'], note: 'Same four tokens for each status.' },
   { title: 'Spacing', vars: ['--field-space-1 (4px)', '--field-space-2 (8px)', '--field-space-3 (12px)', '--field-space-4 (16px)', '--field-space-6 (24px)', '--field-space-8 (32px)'], note: 'Half steps use an underscore: --field-space-1_5 = 6px.' },
-  { title: 'Radius, shadow, type, motion', vars: ['--field-radius-sm … --field-radius-xl, --field-radius-full', '--field-shadow-xs … --field-shadow-xl', '--field-font-sans, --field-font-mono', '--field-duration-fast, --field-ease-default'] },
+  { title: 'Headings', vars: ['--field-heading-weight', '--field-display-weight', '--field-heading-tracking', '--field-heading-stretch'], note: 'Set with createTheme({ typography }). tracking is a multiplier: 0 removes the negative letter-spacing, 1 is the default.' },
+  { title: 'Radius, shadow, type, motion', vars: ['--field-radius-sm … --field-radius-xl, --field-radius-full', '--field-shadow-xs … --field-shadow-xl', '--field-font-sans, --field-font-mono, --field-font-display', '--field-duration-fast, --field-ease-default'] },
 ];
 
 const Styling: React.FC = () => (
   <DocPage title="Styling & tokens" lead="Use Field's CSS variables in your own styles so custom UI matches the components and follows the active theme automatically.">
     <Section id="variables" title="CSS variables">
-      <P>Never hard-code colours or spacing; reference the tokens instead:</P>
+      <P>
+        Never hard-code colours or spacing; reference the tokens instead. For the brand colour, use{' '}
+        <C>--field-accent-primary</C> for fills and borders and <C>--field-accent-text</C> for text and icons; that way
+        a theme can lighten its text tint for dark mode without touching your CSS.
+      </P>
       <Snippet
         language="css"
         code={`.usage-panel {
@@ -590,6 +638,35 @@ const { pathname } = useLocation();
       />
     </Section>
 
+    <Section id="after-navigation" title="After navigation">
+      <P>
+        Client-side navigation doesn't do what a full page load does for free. Two small additions make a single-page
+        site behave like a normal one: set the document title on every route (it is what tabs, history and screen
+        readers announce), and after the path changes, scroll to the top and move focus to <C>{'<main>'}</C> so
+        keyboard and screen-reader users start at the new content rather than on the link they clicked.
+      </P>
+      <Snippet
+        code={`function useRouteFocus() {
+  const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; } // leave the initial page load alone
+    window.scrollTo(0, 0);
+    mainRef.current?.focus({ preventScroll: true });
+  }, [pathname]);
+  return mainRef;
+}
+
+const mainRef = useRouteFocus();
+<main id="main" ref={mainRef} tabIndex={-1}>…</main> // tabIndex={-1}: focusable by script, not by Tab`}
+      />
+      <P>
+        Open <C>NavbarFlyout</C> panels and the mobile <C>NavbarMenu</C> close themselves when a link inside them is
+        clicked, so no extra state is needed.
+      </P>
+    </Section>
+
     <Section id="tanstack" title="TanStack Router">
       <Snippet
         code={`import { Link } from '@tanstack/react-router';
@@ -658,6 +735,40 @@ const [enabled, setEnabled] = useState(true);
         <C>aria-invalid</C>) and announces errors. <C>required</C> adds an asterisk to the label.
       </P>
       <Snippet code={`<TextInput label="Bucket name" required helperText="Lowercase letters, numbers and dashes." error={errors.name} />`} />
+      <P>
+        <C>Checkbox</C> takes <C>error</C> too, which suits a required consent box. Every control puts its <C>id</C> on
+        the element that receives focus (for <C>Select</C>, the trigger button), so <C>{'<label htmlFor>'}</C> and{' '}
+        <C>#id</C> links reach it.
+      </P>
+      <H3>Error summaries for longer forms</H3>
+      <P>
+        On a form longer than a screen, per-field messages can be out of view when the user presses submit. Add a
+        summary at the top that lists each problem as a link to its field, and focus the summary on a failed submit so
+        it is announced:
+      </P>
+      <Snippet
+        code={`{errorList.length > 0 && (
+  <div ref={summaryRef} tabIndex={-1}>
+    <Alert variant="danger" title={\`Please fix \${errorList.length} problems\`}>
+      <ul>
+        {errorList.map(({ id, message }) => (
+          <li key={id}>
+            <Link href={\`#\${id}\`} onClick={e => { e.preventDefault(); document.getElementById(id)?.focus(); }}>
+              {message}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Alert>
+  </div>
+)}
+
+<Checkbox id="consent" required label="I agree to the privacy policy" error={errors.consent} />`}
+      />
+      <P>
+        Clear each error as soon as the field is corrected, list errors in the same order as the fields, and phrase
+        messages as instructions ("Enter an email address like name@company.com") rather than verdicts ("Invalid").
+      </P>
     </Section>
 
     <Section id="react-hook-form" title="React Hook Form">
@@ -710,7 +821,8 @@ const Accessibility: React.FC = () => (
           <>Give icon-only buttons an <C>aria-label</C> (required by <C>IconButton</C>'s types).</>,
           <>Give controls without a visible label an <C>aria-label</C>, e.g. a search field or table row checkbox.</>,
           <>Don't rely on colour alone: pair <C>StatusDot</C> and coloured <C>Badge</C>s with text.</>,
-          <>Keep heading levels in order; use <C>{'<Heading level={1} as="h2">'}</C> to change the look without breaking the outline.</>,
+          <>Keep heading levels in order and give each page exactly one <C>h1</C>; use <C>{'<Heading level={1} as="h2">'}</C> to change the look without breaking the outline. On a 404 page, <C>{'<EmptyState titleAs="h1">'}</C> makes the message the page heading.</>,
+          <>Check custom theme colours with <C>checkThemeContrast</C> (both modes) before you ship; see <DocLink to="docs/theming">Theming</DocLink>.</>,
           <>Use <C>Tooltip</C> for supplementary text only; it is not available on touch devices.</>,
         ]}
       />
@@ -777,6 +889,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 await user.click(screen.getByRole('combobox', { name: /region/i }));
 await user.click(screen.getByRole('option', { name: 'EU West' }));`}
       />
+      <P>Custom themes are plain objects, so their contrast can be tested too:</P>
+      <Snippet
+        code={`import { checkThemeContrast } from '@sam.barfield/field-tokens';
+import { brand } from './theme';
+
+test.each(['light', 'dark'] as const)('%s theme meets WCAG AA', mode => {
+  expect(checkThemeContrast(brand[mode]).filter(c => !c.pass)).toEqual([]);
+});`}
+      />
     </Section>
   </DocPage>
 );
@@ -801,6 +922,7 @@ const AiAssistants: React.FC = () => (
 - Import '@sam.barfield/field-react/styles.css' once and wrap the app in <ThemeProvider>.
 - Only use components and props listed in docs/COMPONENT_MANIFEST.json.
 - Use --field-* CSS variables for any custom styling; never hard-code colours or spacing.
+  Brand-coloured text and icons use --field-accent-text; fills use --field-accent-primary.
 - Give IconButtons an aria-label and every form control a label.
 - Render router links with as={Link} or asChild.`}
       />

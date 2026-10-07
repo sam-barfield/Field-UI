@@ -135,7 +135,8 @@ createThemePair({
 | `--field-accent-primary` / `-hover` / `-active` | Brand / primary actions |
 | `--field-accent-subtle` | Tinted accent backgrounds |
 | `--field-accent-contrast` | Text on top of `accent-primary` |
-| `--field-accent-text` | Accent as text on surfaces (links, active nav); defaults to `accent-primary` |
+| `--field-accent-text` | Accent as text on surfaces (links, active nav, icons); defaults to `accent-primary`. Use it for brand-coloured text in your own CSS, and `accent-primary` for fills |
+| `--field-heading-weight` / `--field-display-weight` / `--field-heading-tracking` / `--field-heading-stretch` | Heading typography; set with `createTheme({ typography })` |
 | `--field-status-{success,warning,danger,info}-{base,surface,border,text}` | Status colours |
 | `--field-space-1` … `--field-space-24` | 4px scale (`--field-space-1_5` = 6px) |
 | `--field-radius-xs` / `-sm` / `-md` / `-lg` / `-xl` / `-full` | 3 / 6 / 8 / 12 / 16 px / pill (default theme) |
@@ -343,6 +344,7 @@ showToast({ title: 'Saved', variant: 'success', action: { label: 'Undo', onClick
 - **Navbar**: `collapseBelow="lg"` (or px) collapses to the toggle + `NavbarMenu` earlier than the default 768px; put desktop links in `<NavbarContent hideOnMobile>`. Flyouts close on link click, focus-out, outside click and Escape, so no controlled state is needed for client-side routing. In `NavbarMenu`, use `NavbarItem`s inside `NavbarFlyout` accordions.
 - **Card** with `href` (and `as={Link}`) is a whole-card link; don't nest links or buttons inside it. **EmptyState** `titleAs="h1"` for 404 pages. **Select** puts `id` on its focusable trigger, so error summaries can link to `#id`.
 - **Stack** (default `align="stretch"`) leaves direct `img` / `svg` / `video` children at their own width. **Grid** `align="center"` vertically centres cells (e.g. text beside an image).
+- **Websites in production**: self-host fonts (Fontsource) instead of a Google Fonts stylesheet; convert photos to WebP; `loading="eager"` on the hero image only; lazy-load routes with a `min-height: 100vh` Suspense fallback (avoids footer layout shift); add `public/robots.txt` to SPAs; set `document.title` per route and focus `<main>` after navigation. Measure Lighthouse on a production build, not the dev server.
 - **Checkbox** takes `error` like the other form controls (required consent boxes).
 - **Narrow screens**: horizontal **Stepper** shows only the current step's label below 640px (keep titles short, or use `orientation="vertical"`); **SegmentedControl** scrolls inside its box when labels don't fit; **TerminalHeader** children wrap below the title; **UnfoldingHeading** `lg` / `xl` shrink on phones. Wrap rows of buttons with `<Flex wrap="wrap">` and stack grids with `columns={{ base: 1, md: 3 }}`; fixed multi-column layouts are the usual cause of mobile overflow.
 - Components are marked `'use client'`, so they can be imported in Next.js Server Components; hooks still need a client component.

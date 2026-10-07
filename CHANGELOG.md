@@ -4,7 +4,7 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ## [0.3.1] - 2026-10-07
 
-Fixes and additions from building a full client website (SNB Electronic Services) with a custom brand theme.
+Fixes and additions from building a complete multi-page marketing site with a custom brand theme.
 
 ### Added
 - Theme token `accent.text` (`--field-accent-text`): the accent used as text on surfaces (links, `Text tone="accent"`, active nav items, outline buttons). Defaults to `accent.primary`. Lets a brand keep white text on its fill in dark mode while links use a lighter tint.

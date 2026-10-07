@@ -85,6 +85,8 @@ Icons in examples come from `lucide-react`.
 
 ## 3. Theming
 
+> Creating a brand theme from a client's existing website? Follow `docs/skills/field-theme-from-website/SKILL.md`.
+
 ```tsx
 // Switch mode / pair
 const { mode, toggleMode, setMode, setThemePair } = useTheme();

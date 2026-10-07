@@ -25,6 +25,7 @@ Fixes and additions from building a full client website (SNB Electronic Services
 - `NavbarFlyout` stayed open after clicking a link inside it (client-side routing), stayed open when keyboard focus moved past it, and left focus on `<body>` after Escape. It now closes in all three cases and Escape returns focus to the trigger.
 - `NavbarMenu` closes when any link inside it is clicked, not only `NavbarItem`s.
 - Inside `NavbarMenu`, tapping a `NavbarFlyout` whose trigger is a `NavbarItem` closed the whole menu instead of opening the accordion.
+- `Section tone="accent"`: secondary text failed WCAG AA on brand fills (4.4:1 on a 5.7:1 red); secondary and tertiary text are now 92% / 88% of the contrast colour. The inverted primary button uses `accent.primary` text, not `accent.text`.
 - An active `NavbarItem` used as a flyout trigger in the mobile menu highlights the whole row.
 - `BackToTop` covered right-aligned `FooterBottom` links at the end of the page.
 - `Stack` with the default `align="stretch"` distorted `img` / `svg` / `video` children with fixed dimensions (e.g. a logo).

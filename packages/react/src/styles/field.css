@@ -5071,8 +5071,9 @@ button.field-datepicker-trigger {
 .field-section-accent {
   background-color: var(--field-accent-primary);
   --field-text-primary: var(--field-accent-contrast);
-  --field-text-secondary: color-mix(in srgb, var(--field-accent-contrast) 86%, transparent);
-  --field-text-tertiary: color-mix(in srgb, var(--field-accent-contrast) 72%, transparent);
+  /* Kept close to the contrast colour: a typical brand fill only offers ~5-6:1 with full-strength text. */
+  --field-text-secondary: color-mix(in srgb, var(--field-accent-contrast) 92%, transparent);
+  --field-text-tertiary: color-mix(in srgb, var(--field-accent-contrast) 88%, transparent);
   --field-border-subtle: color-mix(in srgb, var(--field-accent-contrast) 18%, transparent);
   --field-border-default: color-mix(in srgb, var(--field-accent-contrast) 30%, transparent);
   --field-border-focus: var(--field-accent-contrast);
@@ -5080,7 +5081,8 @@ button.field-datepicker-trigger {
 }
 .field-section-accent .field-btn-primary {
   background-color: var(--field-accent-contrast);
-  color: var(--field-accent-text);
+  /* Inverted button: the brand colour on the contrast fill (accent-text is tuned for surfaces, not this fill). */
+  color: var(--field-accent-primary);
   border-color: transparent;
   box-shadow: none;
 }

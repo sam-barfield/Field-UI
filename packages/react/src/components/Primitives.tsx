@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Loader2, ChevronRight } from 'lucide-react';
-import { mergeClassNames, renderPolymorphic } from '../utils/polymorphic.js';
+import { mergeClassNames, renderPolymorphic, resolveTag } from '../utils/polymorphic.js';
+import { useLinkComponent } from '../theme/ThemeProvider.js';
 
 /* --- PROGRESS --- */
 export interface ProgressProps {
@@ -92,14 +93,28 @@ export const Spinner: React.FC<SpinnerProps> = ({ size = 20, label = 'Loading', 
   );
 };
 
+type SkeletonRadius = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+
+const resolveSkeletonRadius = (r?: SkeletonRadius | string) => {
+  if (!r) return undefined;
+  if (['none', 'xs', 'sm', 'md', 'lg', 'xl', 'full'].includes(r)) {
+    return `var(--field-radius-${r})`;
+  }
+  return r;
+};
+
 /* --- SKELETON --- */
 export interface SkeletonProps {
   /** Width (number = px). */
   width?: string | number;
   /** Height (number = px). */
   height?: string | number;
-  /** Corner radius (any CSS length or token). */
-  borderRadius?: string;
+  /** Aspect ratio, e.g. `16 / 9`, `1`, or `"4/3"`. When provided, height defaults to `auto`. */
+  ratio?: number | string;
+  /** Corner radius: a token name (`none`, `xs`, `sm`, `md`, `lg`, `xl`, `full`) or any CSS length. Default `sm`. */
+  radius?: SkeletonRadius | string;
+  /** @deprecated Use `radius`. */
+  borderRadius?: SkeletonRadius | string;
   /** Render a circle (`width` is used for both dimensions). */
   circle?: boolean;
   className?: string;
@@ -109,25 +124,34 @@ export interface SkeletonProps {
 /** A shimmering placeholder shown while content loads. Hidden from assistive tech. */
 export const Skeleton: React.FC<SkeletonProps> = ({
   width = '100%',
-  height = '20px',
-  borderRadius = 'var(--field-radius-sm)',
+  height,
+  ratio,
+  radius,
+  borderRadius,
   circle = false,
   className = '',
   style,
 }) => {
+  const effectiveRadius = resolveSkeletonRadius(radius ?? borderRadius ?? 'sm');
+  const resolvedHeight = height ?? (ratio !== undefined ? 'auto' : '20px');
+  const aspectRatio = typeof ratio === 'number' ? String(ratio) : ratio;
+
   return (
     <div
       aria-hidden="true"
       className={mergeClassNames('field-skeleton', className)}
       style={{
         width,
-        height: circle ? width : height,
-        borderRadius: circle ? 'var(--field-radius-full)' : borderRadius,
+        height: circle ? width : resolvedHeight,
+        aspectRatio,
+        borderRadius: circle ? 'var(--field-radius-full)' : effectiveRadius,
         ...style,
       }}
     />
   );
 };
+
+Skeleton.displayName = 'Skeleton';
 
 /* --- DIVIDER --- */
 export interface DividerProps {
@@ -181,6 +205,8 @@ export interface BreadcrumbProps {
  * <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Buckets', href: '/s3' }, { label: 'logs-prod' }]} />
  */
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator, className = '' }) => {
+  const linkComponent = useLinkComponent();
+
   return (
     <nav aria-label="Breadcrumb" className={className}>
       <ol className="field-breadcrumb-list">
@@ -207,22 +233,15 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator, classN
               });
             }
 
-            if (item.as) {
-              return renderPolymorphic(item.as, {
+            // A link when there is an href or a custom component (e.g. `as: Link` + `linkProps: { to }`).
+            if (isInteractive && (item.href || item.as)) {
+              return renderPolymorphic(resolveTag(linkComponent, item.as, item.href), {
                 className: 'field-breadcrumb-link',
                 href: item.href,
                 onClick: item.onClick,
                 ...item.linkProps,
                 children: item.label,
               });
-            }
-
-            if (isInteractive && item.href) {
-              return (
-                <a href={item.href} onClick={item.onClick} className="field-breadcrumb-link">
-                  {item.label}
-                </a>
-              );
             }
 
             if (isInteractive) {
@@ -236,10 +255,9 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator, classN
             return <span className="field-breadcrumb-static">{item.label}</span>;
           };
 
-          const itemKey = item.href || (typeof item.label === 'string' ? item.label : `breadcrumb-${idx}`);
-
+          // Crumbs are positional, and two can share an href (e.g. "#"), so key by position.
           return (
-            <li key={itemKey} className="field-breadcrumb-item">
+            <li key={idx} className="field-breadcrumb-item">
               {renderItemContent()}
               {!isLast && (
                 <span className="field-breadcrumb-separator" aria-hidden="true">
@@ -253,3 +271,48 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator, classN
     </nav>
   );
 };
+
+Breadcrumb.displayName = 'Breadcrumb';
+
+/* --- VISUALLY HIDDEN (F20, F22) --- */
+export interface VisuallyHiddenProps extends React.HTMLAttributes<HTMLSpanElement> {
+  children: React.ReactNode;
+  /**
+   * Only visually hide on screens narrower than this breakpoint.
+   * On wider screens, the element renders visibly.
+   */
+  below?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Element to render. Default `span`. */
+  as?: React.ElementType;
+  className?: string;
+}
+
+/**
+ * Hides content visually while keeping it fully accessible to screen readers.
+ * Use `below` (e.g. `below="sm"`) to hide labels on small mobile screens only.
+ *
+ * @example
+ * <VisuallyHidden>Current page</VisuallyHidden>
+ * <VisuallyHidden below="sm">Basket ({count})</VisuallyHidden>
+ */
+export const VisuallyHidden: React.FC<VisuallyHiddenProps> = ({
+  children,
+  below,
+  as: Component = 'span',
+  className = '',
+  style,
+  ...props
+}) => {
+  const classNames = mergeClassNames(
+    below ? `field-visually-hidden-below-${below}` : 'field-sr-only',
+    className
+  );
+
+  return (
+    <Component className={classNames} style={style} {...props}>
+      {children}
+    </Component>
+  );
+};
+
+VisuallyHidden.displayName = 'VisuallyHidden';

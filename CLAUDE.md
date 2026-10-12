@@ -25,14 +25,14 @@ Key commands, structure and rules for Claude Code and other assistants working *
 
 ## Component Inventory Quick Reference
 
-- **Navigation & Shell**: `Navbar` (`NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarFlyout`, `NavbarFlyoutGrid`, `NavbarFlyoutItem`, `NavbarActions`, `NavbarToggle`, `NavbarMenu`), `Sidebar` (`SidebarHeader`, `SidebarContent`, `SidebarGroup`, `SidebarItem`, `SidebarDropdown`, `SidebarSubItem`, `SidebarFooter`, `SidebarProvider`, `SidebarTrigger`), `Tabs` / `TabPanel`, `Breadcrumb`, `Pagination`, `Stepper`, `Timeline`
-- **Actions**: `Button`, `IconButton`, `ButtonGroup`, `SegmentedControl`, `DropdownMenu`, `CopyButton`
+- **Navigation & Shell**: `Navbar` (`NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarFlyout`, `NavbarFlyoutGrid`, `NavbarFlyoutItem`, `NavbarActions`, `NavbarActionsItem`, `NavbarToggle`, `NavbarMenu`), `Sidebar` (`SidebarHeader`, `SidebarContent`, `SidebarGroup`, `SidebarItem`, `SidebarDropdown`, `SidebarSubItem`, `SidebarFooter`, `SidebarProvider`, `SidebarTrigger`), `Tabs` / `TabPanel`, `Breadcrumb`, `Pagination`, `Stepper`, `Timeline`
+- **Actions**: `Button`, `IconButton`, `ButtonGroup`, `SegmentedControl`, `Chip`, `ChipGroup`, `DropdownMenu`, `CopyButton`
 - **Forms**: `TextInput`, `TextArea`, `Select`, `Combobox`, `NumberInput`, `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `DatePicker`, `DateRangePicker`
-- **Layout**: `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divider`, `Card` (layout props accept breakpoint objects: `Responsive<T>`, `breakpoints`, `useMediaQuery`)
-- **Website**: `Section`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox`, `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `Reveal`
-- **Data Display**: `StatCard`, `Table`, `Terminal`, `CodeBlock`, `DiffViewer`, `Sparkline`, `Meter`, `StatusDot`, `TreeView`, `EmptyState`, `Badge`, `Avatar`, `AvatarGroup`
+- **Layout & Primitives** (`components/Layout.tsx`): `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divided`, plus `Divider`, `Card`, `VisuallyHidden` (layout props accept breakpoint objects: `Responsive<T>`, `breakpoints`, `useMediaQuery`)
+- **Website**: `Section`, `SectionHeader`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox`, `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `FloatingButton`, `Reveal`
+- **Data Display**: `DescriptionList` (`DescriptionItem`), `Icon`, `IconText`, `StatCard`, `Table`, `Terminal`, `CodeBlock`, `DiffViewer`, `Sparkline`, `Meter`, `StatusDot`, `TreeView`, `EmptyState`, `Badge`, `Avatar`, `AvatarGroup`
 - **Overlays**: `Modal`, `Drawer`, `Popover`, `Tooltip`, `ContextMenu`, `CommandPalette`
-- **Feedback**: `Alert`, `ToastProvider` / `useToast`, `Progress`, `Spinner`, `Skeleton`, `Accordion`
+- **Feedback**: `Alert`, `ToastProvider` / `useToast`, `Progress`, `Spinner`, `Skeleton`, `Accordion`, `AsyncContent`
 - **Typography**: `Heading`, `UnfoldingHeading`, `Text`, `Kbd`, `Code`
 - **Theme**: `ThemeProvider`, `ThemeScope`, `useTheme`, `useThemeSafe`, `usePortalThemeProps`; website presets `businessThemePairs` (`roasteryPair`, `workshopPair`, `storefrontPair`, `sagePair`, `counselPair`)
 
@@ -40,7 +40,7 @@ Key commands, structure and rules for Claude Code and other assistants working *
 
 ## Architecture Rules
 
-1. **No raw colours or hard-coded spacing** in `field.css` or component styles: use `--field-*` tokens.
+1. **No raw colours or hard-coded spacing** in `field.css` or component styles: use `--field-*` tokens. Component sizes that consumers theme go through variables with defaults (e.g. `var(--field-btn-height-md, 36px)`); public variables and classes are listed in the Styling guide's "Public CSS API" section (changing them is breaking).
 2. **Accessibility first**: prefer native elements (inputs, buttons); use the shared hooks for overlays (`useFocusTrap`, `useScrollLock`, `useDismissableLayer`) and `handleListKeyNavigation` for menus/lists. Everything must be keyboard operable.
 3. **Portals**: popups render via `createPortal` with `usePortalThemeProps()` on the root (keeps theme vars for container scopes; `.field-layer` never paints a background) and `useAnchoredPosition` for placement.
 4. **Polymorphic links**: interactive items support `asChild`, `as` and `href`; use `getInteractiveElementProps(tag, …)` so `<a>` never gets `type`/`disabled`.

@@ -53,9 +53,12 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({ required, className, chi
   </label>
 );
 
+/** Control height matching the Button sizes: `sm` 30px, `md` 36px, `lg` 44px, `xl` 48px. */
+export type FieldControlSize = 'sm' | 'md' | 'lg' | 'xl';
+
 /* --- TextInput --- */
 
-export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Visible label, associated with the input automatically. */
   label?: React.ReactNode;
   /** Hint shown under the input (hidden while `error` is set). */
@@ -68,6 +71,13 @@ export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputEleme
   rightAdornment?: React.ReactNode;
   /** Stretch to the container width. Default `true`. */
   isFullWidth?: boolean;
+  /**
+   * Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px), so a field
+   * and a button line up in a row. Without it the field is 40px tall.
+   */
+  size?: FieldControlSize;
+  /** The native `size` attribute (visible width in characters). */
+  htmlSize?: number;
   /** Class applied to the bordered input wrapper (`className` styles the same element). */
   wrapperClassName?: string;
 }
@@ -89,6 +99,8 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       leftAdornment,
       rightAdornment,
       isFullWidth = true,
+      size,
+      htmlSize,
       className = '',
       wrapperClassName,
       id: customId,
@@ -113,6 +125,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         <div
           className={mergeClassNames(
             'field-input-wrapper',
+            size && `field-control-${size}`,
             error && 'error',
             disabled && 'disabled',
             wrapperClassName,
@@ -130,6 +143,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
               Boolean(leftAdornment) && 'has-left-adornment',
               Boolean(rightAdornment) && 'has-right-adornment'
             )}
+            size={htmlSize}
             disabled={disabled}
             required={required}
             aria-invalid={error ? true : undefined}

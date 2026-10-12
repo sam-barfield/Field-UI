@@ -152,6 +152,37 @@ export interface FieldTypographyOverrides {
   headingStretch?: string;
 }
 
+type FieldButtonSize = 'sm' | 'md' | 'lg' | 'xl';
+
+/**
+ * Button overrides, written to `--field-btn-*` variables. Every field is optional; omitted values
+ * keep Field's defaults. Each value is any CSS value.
+ */
+export interface FieldButtonOverrides {
+  /** Height per size. Defaults: `sm` 30px, `md` 36px, `lg` 44px, `xl` 48px. */
+  height?: Partial<Record<FieldButtonSize, string>>;
+  /** Horizontal padding per size. Defaults: `sm` 12px, `md` 16px, `lg` 22px, `xl` 28px. */
+  paddingX?: Partial<Record<FieldButtonSize, string>>;
+  /** Font size per size. Defaults: `sm` 0.8125rem, `md` 0.875rem, `lg` 0.9375rem, `xl` 1rem. */
+  fontSize?: Partial<Record<FieldButtonSize, string>>;
+  /** Corner radius of every size. Default: the `sm` radius for small buttons, `md` for medium and large, `lg` for `xl`. */
+  radius?: string;
+  /** Default `550`. */
+  fontWeight?: number | string;
+  /** Default `-0.01em`. */
+  letterSpacing?: string;
+  /** e.g. `uppercase`. Default `none`. */
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  /** Shadow of filled buttons (primary, secondary, danger) at rest. Default: the theme's `xs` shadow. */
+  shadow?: string;
+  /** Shadow on hover. Default: the theme's `sm` shadow. */
+  shadowHover?: string;
+  /** Shadow while pressed. Default: the theme's `inset` shadow. */
+  shadowActive?: string;
+  /** Transform while pressed, e.g. `translateY(1px)` or `none`. Default `scale(0.98)`. */
+  pressTransform?: string;
+}
+
 export interface FieldTheme {
   id: string;
   label: string;
@@ -165,6 +196,8 @@ export interface FieldTheme {
   fonts?: Partial<FieldPrimitiveTokens['typography']['fonts']>;
   /** Heading weight, tracking and width overrides. */
   typography?: FieldTypographyOverrides;
+  /** Button size, lettering, shadow and press-effect overrides. */
+  button?: FieldButtonOverrides;
 }
 
 export interface FieldThemePair {

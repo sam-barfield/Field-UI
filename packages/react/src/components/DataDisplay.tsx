@@ -4,16 +4,27 @@ import React, { useMemo, useRef, useState } from 'react';
 import { ChevronRight, Check, Folder, File } from 'lucide-react';
 import { useControllableState } from '../utils/hooks.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
+import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
 
 /* --- EmptyState --- */
-export interface EmptyStateProps {
+export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   icon?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
-  /** Call to action, e.g. a primary `Button`. */
+  /**
+   * One or more calls to action (a `Button`, or a fragment / array of them). They sit in a wrapping row
+   * and stack to full width on phones, where long labels wrap instead of overflowing.
+   */
+  actions?: React.ReactNode;
+  /** @deprecated Use `actions`. */
   action?: React.ReactNode;
-  /** Element for the title, e.g. `h1` on a 404 page or `h2` inside a page section. Default `div`. */
+  /**
+   * Element for the title. Default `div`, because the right heading level depends on where the empty state
+   * sits: pass `h1` on a 404 page or `h2` / `h3` inside a page section to keep the document outline correct.
+   */
   titleAs?: React.ElementType;
+  /** `boxed` (default): dashed border on a sunken surface. `plain`: no box, e.g. inside a `Card`. */
+  variant?: 'boxed' | 'plain';
   className?: string;
 }
 
@@ -24,16 +35,37 @@ export interface EmptyStateProps {
  * <EmptyState icon={<Inbox />} title="No buckets yet" description="Create one to start storing objects."
  *   action={<Button variant="primary">Create bucket</Button>} />
  */
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action, titleAs: TitleTag = 'div', className = '' }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({
+  icon,
+  title,
+  description,
+  action,
+  actions,
+  titleAs: TitleTag = 'div',
+  variant = 'boxed',
+  className = '',
+  children,
+  ...props
+}) => {
+  const actionContent = actions ?? action;
   return (
-    <div className={mergeClassNames('field-empty-state', className)}>
+    <div
+      className={mergeClassNames(
+        'field-empty-state',
+        variant === 'plain' ? 'field-empty-state-plain' : 'field-empty-state-boxed',
+        className
+      )}
+      {...props}
+    >
       {icon && <div className="field-empty-state-icon" aria-hidden="true">{icon}</div>}
       <TitleTag className="field-empty-state-title">{title}</TitleTag>
       {description && <div className="field-empty-state-desc">{description}</div>}
-      {action && <div className="field-empty-state-action">{action}</div>}
+      {actionContent && <div className="field-empty-state-actions">{actionContent}</div>}
+      {children}
     </div>
   );
 };
+EmptyState.displayName = 'EmptyState';
 
 /* --- TreeView --- */
 export interface TreeNode {
@@ -317,40 +349,163 @@ export interface TimelineEvent {
   id: string;
   title: React.ReactNode;
   content?: React.ReactNode;
-  timestamp?: string;
-  status?: 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+  timestamp?: React.ReactNode;
+  /** ISO datetime string for `<time dateTime="...">`. */
+  dateTime?: string;
+  /** Status tone for the marker. */
+  status?: 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'accent' | 'default';
   icon?: React.ReactNode;
 }
 
-export interface TimelineProps {
+export interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
   items: TimelineEvent[];
+  /** Marker diameter: `sm` 10px, `md` 16px (default), `lg` 28px (fits an icon), or a px number. Sets `--field-timeline-marker-size`. */
+  markerSize?: 'sm' | 'md' | 'lg' | number;
+  /** Where the timestamp renders: `inline` (beside the title), `top` (above the title) or `left` (a column left of the rail). Default `inline`. */
+  timestampPosition?: 'inline' | 'top' | 'left';
   className?: string;
 }
 
+const TIMELINE_MARKER_SIZES = { sm: '10px', md: '16px', lg: '28px' } as const;
+
 /**
- * A vertical feed of events (deploys, audit logs, activity).
+ * A vertical feed of events (deploys, audit logs, activity, history milestones).
+ *
+ * Restyle it with CSS variables on the list (or any ancestor): `--field-timeline-marker-size`,
+ * `-marker-border-width`, `-marker-color` (overrides every status), `-marker-bg`, `-rail-width`,
+ * `-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight` and
+ * `-time-width` (the `left` column).
  *
  * @example
- * <Timeline items={[{ id: '1', title: 'Deployed v2.4.0', timestamp: '2m ago', status: 'success' }]} />
+ * <Timeline items={[{ id: '1', title: 'Deployed v2.4.0', timestamp: '2m ago', dateTime: '2026-10-12T09:30', status: 'success' }]} />
  */
-export const Timeline: React.FC<TimelineProps> = ({ items, className = '' }) => {
+export const Timeline: React.FC<TimelineProps> = ({
+  items,
+  markerSize,
+  timestampPosition = 'inline',
+  className = '',
+  style,
+  ...props
+}) => {
+  const markerVar =
+    markerSize === undefined
+      ? undefined
+      : typeof markerSize === 'number'
+      ? `${markerSize}px`
+      : TIMELINE_MARKER_SIZES[markerSize];
   return (
-    <ol className={mergeClassNames('field-timeline', className)}>
+    <ol
+      className={mergeClassNames('field-timeline', `field-timeline-time-${timestampPosition}`, className)}
+      style={{ ...(markerVar ? { '--field-timeline-marker-size': markerVar } : {}), ...style } as React.CSSProperties}
+      {...props}
+    >
       {items.map(item => {
         const status = item.status || 'info';
+
+        const timeElement = item.timestamp ? (
+          item.dateTime ? (
+            <time dateTime={item.dateTime} className="field-timeline-time">
+              {item.timestamp}
+            </time>
+          ) : (
+            <span className="field-timeline-time">{item.timestamp}</span>
+          )
+        ) : null;
+
         return (
           <li key={item.id} className="field-timeline-item">
+            {timestampPosition === 'left' && <div className="field-timeline-aside">{timeElement}</div>}
             <span className={`field-timeline-marker status-${status}`} aria-hidden="true">
               {item.icon}
             </span>
-            <div className="field-timeline-header">
-              <span className="field-timeline-title">{item.title}</span>
-              {item.timestamp && <span className="field-timeline-time">{item.timestamp}</span>}
+            <div className="field-timeline-body">
+              {timestampPosition === 'top' && timeElement}
+              <div className="field-timeline-header">
+                <span className="field-timeline-title">{item.title}</span>
+                {timestampPosition === 'inline' && timeElement}
+              </div>
+              {item.content && <div className="field-timeline-content">{item.content}</div>}
             </div>
-            {item.content && <div className="field-timeline-content">{item.content}</div>}
           </li>
         );
       })}
     </ol>
   );
 };
+
+Timeline.displayName = 'Timeline';
+
+/* --- DescriptionList (F20) --- */
+export interface DescriptionItemProps {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export const DescriptionItem: React.FC<DescriptionItemProps> = ({
+  label,
+  children,
+  className = '',
+  style,
+}) => {
+  return (
+    <div className={mergeClassNames('field-description-item', className)} style={style}>
+      <dt className="field-description-label">{label}</dt>
+      <dd className="field-description-value">{children}</dd>
+    </div>
+  );
+};
+
+DescriptionItem.displayName = 'DescriptionItem';
+
+export interface DescriptionListProps extends React.HTMLAttributes<HTMLDListElement> {
+  children: React.ReactNode;
+  /** Number of columns; accepts a breakpoint object. Default 1. */
+  columns?: Responsive<number>;
+  /** Visual density. Default `default`. */
+  density?: 'default' | 'compact';
+  /** Show hairline divider borders between items. Default `false`. */
+  divided?: boolean;
+  className?: string;
+}
+
+/**
+ * A responsive label/value description list for metadata, facts, specifications, and details.
+ *
+ * @example
+ * <DescriptionList columns={{ base: 1, md: 2 }} divided>
+ *   <DescriptionItem label="Role">Heavy Bomber</DescriptionItem>
+ *   <DescriptionItem label="Manufacturer">Avro</DescriptionItem>
+ * </DescriptionList>
+ */
+export const DescriptionList: React.FC<DescriptionListProps> = ({
+  children,
+  columns = 1,
+  density = 'default',
+  divided = false,
+  className = '',
+  style,
+  ...props
+}) => {
+  const acc = createResponsiveAccumulator();
+  applyResponsive(acc, 'gtc', 'gridTemplateColumns', columns, n => `repeat(${n}, minmax(0, 1fr))`, 1);
+
+  return (
+    <dl
+      className={mergeClassNames(
+        'field-description-list',
+        density === 'compact' && 'field-description-list-compact',
+        divided && 'field-description-list-divided',
+        ...acc.classes,
+        className
+      )}
+      style={{ ...acc.style, ...style }}
+      {...props}
+    >
+      {children}
+    </dl>
+  );
+};
+
+DescriptionList.displayName = 'DescriptionList';

@@ -12,16 +12,27 @@ This is the guide for AI coding assistants (Claude, Cursor, Copilot, Gemini, Cha
    ```tsx
    import '@sam.barfield/field-react/styles.css';
    import { ThemeProvider, ToastProvider } from '@sam.barfield/field-react';
+   import { AppLink } from './AppLink'; // href → to adapter, see rule 6 (Next.js: pass `Link` from 'next/link')
 
-   <ThemeProvider defaultMode="system" storageKey="theme">
+   <ThemeProvider linkComponent={AppLink} defaultMode="system" storageKey="theme">
      <ToastProvider>{app}</ToastProvider>
    </ThemeProvider>
    ```
+   Field's CSS is in the `field` cascade layer, so unlayered app CSS always wins. Put resets (`* { margin: 0 }`, `button { background: none }`, Tailwind Preflight) in a layer declared *before* Field (`@layer reset, field;` in a file imported before Field's stylesheet), or they strip Field's components.
 2. **Never hard-code colours or spacing.** Use `--field-*` CSS variables (section 4), layout props (`gap={12}`, `gap="$4"`), or Field components.
 3. **Every control needs an accessible name.** `IconButton` requires `aria-label`; form controls take `label` (or `aria-label` when there is no visible label).
 4. **Value-based `onChange`.** `Select`, `Combobox`, `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `NumberInput`, `SegmentedControl`, `DatePicker`, `Tabs` and `Accordion` call `onChange` with the **value**, so `onChange={setState}` works. `TextInput` and `TextArea` are native wrappers: their `onChange` receives the **event**.
 5. **Controlled or uncontrolled.** Inputs accept `value` + `onChange` or `defaultValue`; overlays accept `isOpen` + `onOpenChange` or `defaultOpen`.
-6. **Router links.** Render navigation with `as={Link}` or `asChild` (Button, IconButton, NavbarItem, NavbarBrand, NavbarFlyoutItem, SidebarItem, SidebarSubItem, DropdownItem, Tabs items, Breadcrumb items). Mark the current route with `isActive`.
+6. **Router links.** Provide `linkComponent` to `<ThemeProvider>` for automatic client routing on internal `href`s across `Button`, `IconButton`, `Card`, `Link`, `FooterLink`, `NavbarBrand`, `NavbarItem`, `NavbarFlyoutItem`, `Breadcrumb`, `Tabs` and the `CookieConsent` policy link. Field passes the component **`href`**, never `to`. `next/link` takes `href`, so pass it directly. React Router and TanStack Router need `to`, so pass a small adapter:
+   ```tsx
+   import { forwardRef, type AnchorHTMLAttributes } from 'react';
+   import { Link } from 'react-router-dom';
+
+   export const AppLink = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAnchorElement>>(
+     ({ href = '/', ...rest }, ref) => <Link ref={ref} to={href} {...rest} />
+   );
+   ```
+   External URLs (`https:`, `mailto:`, `tel:`, `//`) and `#` anchors always render a plain `<a>`, so the adapter only sees internal paths.
 7. **Don't re-implement what exists.** Use `Modal`/`Drawer` (focus trap, scroll lock), `DropdownMenu`, `Popover`, `Tooltip`, `Table`, `Pagination`, `EmptyState`, `Skeleton` instead of custom versions.
 
 ---
@@ -35,9 +46,10 @@ import {
   // Theme
   ThemeProvider, ThemeScope, useTheme, createTheme, createThemePair,
   cobaltThemePair, titaniumAmberPair, emeraldPrecisionPair, themePairs,
+  useLinkComponent,
 
   // Actions
-  Button, IconButton, ButtonGroup, SegmentedControl,
+  Button, IconButton, ButtonGroup, SegmentedControl, Chip, ChipGroup,
   DropdownMenu, DropdownItem, DropdownGroup, DropdownLabel, DropdownDivider,
 
   // Forms
@@ -45,11 +57,12 @@ import {
   Switch, Checkbox, RadioGroup, Slider, DatePicker, DateRangePicker,
 
   // Layout
-  Box, Flex, Stack, Grid, Container, Divider, Card, CardHeader, CardContent, CardFooter,
+  Box, Flex, Stack, Grid, Container, Divider, Divided, Card, CardHeader, CardContent, CardFooter,
+  VisuallyHidden,
 
   // Navigation
   Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarFlyout, NavbarFlyoutGrid,
-  NavbarFlyoutItem, NavbarActions, NavbarToggle, NavbarMenu, useNavbar,
+  NavbarFlyoutItem, NavbarActions, NavbarActionsItem, NavbarToggle, NavbarMenu, useNavbar,
   Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarItem, SidebarDropdown,
   SidebarSubItem, SidebarFooter, SidebarProvider, SidebarTrigger, useSidebar,
   Tabs, TabPanel, Breadcrumb, Pagination, Stepper,
@@ -57,22 +70,23 @@ import {
   // Data display
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
   StatCard, Sparkline, Meter, StatusDot, Badge, Avatar, AvatarGroup,
-  TreeView, Timeline, EmptyState, CodeBlock, DiffViewer, CopyButton,
+  DescriptionList, DescriptionItem,
+  TreeView, Timeline, EmptyState, Icon, IconText, CodeBlock, DiffViewer, CopyButton,
   Terminal, TerminalHeader, TerminalBody, TerminalLine, TerminalPrompt,
 
   // Overlays
   Modal, Drawer, Popover, Tooltip, ContextMenu, CommandPalette,
 
   // Feedback
-  Alert, ToastProvider, useToast, Progress, Spinner, Skeleton, Accordion,
+  Alert, ToastProvider, useToast, Progress, Spinner, Skeleton, Accordion, AsyncContent,
 
   // Typography
   Heading, Text, Kbd, Code, UnfoldingHeading,
 
   // Website
-  Section, Footer, FooterBrand, FooterColumn, FooterLink, FooterBottom,
+  Section, SectionHeader, Footer, FooterBrand, FooterColumn, FooterLink, FooterBottom,
   Image, AspectRatio, Gallery, Lightbox, Carousel, CarouselSlide,
-  Link, Prose, CookieConsent, useCookieConsent, SkipLink, BackToTop, Reveal,
+  Link, Prose, CookieConsent, useCookieConsent, SkipLink, BackToTop, FloatingButton, Reveal,
 
   // Responsive helpers
   breakpoints, useMediaQuery, usePrefersReducedMotion,
@@ -338,13 +352,16 @@ showToast({ title: 'Saved', variant: 'success', action: { label: 'Undo', onClick
 - **Layout** props (`gap`, `padding`) accept numbers (px), CSS lengths, or `$` spacing tokens (`"$4"`). `Grid minChildWidth={240}` makes responsive grids.
 - **Responsive props**: layout props on `Flex`, `Stack`, `Grid`, `Box`, `Container` and `align` on `Heading` / `Text` accept `{ base, sm, md, lg, xl }` (mobile first; 640 / 768 / 1024 / 1280px). `hideBelow` / `hideFrom` toggle visibility. Don't hand-write media queries for these.
 - **Display type**: `Heading display="sm" | "md" | "lg" | "xl"` (fluid) and `Text size="xl"` (lead). Headings use `--field-font-display`.
-- **Section** sets page-band spacing, `tone` (`muted`, `raised`, `accent`, `inverse`) and a container; use it for every marketing band instead of custom padding. `backgroundImage` + `overlay` for photo bands.
-- **Image** requires `alt`; `ratio` crops; lazy by default (`loading="eager"` for heroes). **Gallery** opens a **Lightbox**. Use **AspectRatio** for iframes / video.
+- **Section** sets page-band spacing, `tone` (`muted`, `raised`, `accent`, `inverse`) and a container; use it for every marketing band instead of custom padding. `backgroundImage` (a URL or `{ src, srcSet, sizes, priority }`, rendered as an `<img>`) + `overlay` for photo bands; `priority` on the hero. `underNavbar` pulls a hero under a transparent sticky Navbar. **SectionHeader** gives eyebrow, title, description and an action that drops under the title on phones (`align="start" | "center"`).
+- **Image** requires `alt`; `ratio` crops; lazy by default (`priority` for the hero: eager + `fetchpriority="high"`). **Gallery** opens a **Lightbox**; `previewCount={{ base: 6 }}` shows the first photos with "Show all", `isLoading` shows skeletons, photos take `id`, `srcSet`, `width`, `height`. Use **AspectRatio** for iframes / video.
 - **CookieConsent**: mount once; gate optional scripts on `useCookieConsent().consent?.analytics`; `openPreferences()` for a footer "Cookie settings" link.
 - **Link** for inline text links (underlined by default, `external` for new tabs); **Button** with `href` for standalone actions.
 - **Badge** sizes `sm | md | lg`; **Alert** has `actions` and `onClose`; **StatCard** has `invertTrendColors`.
-- **Navbar**: `collapseBelow="lg"` (or px) collapses to the toggle + `NavbarMenu` earlier than the default 768px; put desktop links in `<NavbarContent hideOnMobile>`. Flyouts close on link click, focus-out, outside click and Escape, so no controlled state is needed for client-side routing. In `NavbarMenu`, use `NavbarItem`s inside `NavbarFlyout` accordions.
-- **Card** with `href` (and `as={Link}`) is a whole-card link; don't nest links or buttons inside it. **EmptyState** `titleAs="h1"` for 404 pages. **Select** puts `id` on its focusable trigger, so error summaries can link to `#id`.
+- **Navbar**: `collapseBelow="lg"` (or px) collapses to the toggle + `NavbarMenu` earlier than the default 768px; put desktop links in `<NavbarContent hideOnMobile>`, and wrap single actions in `<NavbarActionsItem hideOnMobile>`. `height={68}` sets the bar height once: a sticky bar publishes `--field-navbar-height` on `<html>` (use it for sticky toolbars; anchors offset automatically). Over a hero use `transparentOnTop="auto"` + `<Section underNavbar>` (no-hero pages get a solid bar); `scrolledAppearance` styles the scrolled bar; `mode="dark"` / `theme` themes the bar itself (no ThemeScope wrapper). The menu locks scroll, shows a backdrop, keeps Tab inside the bar and closes on Escape and browser back. Flyouts close on link click, focus-out, outside click and Escape, so no controlled state is needed for client-side routing. In `NavbarMenu`, use `NavbarItem`s inside `NavbarFlyout` accordions.
+- **Card** with `href` is a whole-card link; don't nest links or buttons inside it. `fill` gives equal-height cards in a grid row with pinned footers; `padding` accepts a breakpoint object; `variant="inset"` for a sunken panel. **EmptyState** `titleAs="h1"` for 404 pages, `variant="plain"` inside a Card, `actions` for one or more buttons (stack on phones). **Select** puts `id` on its focusable trigger, so error summaries can link to `#id`.
+- **Sizes line up**: `size` on `TextInput`, `Select`, `NumberInput` and `Chip` matches the Button heights (30 / 36 / 44 / 48px). Theme buttons with a theme's `button` group or the `--field-btn-*` variables, never by overriding `.field-btn` classes. `Button variant="link"` is an inline text action.
+- **Website patterns**: `Text variant="overline"` (eyebrows), `Text measure` and `tabularNums`, `Chip` / `ChipGroup scroll` (filters), `DescriptionList` (facts), `Divided` (parts of one card separated by hairlines), `Icon` / `IconText` (icon beside an address or hours), `VisuallyHidden below="sm"`, `FloatingButton` (basket / "Book now"; BackToTop moves above it), `Prose collapsible` (Read more on phones), `Timeline` (`--field-timeline-*` variables, `status="accent"`, `markerSize="lg"`), `AsyncContent` (loading / error / empty states for remote lists).
+- **Public CSS API**: `--field-navbar-height`, `--field-scroll-offset`, `--field-back-to-top-offset`, `--field-btn-*`, `--field-timeline-*`, `--field-navbar-scrolled-*`, `.field-navbar-collapsed`, `.field-navbar-hide-mobile`, `.field-sr-only`, the `field-navbar` container name and the `field.*` cascade layers are stable. Don't depend on other internal classes.
 - **Stack** (default `align="stretch"`) leaves direct `img` / `svg` / `video` children at their own width. **Grid** `align="center"` vertically centres cells (e.g. text beside an image).
 - **Websites in production**: self-host fonts (Fontsource) instead of a Google Fonts stylesheet; convert photos to WebP; `loading="eager"` on the hero image only; lazy-load routes with a `min-height: 100vh` Suspense fallback (avoids footer layout shift); add `public/robots.txt` to SPAs; set `document.title` per route and focus `<main>` after navigation. Measure Lighthouse on a production build, not the dev server.
 - **Checkbox** takes `error` like the other form controls (required consent boxes).

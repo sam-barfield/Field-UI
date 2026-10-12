@@ -5,8 +5,10 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, ImageOff, Pause, Play, X } from 'lucide-react';
 import { mergeClassNames } from '../utils/polymorphic.js';
 import { useControllableState, useDismissableLayer, useFocusTrap, usePrefersReducedMotion, useScrollLock } from '../utils/hooks.js';
-import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
+import { applyResponsive, breakpoints, createResponsiveAccumulator, resolveSpace, type Responsive, type SpaceValue } from '../utils/responsive.js';
+import { fetchPriorityProps } from '../utils/dom.js';
 import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
+import { Button } from './Button.js';
 
 type Ratio = number | `${number}/${number}` | `${number} / ${number}`;
 type Radius = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -53,6 +55,11 @@ export interface ImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElemen
   position?: string;
   /** Corner radius from the theme. Default `md`. */
   radius?: Radius;
+  /**
+   * Load first: for the above-the-fold hero or the Largest Contentful Paint image. Sets
+   * `loading="eager"` and `fetchpriority="high"` (in the spelling your React version accepts).
+   */
+  priority?: boolean;
   /** Renders a `<figure>` with this caption. */
   caption?: React.ReactNode;
   /** Shown if the image fails to load. Defaults to an icon on a neutral background. */
@@ -61,19 +68,23 @@ export interface ImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElemen
 
 /**
  * Responsive image with optional aspect-ratio cropping, rounded corners, caption and an
- * error fallback. Lazy-loads by default; pass `loading="eager"` for above-the-fold heroes.
+ * error fallback. Lazy-loads by default; pass `priority` or `loading="eager"` for above-the-fold heroes.
  * Works with `srcSet` / `sizes` like a normal `<img>`.
  *
  * @example
- * <Image src="/img/latte.jpg" alt="Latte art in a ceramic cup" ratio={4 / 3} caption="Our house blend" />
+ * <Image src="/img/latte.jpg" alt="Latte art in a ceramic cup" ratio={4 / 3} priority caption="Our house blend" />
  */
 export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   (
-    { src, alt, ratio, fit = 'cover', position, radius = 'md', caption, fallback, loading = 'lazy', decoding = 'async', className = '', style, onError, ...props },
+    { src, alt, ratio, fit = 'cover', position, radius = 'md', priority = false, caption, fallback, loading = 'lazy', decoding = 'async', fetchPriority, className = '', style, onError, ...props },
     ref
   ) => {
     const [failed, setFailed] = useState(false);
     useEffect(() => setFailed(false), [src]);
+
+    const resolvedLoading = priority ? 'eager' : loading;
+    const { fetchpriority: lowercasePriority, ...imgProps } = props as typeof props & { fetchpriority?: 'high' | 'low' | 'auto' };
+    const priorityProps = fetchPriorityProps(priority ? 'high' : fetchPriority ?? lowercasePriority);
 
     const frame = (
       <div
@@ -89,14 +100,15 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
             ref={ref}
             src={src}
             alt={alt}
-            loading={loading}
+            loading={resolvedLoading}
             decoding={decoding}
+            {...priorityProps}
             style={{ objectFit: fit, objectPosition: position }}
             onError={e => {
               setFailed(true);
               onError?.(e);
             }}
-            {...props}
+            {...imgProps}
           />
         )}
       </div>
@@ -115,11 +127,20 @@ Image.displayName = 'Image';
 
 /* --- LIGHTBOX --- */
 export interface LightboxImage {
+  /** Stable key; set it when the same photo can appear twice. Defaults to the index. */
+  id?: string;
   src: string;
   alt: string;
   caption?: React.ReactNode;
-  /** Smaller image for gallery tiles. Defaults to `src`. */
+  /** Smaller image for gallery tiles. Defaults to `src` (with `srcSet`). */
   thumbnail?: string;
+  /** Candidates for the lightbox, and for gallery tiles when there is no `thumbnail`. */
+  srcSet?: string;
+  /** `sizes` for the lightbox. Gallery tiles work theirs out from the column count. */
+  sizes?: string;
+  /** Intrinsic size, so the browser can reserve space before the image loads. */
+  width?: number;
+  height?: number;
 }
 
 export interface LightboxProps {
@@ -210,7 +231,17 @@ export const Lightbox: React.FC<LightboxProps> = ({
             </button>
           )}
           <figure className="field-lightbox-figure">
-            <img key={current.src} src={current.src} alt={current.alt} className="field-lightbox-img" draggable={false} />
+            <img
+              key={current.id ?? current.src}
+              src={current.src}
+              srcSet={current.srcSet}
+              sizes={current.sizes}
+              width={current.width}
+              height={current.height}
+              alt={current.alt}
+              className="field-lightbox-img"
+              draggable={false}
+            />
             {current.caption && <figcaption className="field-lightbox-caption">{current.caption}</figcaption>}
           </figure>
           {count > 1 && (
@@ -232,12 +263,23 @@ export interface GalleryProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   columns?: Responsive<number>;
   /** Tile aspect ratio. Default `1` (square). */
   ratio?: Ratio;
-  /** Gap between tiles (px). Default `8`. */
-  gap?: number;
+  /** Gap between tiles. Accepts px number, token or breakpoint object. Default `8`. */
+  gap?: Responsive<SpaceValue>;
   /** Tile corner radius. Default `md`. */
   radius?: Radius;
   /** Open a full-screen `Lightbox` when a tile is clicked. Default `true`. */
   lightbox?: boolean;
+  /**
+   * Show only the first N photos, with a "Show all" button; accepts a breakpoint object, e.g.
+   * `{ base: 6, md: 9 }`. Hidden photos are still in the lightbox.
+   */
+  previewCount?: Responsive<number>;
+  /** Custom label for the expand button when `previewCount` is set. */
+  showAllLabel?: string | ((total: number, remaining: number) => React.ReactNode);
+  /** Display skeleton placeholders while images are loading. */
+  isLoading?: boolean;
+  /** Number of skeletons to render when `isLoading` is true. Default 6. */
+  skeletonCount?: number;
 }
 
 /**
@@ -253,49 +295,153 @@ export const Gallery: React.FC<GalleryProps> = ({
   gap = 8,
   radius = 'md',
   lightbox = true,
+  previewCount,
+  showAllLabel,
+  isLoading = false,
+  skeletonCount = 6,
   className = '',
   style,
   ...props
 }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const acc = createResponsiveAccumulator();
   applyResponsive(acc, 'gtc', 'gridTemplateColumns', columns, n => `repeat(${n}, minmax(0, 1fr))`, 2);
+  applyResponsive(acc, 'gap', 'gap', gap, resolveSpace, 8);
+  const tileSizes = gallerySizes(columns);
 
-  return (
-    <>
+  if (isLoading) {
+    const skeletons = Array.from({ length: skeletonCount });
+    return (
       <div
-        className={mergeClassNames('field-gallery', ...acc.classes, className)}
-        style={{ gap: `${gap}px`, ...acc.style, ...style }}
+        className={mergeClassNames('field-gallery', 'loading', ...acc.classes, className)}
+        style={{ ...acc.style, ...style }}
         {...props}
       >
-        {images.map((image, i) =>
-          lightbox ? (
-            <button
-              key={image.src}
-              type="button"
-              className="field-gallery-tile"
-              onClick={() => setOpenIndex(i)}
-              aria-label={`View image ${i + 1} of ${images.length}${image.alt ? `: ${image.alt}` : ''}`}
-            >
-              <Image src={image.thumbnail ?? image.src} alt="" ratio={ratio} radius={radius} />
-            </button>
-          ) : (
-            <Image key={image.src} src={image.thumbnail ?? image.src} alt={image.alt} ratio={ratio} radius={radius} />
-          )
-        )}
+        {skeletons.map((_, i) => (
+          <div
+            key={i}
+            className={mergeClassNames('field-image', 'field-image-ratio', `field-radius-${radius}`)}
+            style={{ aspectRatio: ratioToCss(ratio) }}
+          >
+            <div className="field-skeleton" style={{ width: '100%', height: '100%' }} />
+          </div>
+        ))}
       </div>
-      {lightbox && (
-        <Lightbox
-          images={images}
-          isOpen={openIndex !== null}
-          index={openIndex ?? 0}
-          onIndexChange={setOpenIndex}
-          onClose={() => setOpenIndex(null)}
-        />
+    );
+  }
+
+  // Preview: every tile renders, and CSS hides the ones past each breakpoint's count, so a
+  // responsive `previewCount` needs no JS media queries (and server and client markup match).
+  const preview = previewCount !== undefined && !isExpanded ? resolvePerRange(previewCount) : undefined;
+  const hiddenRanges = (i: number) =>
+    preview ? RANGE_KEYS.filter(range => i >= preview[range]).map(range => `field-gallery-hidden-${range}`) : [];
+  // The "Show all" button is hidden in the ranges where every photo already shows.
+  const fullRanges = preview ? RANGE_KEYS.filter(range => images.length <= preview[range]) : RANGE_KEYS;
+  const smallestPreview = preview ? Math.min(...RANGE_KEYS.map(range => preview[range])) : images.length;
+  const remainingCount = Math.max(0, images.length - smallestPreview);
+
+  const tileImageProps = (image: LightboxImage) => ({
+    src: image.thumbnail ?? image.src,
+    srcSet: image.thumbnail ? undefined : image.srcSet,
+    sizes: image.thumbnail ? undefined : tileSizes,
+    width: image.width,
+    height: image.height,
+    ratio,
+    radius,
+  });
+
+  const grid = (
+    <div
+      className={mergeClassNames('field-gallery', ...acc.classes, className)}
+      style={{ ...acc.style, ...style }}
+      {...props}
+    >
+      {images.map((image, i) =>
+        lightbox ? (
+          <button
+            key={image.id ?? i}
+            type="button"
+            className={mergeClassNames('field-gallery-tile', ...hiddenRanges(i))}
+            onClick={() => setOpenIndex(i)}
+            aria-label={`View image ${i + 1} of ${images.length}${image.alt ? `: ${image.alt}` : ''}`}
+          >
+            <Image {...tileImageProps(image)} alt="" />
+          </button>
+        ) : (
+          <Image
+            key={image.id ?? i}
+            {...tileImageProps(image)}
+            alt={image.alt}
+            className={mergeClassNames(...hiddenRanges(i)) || undefined}
+          />
+        )
       )}
-    </>
+    </div>
+  );
+
+  const viewer = lightbox && (
+    <Lightbox
+      images={images}
+      isOpen={openIndex !== null}
+      index={openIndex ?? 0}
+      onIndexChange={setOpenIndex}
+      onClose={() => setOpenIndex(null)}
+    />
+  );
+
+  if (!preview || fullRanges.length === RANGE_KEYS.length) {
+    return (
+      <>
+        {grid}
+        {viewer}
+      </>
+    );
+  }
+
+  return (
+    <div className="field-gallery-wrapper">
+      {grid}
+      <div className={mergeClassNames('field-gallery-actions', ...fullRanges.map(range => `field-gallery-hidden-${range}`))}>
+        <Button variant="secondary" onClick={() => setIsExpanded(true)} className="field-gallery-show-all-btn">
+          {typeof showAllLabel === 'function'
+            ? showAllLabel(images.length, remainingCount)
+            : showAllLabel || `Show all ${images.length} photos`}
+        </Button>
+      </div>
+      {viewer}
+    </div>
   );
 };
+
+/** Breakpoint ranges (each up to the next breakpoint), matching the `.field-gallery-hidden-*` rules in field.css. */
+const RANGE_KEYS = ['base', 'sm', 'md', 'lg', 'xl'] as const;
+type RangeKey = (typeof RANGE_KEYS)[number];
+
+/** Resolves a responsive number to a value per range, mobile first; unset ranges inherit. */
+function resolvePerRange(value: Responsive<number>): Record<RangeKey, number> {
+  const values = (typeof value === 'number' ? { base: value } : value) as Partial<Record<RangeKey, number>>;
+  const out = {} as Record<RangeKey, number>;
+  let current = Infinity;
+  for (const range of RANGE_KEYS) {
+    if (values[range] !== undefined) current = values[range] as number;
+    out[range] = current;
+  }
+  return out;
+}
+
+/** A `sizes` attribute for gallery tiles: the viewport width divided by the columns at each breakpoint. */
+function gallerySizes(columns: Responsive<number>): string {
+  const perRange = resolvePerRange(columns);
+  const width = (n: number) => `${Math.ceil(100 / (Number.isFinite(n) ? n : 2))}vw`;
+  const parts: string[] = [];
+  // Only the breakpoints where the column count changes, largest first.
+  for (const [range, smaller] of [['xl', 'lg'], ['lg', 'md'], ['md', 'sm'], ['sm', 'base']] as const) {
+    if (perRange[range] !== perRange[smaller]) parts.push(`(min-width: ${breakpoints[range]}px) ${width(perRange[range])}`);
+  }
+  parts.push(width(perRange.base));
+  return parts.join(', ');
+}
 
 /* --- CAROUSEL --- */
 export interface CarouselProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
@@ -303,8 +449,8 @@ export interface CarouselProps extends Omit<React.HTMLAttributes<HTMLElement>, '
   'aria-label': string;
   /** Slides visible at once; accepts a breakpoint object. Default `1`. */
   slidesPerView?: Responsive<number>;
-  /** Gap between slides (px). Default `16`. */
-  gap?: number;
+  /** Gap between slides: px number, CSS length or `$` spacing token; accepts a breakpoint object. Default `16`. */
+  gap?: Responsive<SpaceValue>;
   /** Show previous/next buttons. Default `true`. */
   showArrows?: boolean;
   /** Show page dots. Default `true`. */
@@ -328,7 +474,7 @@ export interface CarouselProps extends Omit<React.HTMLAttributes<HTMLElement>, '
 export const Carousel: React.FC<CarouselProps> = ({
   'aria-label': ariaLabel,
   slidesPerView = 1,
-  gap = 16,
+  gap,
   showArrows = true,
   showDots = true,
   loop = false,
@@ -348,36 +494,61 @@ export const Carousel: React.FC<CarouselProps> = ({
 
   const acc = createResponsiveAccumulator();
   applyResponsive(acc, 'cpv', '--field-carousel-per-view', slidesPerView, n => String(n), 1);
+  applyResponsive(acc, 'cgap', '--field-carousel-gap', gap, resolveSpace, 16);
 
-  // One "page" = one slide step; the last page is when the final slide is fully visible.
+  // One "page" = one slide step (slide width plus gap, whatever unit the gap is in): the
+  // distance between the first two slides. The last page is when the final slide is fully visible.
+  const getStep = (track: HTMLElement) => {
+    const first = track.children[0] as HTMLElement | undefined;
+    const second = track.children[1] as HTMLElement | undefined;
+    if (!first) return 0;
+    return second ? second.offsetLeft - first.offsetLeft : first.offsetWidth;
+  };
+
   const measure = useCallback(() => {
     const track = trackRef.current;
-    const first = track?.firstElementChild as HTMLElement | null;
-    if (!track || !first) return;
-    const step = first.offsetWidth + gap;
-    const perView = Math.max(1, Math.round((track.clientWidth + gap) / step));
+    if (!track) return;
+    const step = getStep(track);
+    if (!step) return;
+    const perView = Math.max(1, Math.round(track.clientWidth / step));
     setPageCount(Math.max(1, slides.length - perView + 1));
     setPage(Math.round(track.scrollLeft / step));
-  }, [gap, slides.length]);
+  }, [slides.length]);
+
+  // The ResizeObserver reports after layout (including the first time), so measuring there never
+  // forces a reflow. Scroll events are batched to one measurement per frame.
+  const scrollFrame = useRef<number | null>(null);
+  const handleScroll = useCallback(() => {
+    if (scrollFrame.current !== null) return;
+    scrollFrame.current = requestAnimationFrame(() => {
+      scrollFrame.current = null;
+      measure();
+    });
+  }, [measure]);
 
   useEffect(() => {
-    measure();
     const track = trackRef.current;
-    if (!track || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(measure);
+    if (!track) return;
+    if (typeof ResizeObserver === 'undefined') {
+      measure();
+      return;
+    }
+    const ro = new ResizeObserver(() => measure());
     ro.observe(track);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current);
+    };
   }, [measure]);
 
   const scrollToPage = useCallback(
     (target: number) => {
       const track = trackRef.current;
-      const first = track?.firstElementChild as HTMLElement | null;
-      if (!track || !first) return;
+      if (!track) return;
       const next = loop ? (target + pageCount) % pageCount : Math.min(Math.max(target, 0), pageCount - 1);
-      track.scrollTo({ left: next * (first.offsetWidth + gap), behavior: reduceMotion ? 'auto' : 'smooth' });
+      track.scrollTo({ left: next * getStep(track), behavior: reduceMotion ? 'auto' : 'smooth' });
     },
-    [gap, loop, pageCount, reduceMotion]
+    [loop, pageCount, reduceMotion]
   );
 
   const autoPlaying = !!autoPlay && !reduceMotion && !userPaused && pageCount > 1;
@@ -396,7 +567,7 @@ export const Carousel: React.FC<CarouselProps> = ({
   return (
     <section
       className={mergeClassNames('field-carousel', ...acc.classes, className)}
-      style={{ '--field-carousel-gap': `${gap}px`, ...acc.style, ...style } as React.CSSProperties}
+      style={{ ...acc.style, ...style }}
       aria-roledescription="carousel"
       aria-label={ariaLabel}
       onMouseEnter={() => setPaused(true)}
@@ -410,7 +581,7 @@ export const Carousel: React.FC<CarouselProps> = ({
       <div
         ref={trackRef}
         className="field-carousel-track"
-        onScroll={measure}
+        onScroll={handleScroll}
         aria-live={autoPlaying && !paused ? 'off' : 'polite'}
       >
         {slides.map((slide, i) => (

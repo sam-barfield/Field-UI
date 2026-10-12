@@ -58,6 +58,10 @@ import {
   TreeView,
   Stepper,
   Timeline,
+  Chip,
+  ChipGroup,
+  DescriptionList,
+  DescriptionItem,
   CodeBlock,
   DiffViewer,
   CopyButton,
@@ -159,6 +163,7 @@ export const StickerSheet: React.FC = () => {
                 <Button variant="secondary">Secondary</Button>
                 <Button variant="outline">Outline</Button>
                 <Button variant="ghost">Ghost</Button>
+                <Button variant="link">Link</Button>
                 <Button variant="danger" leftIcon={<Trash2 size={14} />}>Danger</Button>
               </Flex>
             </CardContent>
@@ -176,6 +181,7 @@ export const StickerSheet: React.FC = () => {
                   <Button size="sm">Small</Button>
                   <Button size="md">Medium</Button>
                   <Button size="lg">Large</Button>
+                  <Button size="xl">XL CTA</Button>
                 </Flex>
                 <Flex gap="10px" align="center" wrap="wrap">
                   <Button isLoading>Deploying</Button>
@@ -282,6 +288,25 @@ export const StickerSheet: React.FC = () => {
                     </Text>
                   </div>
                 </ContextMenu>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {/* Chips & Filter Groups */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>Filter Chips & ChipGroup</Heading>
+              <Text tone="secondary" size="xs">Toggleable tags with counts & horizontal touch scrolling</Text>
+            </CardHeader>
+            <CardContent>
+              <Stack gap="12px">
+                <ChipGroup scroll gap={8}>
+                  <Chip selected count={32}>All Services</Chip>
+                  <Chip variant="outline" count={12}>Compute</Chip>
+                  <Chip variant="accent" count={8}>Storage</Chip>
+                  <Chip count={4}>Networking</Chip>
+                  <Chip count={8}>Security</Chip>
+                </ChipGroup>
               </Stack>
             </CardContent>
           </Card>
@@ -704,12 +729,28 @@ export const StickerSheet: React.FC = () => {
                 icon={<FileSearch size={28} />}
                 title="No Disconnected Nodes"
                 description="All 24 cluster pods are currently connected and reporting healthy telemetry."
-                action={
+                actions={
                   <Button size="sm" variant="outline" onClick={() => showToast({ title: 'Cluster Polled' })}>
                     Refresh Health
                   </Button>
                 }
               />
+            </CardContent>
+          </Card>
+
+          {/* Description List */}
+          <Card>
+            <CardHeader>
+              <Heading level={4}>DescriptionList Specifications</Heading>
+              <Text tone="secondary" size="xs">Semantic definition list with responsive column grids</Text>
+            </CardHeader>
+            <CardContent>
+              <DescriptionList columns={2} divided>
+                <DescriptionItem label="Cluster ID">us-east-prod-01</DescriptionItem>
+                <DescriptionItem label="Status"><Badge variant="success" dot size="sm">Healthy</Badge></DescriptionItem>
+                <DescriptionItem label="Kubernetes">v1.30.2</DescriptionItem>
+                <DescriptionItem label="Nodes">24 Active</DescriptionItem>
+              </DescriptionList>
             </CardContent>
           </Card>
 

@@ -143,6 +143,22 @@ const Installation: React.FC = () => (
         so any <C>body</C> rule of your own still wins. If you define all theme variables yourself, import{' '}
         <C>@sam.barfield/field-react/styles/components.css</C> instead.
       </P>
+      <H3>Cascade layers and resets</H3>
+      <P>
+        Field's styles live in the <C>field</C> cascade layer, so any unlayered CSS of yours beats them without
+        matching their specificity. That includes resets: an unlayered <C>{'button { background: none }'}</C> or{' '}
+        <C>{'* { margin: 0 }'}</C> would strip Field's components. Put resets in a layer ordered before{' '}
+        <C>field</C>. Layer order is set by first appearance, so declare it in a file imported before Field's stylesheet:
+      </P>
+      <Snippet
+        language="css"
+        title="layers.css (import first)"
+        code={`@layer reset, field;
+
+@layer reset {
+  /* your resets */
+}`}
+      />
       <H3>Fonts</H3>
       <P>
         Field uses Inter and JetBrains Mono, falling back to system fonts. They are not bundled. The quickest way to
@@ -424,7 +440,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <List
         items={[
           <>Choose a <DocLink to="docs/theming">website theme</DocLink> and load its fonts, or build your own with <C>createThemePair</C>.</>,
-          <>Use <DocLink to="components/navbar">Navbar</DocLink> with <C>sticky</C> for the header and set <C>--field-scroll-offset</C> on <C>{'<html>'}</C> to its height so in-page anchors land below it. If the top-level items need more room than a tablet has, set <C>collapseBelow</C> so the bar switches to the menu before they collide.</>,
+          <>Use <DocLink to="components/navbar">Navbar</DocLink> with <C>sticky</C> for the header. Set its <C>height</C> once: a sticky navbar publishes <C>--field-navbar-height</C> on <C>{'<html>'}</C>, and <C>--field-scroll-offset</C> (so in-page anchors land below the bar) is derived from it. Use the variable for your own sticky toolbars and pull the hero under a transparent bar with <C>Section underNavbar</C>. If the top-level items need more room than a tablet has, set <C>collapseBelow</C> so the bar switches to the menu before they collide.</>,
           <><DocLink to="components/cookie-consent">CookieConsent</DocLink> once at the root; read choices with <C>useCookieConsent()</C> before loading analytics.</>,
         ]}
       />
@@ -433,7 +449,8 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
     <Section id="sections" title="Compose pages from sections">
       <P>
         A marketing page is a stack of <DocLink to="components/section">Section</DocLink> bands. Each one sets
-        consistent vertical spacing, an optional background tone or photo, and a centred container.
+        consistent vertical spacing, an optional background tone or photo, and a centred container. Use <C>SectionHeader</C> for
+        consistent eyebrow, title, description, and action layout, and <C>underNavbar</C> on heroes to slide under transparent sticky headers.
       </P>
       <Snippet
         code={`<Section spacing="xl" container="md">
@@ -570,6 +587,8 @@ const Styling: React.FC = () => (
       <List
         items={[
           <>Every component accepts <C>className</C>, and most accept <C>style</C> and native element props.</>,
+          <>Component styles are declared inside CSS Cascade Layers (<C>@layer field.tokens, field.base, field.components</C>), so unlayered consumer styles and utility classes naturally take precedence without requiring <C>!important</C>. Keep resets in an earlier layer (see <DocLink to="docs/installation">Installation</DocLink>).</>,
+          <>Responsive layout props on <C>Flex</C>, <C>Stack</C>, <C>Grid</C> and <C>Box</C> emit custom properties (<C>--field-r-*</C>) and utility classes, keeping them fully overridable from your stylesheet.</>,
           <>Component classes are stable and prefixed (<C>.field-btn</C>, <C>.field-card</C>…), so you can target them from your CSS.</>,
           <>Prefer changing tokens (globally or with <C>ThemeScope</C>) over overriding many individual rules.</>,
         ]}
@@ -583,9 +602,46 @@ const Styling: React.FC = () => (
       />
     </Section>
 
+    <Section id="css-api" title="Public CSS API">
+      <P>
+        These variables, classes and names are part of Field's public API: you can rely on them in your own CSS, and
+        any change to them is a breaking change listed in the changelog. Everything else in <C>field.css</C> is
+        internal.
+      </P>
+      <H3>Variables you can read or set</H3>
+      <List
+        items={[
+          <><C>--field-*</C> theme tokens (surfaces, text, accent, status, radii, shadows, spacing, fonts): see Design tokens above.</>,
+          <><C>--field-navbar-height</C>: the bar height. A sticky, floating or <C>transparentOnTop</C> Navbar sets it on <C>{'<html>'}</C>; set it in <C>:root</C> too for server-rendered pages.</>,
+          <><C>--field-scroll-offset</C>: how far below the top in-page anchors stop. Defaults to <C>--field-navbar-height</C>; set it to override.</>,
+          <><C>--field-back-to-top-offset</C>: lifts <C>BackToTop</C> above other floating elements (a <C>FloatingButton</C> sets it for you). <C>--field-floating-inset</C>: their distance from the window edges.</>,
+          <><C>--field-btn-height-sm|md|lg|xl</C>, <C>--field-btn-padding-x-*</C>, <C>--field-btn-font-size-*</C>, <C>--field-btn-radius</C>, <C>--field-btn-font-weight</C>, <C>--field-btn-letter-spacing</C>, <C>--field-btn-text-transform</C>, <C>--field-btn-shadow</C> / <C>-hover</C> / <C>-active</C>, <C>--field-btn-press-transform</C>: button theming (or a theme's <C>button</C> group). TextInput, Select, NumberInput and Chip sizes follow the heights.</>,
+          <><C>--field-navbar-scrolled-bg</C>, <C>-border</C>, <C>-shadow</C>, <C>-blur</C>: the scrolled bar (or <C>scrolledAppearance</C>).</>,
+          <><C>--field-timeline-marker-size</C>, <C>-marker-border-width</C>, <C>-marker-color</C>, <C>-marker-bg</C>, <C>-rail-width</C>, <C>-rail-color</C>, <C>-gap</C>, <C>-item-gap</C>, <C>-time-color</C>, <C>-time-weight</C>, <C>-time-width</C>: Timeline.</>,
+          <><C>--field-divided-space</C>, <C>--field-divided-color</C>: Divided. <C>--field-icon-size</C>: Icon.</>,
+        ]}
+      />
+      <H3>Classes, attributes and names</H3>
+      <List
+        items={[
+          <><C>.field-navbar-collapsed</C>: on the Navbar while it is in its menu layout (below 768px or <C>collapseBelow</C>).</>,
+          <><C>.field-navbar-hide-mobile</C>: hides any element inside the Navbar while it is collapsed (<C>NavbarActionsItem hideOnMobile</C> adds it for you).</>,
+          <>The container name <C>field-navbar</C>: query the bar's own width, e.g. <C>{'@container field-navbar (max-width: 768px) { … }'}</C>.</>,
+          <><C>data-navbar-overlap</C>: put it on a custom hero to tell <C>Navbar transparentOnTop="auto"</C> that a band sits under the bar (<C>Section underNavbar</C> does this for you).</>,
+          <><C>.field-sr-only</C>: visually hidden, still read by screen readers (or <C>VisuallyHidden</C>, which can also hide only below a breakpoint).</>,
+          <>The cascade layers <C>field.tokens</C>, <C>field.base</C> and <C>field.components</C> (all under <C>field</C>), for ordering your own layers.</>,
+          <>The <C>.field-*</C> component class names, for targeting components from your CSS.</>,
+        ]}
+      />
+    </Section>
+
     <Section id="tailwind" title="Tailwind CSS">
       <H3>Tailwind v4</H3>
-      <Snippet language="css" code={`@import "tailwindcss";\n@import "@sam.barfield/field-tokens/tailwind.css";`} />
+      <P>
+        Declare the layer order first, so Preflight sits under Field and utilities sit over it. Import this file
+        before <C>@sam.barfield/field-react/styles.css</C>:
+      </P>
+      <Snippet language="css" code={`@layer theme, base, field, components, utilities;\n@import "tailwindcss";\n@import "@sam.barfield/field-tokens/tailwind.css";`} />
       <H3>Tailwind v3</H3>
       <Snippet
         language="js"
@@ -597,6 +653,10 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
 };`}
       />
+      <P>
+        Tailwind v3's Preflight is not in a cascade layer, so it overrides Field (buttons lose their background, for
+        example). Turn it off with <C>{'corePlugins: { preflight: false }'}</C>, or keep it out of the page.
+      </P>
       <P>Then use classes like <C>bg-field-surface-raised</C>, <C>text-field-text-secondary</C>, <C>border-field-border-subtle</C>, <C>rounded-field-md</C> and <C>shadow-field-lg</C>. They resolve to the same CSS variables, so they follow theme changes.</P>
     </Section>
   </DocPage>
@@ -606,15 +666,52 @@ export default {
 
 const Routing: React.FC = () => (
   <DocPage title="Routing & links" lead="Interactive components can render as your router's link component, so navigation stays client-side.">
-    <Section id="three-ways" title="Three ways to render a link">
+    <Section id="provider" title="App-wide router integration">
+      <P>
+        Pass a router link component to <C>ThemeProvider</C>. When configured, all internal <C>href</C> props on{' '}
+        <C>Button</C>, <C>IconButton</C>, <C>NavbarBrand</C>, <C>NavbarItem</C>, <C>NavbarFlyoutItem</C>, <C>Card</C>,{' '}
+        <C>Link</C>, <C>Tabs</C> items, <C>Breadcrumb</C>, <C>FooterLink</C> and the <C>CookieConsent</C> policy link render with it, avoiding full-page reloads without needing{' '}
+        <C>as={'{Link}'}</C> on every element. External URLs (<C>https:</C>, <C>mailto:</C>, <C>tel:</C>) and anchor
+        hashes stay as native <C>{'<a>'}</C> tags.
+      </P>
+      <P>
+        The component receives <C>href</C>, not <C>to</C>. Next.js's <C>Link</C> takes <C>href</C>, so pass it
+        directly. React Router and TanStack Router take <C>to</C>: pass a small adapter instead of their <C>Link</C>,
+        or every link renders without a destination.
+      </P>
+      <Snippet
+        code={`import { forwardRef, type AnchorHTMLAttributes } from 'react';
+import { Link } from 'react-router-dom';
+import { ThemeProvider, Button, NavbarItem } from '@sam.barfield/field-react';
+
+// Field passes href; React Router's Link wants to.
+const AppLink = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAnchorElement>>(
+  ({ href = '/', ...rest }, ref) => <Link ref={ref} to={href} {...rest} />
+);
+
+export function App() {
+  return (
+    <ThemeProvider linkComponent={AppLink}>
+      {/* Renders client-side <Link to="/dashboard"> automatically */}
+      <Button href="/dashboard" variant="primary">Dashboard</Button>
+      <NavbarItem href="/settings">Settings</NavbarItem>
+      {/* External links and anchor hashes stay as native <a> */}
+      <Button href="https://github.com" target="_blank">GitHub</Button>
+    </ThemeProvider>
+  );
+}`}
+      />
+    </Section>
+
+    <Section id="three-ways" title="Individual link rendering">
       <List
         items={[
-          <><C>href</C> renders a plain <C>{'<a>'}</C>. Good for external links and full page loads.</>,
+          <><C>href</C> renders a plain <C>{'<a>'}</C> (or your <C>ThemeProvider</C> router link for internal paths).</>,
           <><C>as={'{Link}'}</C> renders your component with Field's props and classes. Pass router props (<C>to</C>, <C>params</C>…) directly.</>,
           <><C>asChild</C> merges Field's props, classes and handlers onto the single child element you provide.</>,
         ]}
       />
-      <P>Supported by <C>Button</C>, <C>IconButton</C>, <C>NavbarBrand</C>, <C>NavbarItem</C>, <C>NavbarFlyoutItem</C>, <C>SidebarItem</C>, <C>SidebarSubItem</C>, <C>DropdownItem</C>, <C>ContextMenu</C> items, <C>Tabs</C> items and <C>Breadcrumb</C> items.</P>
+      <P>Supported by <C>Button</C>, <C>IconButton</C>, <C>Card</C>, <C>Link</C>, <C>NavbarBrand</C>, <C>NavbarItem</C>, <C>NavbarFlyoutItem</C>, <C>SidebarItem</C>, <C>SidebarSubItem</C>, <C>DropdownItem</C>, <C>ContextMenu</C> items, <C>Tabs</C> items, <C>Breadcrumb</C> items and <C>FooterLink</C>.</P>
     </Section>
 
     <Section id="next" title="Next.js">

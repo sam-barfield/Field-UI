@@ -91,6 +91,7 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-shadow-lg': activeShadows.lg,
     '--field-shadow-xl': activeShadows.xl,
     '--field-shadow-glow': activeShadows.glow,
+    '--field-shadow-inset': activeShadows.inset,
 
     // Fonts
     '--field-font-sans': activeFonts.sans,
@@ -114,6 +115,30 @@ export function themeToCssVariables(theme: FieldTheme): Record<string, string> {
     '--field-ease-in-out': motion.easings.inOut,
     '--field-ease-spring': motion.easings.spring,
   };
+
+  // Buttons: only what the theme sets; field.css falls back to the defaults.
+  const button = theme.button;
+  if (button) {
+    for (const group of ['height', 'paddingX', 'fontSize'] as const) {
+      const prop = group === 'paddingX' ? 'padding-x' : group === 'fontSize' ? 'font-size' : 'height';
+      Object.entries(button[group] ?? {}).forEach(([size, val]) => {
+        if (val !== undefined) vars[`--field-btn-${prop}-${size}`] = val;
+      });
+    }
+    const single: [string, string | number | undefined][] = [
+      ['--field-btn-radius', button.radius],
+      ['--field-btn-font-weight', button.fontWeight],
+      ['--field-btn-letter-spacing', button.letterSpacing],
+      ['--field-btn-text-transform', button.textTransform],
+      ['--field-btn-shadow', button.shadow],
+      ['--field-btn-shadow-hover', button.shadowHover],
+      ['--field-btn-shadow-active', button.shadowActive],
+      ['--field-btn-press-transform', button.pressTransform],
+    ];
+    single.forEach(([key, val]) => {
+      if (val !== undefined) vars[key] = String(val);
+    });
+  }
 
   // Spacing: `0.5` becomes `--field-space-0_5` because `.` is not valid in a custom property name.
   Object.entries(spacing).forEach(([key, val]) => {
@@ -144,10 +169,10 @@ export function themeToCssString(theme: FieldTheme, selector = ':root'): string 
  */
 export function themePairToCssString(pair: FieldThemePair): string {
   return [
-    themeToCssString(pair.dark, ':root, [data-theme="dark"]'),
-    `:root, [data-theme="dark"] {\n  color-scheme: dark;\n}\n`,
-    themeToCssString(pair.light, '[data-theme="light"]'),
-    `[data-theme="light"] {\n  color-scheme: light;\n}\n`,
+    themeToCssString(pair.dark, ':root, [data-theme="dark"]:not(.field-layer)'),
+    `:root, [data-theme="dark"]:not(.field-layer) {\n  color-scheme: dark;\n}\n`,
+    themeToCssString(pair.light, '[data-theme="light"]:not(.field-layer)'),
+    `[data-theme="light"]:not(.field-layer) {\n  color-scheme: light;\n}\n`,
   ].join('\n');
 }
 

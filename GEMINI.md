@@ -35,13 +35,13 @@ Field provides 100+ exported components. Full props: `docs/COMPONENT_MANIFEST.js
 
 | Category | Components Available in `@sam.barfield/field-react` |
 |:---|:---|
-| **Navigation & Shell** | `Navbar` (`NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarFlyout`, `NavbarFlyoutGrid`, `NavbarFlyoutItem`, `NavbarActions`, `NavbarToggle`, `NavbarMenu`), `Sidebar` (`SidebarHeader`, `SidebarContent`, `SidebarGroup`, `SidebarItem`, `SidebarDropdown`, `SidebarSubItem`, `SidebarFooter`, `SidebarTrigger`, `SidebarProvider`, `useSidebar`), `Tabs` (`TabPanel`), `Breadcrumb`, `Pagination`, `Stepper`, `Timeline` |
-| **Actions & Buttons** | `Button`, `IconButton`, `ButtonGroup`, `SegmentedControl`, `DropdownMenu` (`DropdownGroup`, `DropdownItem`, `DropdownDivider`, `DropdownLabel`), `CopyButton` |
+| **Navigation & Shell** | `Navbar` (`NavbarBrand`, `NavbarContent`, `NavbarItem`, `NavbarFlyout`, `NavbarFlyoutGrid`, `NavbarFlyoutItem`, `NavbarActions`, `NavbarActionsItem`, `NavbarToggle`, `NavbarMenu`), `Sidebar` (`SidebarHeader`, `SidebarContent`, `SidebarGroup`, `SidebarItem`, `SidebarDropdown`, `SidebarSubItem`, `SidebarFooter`, `SidebarTrigger`, `SidebarProvider`, `useSidebar`), `Tabs` (`TabPanel`), `Breadcrumb`, `Pagination`, `Stepper`, `Timeline` |
+| **Actions & Buttons** | `Button`, `IconButton`, `ButtonGroup`, `SegmentedControl`, `Chip`, `ChipGroup`, `DropdownMenu` (`DropdownGroup`, `DropdownItem`, `DropdownDivider`, `DropdownLabel`), `CopyButton` |
 | **Forms & Inputs** | `TextInput`, `TextArea`, `Select`, `Combobox`, `NumberInput`, `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `DatePicker`, `DateRangePicker` |
-| **Layout & Primitives** | `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divider` (layout props accept breakpoint objects; `breakpoints`, `useMediaQuery`) |
-| **Website** | `Section`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox`, `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `Reveal`; website theme presets `businessThemePairs` |
-| **Data Display & Code** | `Card` (`CardHeader`, `CardContent`, `CardFooter`), `StatCard`, `Table` (`TableHeader`, `TableBody`, `TableRow`, `TableCell`, `TableHead`), `Terminal` (`TerminalHeader`, `TerminalBody`, `TerminalLine`, `TerminalPrompt`), `CodeBlock`, `DiffViewer`, `Sparkline`, `Meter`, `StatusDot`, `TreeView`, `EmptyState` |
-| **Feedback & Overlays** | `Modal`, `Drawer`, `Popover`, `ContextMenu`, `CommandPalette`, `Alert`, `ToastProvider` (`useToast`), `Tooltip`, `Progress`, `Spinner`, `Skeleton`, `Accordion` |
+| **Layout & Primitives** | `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divided` (all in `components/Layout.tsx`), `Divider`, `VisuallyHidden` (layout props accept breakpoint objects; `breakpoints`, `useMediaQuery`) |
+| **Website** | `Section`, `SectionHeader`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox`, `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `FloatingButton`, `Reveal`; website theme presets `businessThemePairs` |
+| **Data Display & Code** | `Card` (`CardHeader`, `CardContent`, `CardFooter`), `DescriptionList` (`DescriptionItem`), `StatCard`, `Table` (`TableHeader`, `TableBody`, `TableRow`, `TableCell`, `TableHead`), `Terminal` (`TerminalHeader`, `TerminalBody`, `TerminalLine`, `TerminalPrompt`), `CodeBlock`, `DiffViewer`, `Sparkline`, `Meter`, `StatusDot`, `TreeView`, `EmptyState`, `Icon`, `IconText` |
+| **Feedback & Overlays** | `Modal`, `Drawer`, `Popover`, `ContextMenu`, `CommandPalette`, `Alert`, `ToastProvider` (`useToast`), `Tooltip`, `Progress`, `Spinner`, `Skeleton`, `Accordion`, `AsyncContent` |
 | **Typography & Indicators** | `Heading`, `UnfoldingHeading`, `Text`, `Badge`, `Avatar`, `AvatarGroup`, `Kbd`, `Code` |
 
 ---

@@ -1,0 +1,7 @@
+/*
+ * The docs site compiles Field from source. Load the source stylesheet in the same cascade layers
+ * as the published one (packages/react/scripts/build-css.mjs), so this site sees the cascade
+ * consumers get: any unlayered CSS here beats Field's component styles.
+ */
+@layer field.tokens, field.base, field.components;
+@import '../../../packages/react/src/styles/field.css' layer(field.components);

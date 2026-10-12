@@ -840,6 +840,17 @@ body {
 .example-wide {
   width: 100%;
 }
+/* A preview window for fixed-position elements: the transform makes it their containing block. */
+.example-fixed-frame {
+  position: relative;
+  transform: translateZ(0);
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  border: 1px dashed var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  background-color: var(--field-surface-base);
+}
 /* A framed mini page for website examples (sections, footers, page recipes). */
 .example-site {
   width: 100%;

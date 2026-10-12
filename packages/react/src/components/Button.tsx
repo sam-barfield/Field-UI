@@ -2,16 +2,16 @@
 
 import React, { forwardRef, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getInteractiveElementProps, mergeClassNames, renderPolymorphic } from '../utils/polymorphic.js';
+import { getInteractiveElementProps, mergeClassNames, renderPolymorphic, useResolvedTag } from '../utils/polymorphic.js';
 import { handleListKeyNavigation } from '../utils/hooks.js';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'link';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonBaseProps {
   /** Visual style. Use one `primary` per view for the main action. Default `secondary`. */
   variant?: ButtonVariant;
-  /** Height and padding. `sm` 30px, `md` 36px, `lg` 44px. Default `md`. */
+  /** Height and padding. `sm` 30px, `md` 36px, `lg` 44px, `xl` 48px. Default `md`. */
   size?: ButtonSize;
   /** Shows a spinner, disables the button and sets `aria-busy`. */
   isLoading?: boolean;
@@ -25,16 +25,29 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean;
   /** Render as another element/component, e.g. `as={Link}`. */
   as?: React.ElementType;
-  /** Render as an `<a>` pointing at this URL. */
+  /** Render as an anchor (or the configured router link) pointing at this URL. */
   href?: string;
   /** Link target when rendered as an anchor. */
   target?: string;
   rel?: string;
+  download?: boolean | string;
 }
+
+/**
+ * Button and anchor attributes are both accepted, since `href` / `as` render an `<a>` (or your
+ * router link) and the default is a `<button>`.
+ */
+export type ButtonProps = ButtonBaseProps &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonBaseProps> &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof ButtonBaseProps>;
+
+/** The element a `Button` or `IconButton` renders: a `<button>`, or an `<a>` when `href` is set. */
+export type ButtonElement = HTMLButtonElement | HTMLAnchorElement;
 
 const getSpinnerSize = (size: ButtonSize): number => {
   if (size === 'sm') return 14;
   if (size === 'lg') return 18;
+  if (size === 'xl') return 20;
   return 16;
 };
 
@@ -64,14 +77,14 @@ const guardDisabledClick =
   };
 
 /**
- * The primary action element. Renders a `<button>` by default, an `<a>` when
- * `href` is set, or any component via `as` / `asChild` (for router links).
+ * The primary action element. Renders a `<button>` by default, an `<a>` (or configured router link)
+ * when `href` is set, or any component via `as` / `asChild` (for custom router links).
  *
  * @example
  * <Button variant="primary" leftIcon={<Plus size={16} />} onClick={create}>New project</Button>
  * <Button as={Link} to="/settings" variant="ghost">Settings</Button>
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = forwardRef<ButtonElement, ButtonProps>(
   (
     {
       children,
@@ -93,6 +106,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const tag: React.ElementType = useResolvedTag(as, href, 'button');
     const inactive = Boolean(disabled || isLoading);
     const classNames = mergeClassNames(
       'field-btn',
@@ -122,8 +136,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
-    const tag: React.ElementType = as ?? (href ? 'a' : 'button');
-
     return renderPolymorphic(
       tag,
       {
@@ -142,7 +154,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+export interface IconButtonProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>,
+    Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'download' | 'hrefLang' | 'referrerPolicy'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
@@ -154,6 +168,7 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   children?: React.ReactElement;
   asChild?: boolean;
   as?: React.ElementType;
+  /** Render as an anchor (or the `ThemeProvider` router link for internal paths). */
   href?: string;
   target?: string;
   rel?: string;
@@ -166,7 +181,7 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
  * @example
  * <IconButton icon={<Trash2 size={16} />} aria-label="Delete" variant="ghost" />
  */
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+export const IconButton = forwardRef<ButtonElement, IconButtonProps>(
   (
     {
       icon,
@@ -186,6 +201,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref
   ) => {
+    const tag: React.ElementType = useResolvedTag(as, href, 'button');
     const inactive = Boolean(disabled || isLoading);
     const classNames = mergeClassNames(
       'field-btn',
@@ -217,8 +233,6 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref
       );
     }
-
-    const tag: React.ElementType = as ?? (href ? 'a' : 'button');
 
     return renderPolymorphic(
       tag,

@@ -1,4 +1,11 @@
-import { FieldPrimitiveTokens, FieldSemanticTokens, FieldTheme, FieldThemePair, FieldTypographyOverrides } from './types.js';
+import {
+  FieldButtonOverrides,
+  FieldPrimitiveTokens,
+  FieldSemanticTokens,
+  FieldTheme,
+  FieldThemePair,
+  FieldTypographyOverrides,
+} from './types.js';
 import { darkTheme } from './themes/dark.js';
 import { lightTheme } from './themes/light.js';
 import { checkThemeContrast } from './contrast.js';
@@ -24,6 +31,8 @@ export interface CreateThemeOptions {
   fonts?: Partial<FieldPrimitiveTokens['typography']['fonts']>;
   /** Heading weight, tracking and width, e.g. `{ displayWeight: 800, headingTracking: 0.5 }`. */
   typography?: FieldTypographyOverrides;
+  /** Button sizes, lettering, shadows and press effect, e.g. `{ height: { md: '48px' }, textTransform: 'uppercase' }`. */
+  button?: FieldButtonOverrides;
   /**
    * Check WCAG contrast of the resulting theme and `console.warn` every failing pairing
    * (see `checkThemeContrast`). Useful while designing a brand theme; leave it off in production.
@@ -43,6 +52,17 @@ function mergeGroup<T extends object>(base: T, override?: DeepPartial<T>): T {
         : value;
   }
   return out as T;
+}
+
+function mergeButton(base?: FieldButtonOverrides, override?: FieldButtonOverrides): FieldButtonOverrides | undefined {
+  if (!base && !override) return undefined;
+  return {
+    ...base,
+    ...override,
+    height: { ...base?.height, ...override?.height },
+    paddingX: { ...base?.paddingX, ...override?.paddingX },
+    fontSize: { ...base?.fontSize, ...override?.fontSize },
+  };
 }
 
 /**
@@ -82,6 +102,7 @@ export function createTheme(options: CreateThemeOptions): FieldTheme {
     fonts: base.fonts || options.fonts ? { ...base.fonts, ...options.fonts } : undefined,
     typography:
       base.typography || options.typography ? { ...base.typography, ...options.typography } : undefined,
+    button: mergeButton(base.button, options.button),
   };
 
   if (options.checkContrast) {
@@ -99,15 +120,15 @@ export function createTheme(options: CreateThemeOptions): FieldTheme {
 export interface CreateThemePairOptions {
   id: string;
   label?: string;
-  /** Overrides applied to both modes (radii, fonts, heading typography, shared status colours, ...). */
-  shared?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography'>;
+  /** Overrides applied to both modes (radii, fonts, heading typography, buttons, shared status colours, ...). */
+  shared?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography' | 'button'>;
   dark?: Omit<CreateThemeOptions, 'id' | 'mode' | 'checkContrast'> & { id?: string };
   light?: Omit<CreateThemeOptions, 'id' | 'mode' | 'checkContrast'> & { id?: string };
   /**
    * Overrides for forced-dark bands (photo sections, `tone="inverse"` on a light page), applied on
    * top of the pair's dark theme. Omit it and bands use the dark theme unchanged.
    */
-  band?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography' | 'label'> & { id?: string };
+  band?: Pick<CreateThemeOptions, 'semantics' | 'radii' | 'fonts' | 'typography' | 'button' | 'label'> & { id?: string };
   /** Check WCAG contrast of every generated theme and `console.warn` failures. */
   checkContrast?: boolean;
 }
@@ -151,6 +172,7 @@ export function createThemePair(options: CreateThemePairOptions): FieldThemePair
         options.shared?.typography || variant.typography
           ? { ...options.shared?.typography, ...variant.typography }
           : undefined,
+      button: mergeButton(options.shared?.button, variant.button),
       checkContrast: options.checkContrast,
     });
   };

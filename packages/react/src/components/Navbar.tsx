@@ -8,17 +8,57 @@ import React, {
   useMemo,
   useRef,
   useEffect,
+  useId,
 } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
-import { getInteractiveElementProps, renderPolymorphic } from '../utils/polymorphic.js';
-import { useIsomorphicLayoutEffect } from '../utils/hooks.js';
+import { getInteractiveElementProps, renderPolymorphic, useResolvedTag, mergeClassNames } from '../utils/polymorphic.js';
+import { useIsomorphicLayoutEffect, useFocusTrap, useScrollLock, mergeRefs } from '../utils/hooks.js';
+import { ThemeScope } from '../theme/ThemeProvider.js';
+import type { ThemeMode } from '../theme/types.js';
+import type { FieldTheme, FieldThemePair } from '@sam.barfield/field-tokens';
 
 export type NavbarVariant = 'underline' | 'elastic' | 'pill' | 'rail' | 'ghost';
 export type NavbarShadow = 'none' | 'sm' | 'md' | 'lg' | boolean;
 export type NavbarScrollBehavior = 'none' | 'elevate' | 'shrink' | 'blur';
 
+export interface NavbarScrolledAppearance {
+  /** Background colour once scrolled. */
+  background?: string;
+  /** Bottom border colour once scrolled. */
+  borderColor?: string;
+  /** Shadow once scrolled: `none`, `sm`, `md`, `lg` or any `box-shadow`. */
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | (string & {});
+  /** Backdrop blur once scrolled, e.g. `8px`; `true` = 12px. */
+  blur?: boolean | string;
+}
+
+const SHADOW_PRESETS: Record<string, string> = {
+  none: 'none',
+  sm: 'var(--field-shadow-sm)',
+  md: 'var(--field-shadow-md)',
+  lg: 'var(--field-shadow-lg)',
+};
+
+/*
+ * Sticky navbars publish their height on <html> as --field-navbar-height (read by
+ * Section underNavbar, the scroll offset and consumer CSS). Several can be mounted at once,
+ * so the most recently mounted one wins and unmounting hands the value back.
+ */
+const publishedHeights = new Map<symbol, string>();
+const publishNavbarHeight = () => {
+  if (typeof document === 'undefined') return;
+  const values = Array.from(publishedHeights.values());
+  const root = document.documentElement;
+  if (values.length) root.style.setProperty('--field-navbar-height', values[values.length - 1]);
+  else root.style.removeProperty('--field-navbar-height');
+};
+
 /* --- NAVBAR CONTEXT --- */
 export interface NavbarContextValue {
+  menuId: string;
+  toggleRef: React.RefObject<HTMLButtonElement | null>;
+  /** The navbar's root element (`<header>` by default). */
+  rootRef: React.RefObject<HTMLElement | null>;
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
   toggleMenu: () => void;
@@ -35,12 +75,18 @@ export interface NavbarContextValue {
   indicatorThickness?: string | number;
 }
 
+const dummyToggleRef = { current: null };
+const dummyRootRef = { current: null };
+
 const NavbarContext = createContext<NavbarContextValue | undefined>(undefined);
 
 export const useNavbar = (): NavbarContextValue => {
   const context = useContext(NavbarContext);
   if (!context) {
     return {
+      menuId: 'field-navbar-menu',
+      toggleRef: dummyToggleRef,
+      rootRef: dummyRootRef,
       isMenuOpen: false,
       setIsMenuOpen: () => {},
       toggleMenu: () => {},
@@ -99,8 +145,19 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   scrollThreshold?: number;
   /** Element to watch for scrolling instead of `window` (e.g. a scrollable `<main>`). */
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
-  /** Transparent background until the page is scrolled. */
-  transparentOnTop?: boolean;
+  /**
+   * Transparent background until the page is scrolled (it turns solid while the mobile menu is open).
+   * `true` is always transparent at the top. `'auto'` is only transparent while the page has a band
+   * under the bar: a `Section underNavbar`, or any element with `data-navbar-overlap`. Pages
+   * without one (loading, error and not-found states) get a solid bar.
+   */
+  transparentOnTop?: boolean | 'auto';
+  /**
+   * Look of the bar once the page scrolls past `scrollThreshold`. Each value is any CSS value;
+   * `shadow` also takes `sm` / `md` / `lg`, and `blur: true` means 12px. Also settable from CSS with
+   * `--field-navbar-scrolled-bg`, `-border`, `-shadow` and `-blur`.
+   */
+  scrolledAppearance?: NavbarScrolledAppearance;
   /** Max width of the inner content (`sm` 640px … `xl` 1280px, `full`, or any length). */
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | number | string;
   /**
@@ -127,6 +184,18 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   indicatorWidth?: 'full' | 'content' | string | number;
   /** Line thickness for `underline` / `elastic` indicators. */
   indicatorThickness?: string | number;
+  /**
+   * Height of the bar (e.g. `68` or `"4.25rem"`). Default 56px, or 48px when compact. Sets
+   * `--field-navbar-height` on the bar; a sticky, floating or `transparentOnTop` bar also sets it on
+   * `<html>`, where `Section underNavbar`, the anchor scroll offset and your own CSS can read it.
+   * For server-rendered pages, also set it in CSS (`:root { --field-navbar-height: 68px }`) so the
+   * first paint is right.
+   */
+  height?: number | string;
+  /** Force dark or light mode for the navbar without needing a separate ThemeScope wrapper. */
+  mode?: ThemeMode;
+  /** Explicit theme or theme pair to apply directly to the navbar. */
+  theme?: FieldTheme | FieldThemePair;
   /** Accessible name of the inner `<nav>` landmark. Default "Main". */
   navLabel?: string;
   className?: string;
@@ -179,6 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   scrollThreshold = 20,
   scrollContainerRef,
   transparentOnTop = false,
+  scrolledAppearance,
   maxWidth = 'full',
   collapseBelow,
   isMenuOpen: controlledOpen,
@@ -190,18 +260,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   hoverGlider = false,
   indicatorWidth,
   indicatorThickness,
+  height,
+  mode,
+  theme,
   navLabel = 'Main',
   className = '',
   style,
   as: Component = 'header',
   ...props
 }) => {
+  const menuId = useId();
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
   const [internalOpen, setInternalOpen] = useState(defaultMenuOpen);
   const isMenuOpen = controlledOpen ?? internalOpen;
   const rootRef = useRef<HTMLElement | null>(null);
 
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const collapseWidth =
     collapseBelow === undefined
@@ -211,26 +285,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           typeof collapseBelow === 'number' ? collapseBelow : COLLAPSE_BREAKPOINTS[collapseBelow]
         );
 
-  // Same measurement as the CSS container query: the navbar's own inline size.
+  // Starts false so server and client render the same markup.
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Before the first paint, guess from the viewport (no layout read) so full-width bars on
+  // phones don't paint the wide layout for a frame. The observer below has the final say.
   useIsomorphicLayoutEffect(() => {
+    if (collapseWidth === undefined || typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    setIsCollapsed(window.matchMedia(`(max-width: ${collapseWidth - 0.02}px)`).matches);
+  }, [collapseWidth]);
+
+  // Same measurement as the CSS container query: the navbar's own inline size. Read from the
+  // ResizeObserver entry, after layout, so it never forces a synchronous reflow (F2).
+  useEffect(() => {
     const el = rootRef.current;
     if (!el || collapseWidth === undefined) {
       setIsCollapsed(false);
       return;
     }
-    const measure = () => setIsCollapsed(el.clientWidth < collapseWidth);
-    measure();
     if (typeof ResizeObserver === 'undefined') {
+      const measure = () => setIsCollapsed(el.clientWidth < collapseWidth);
+      measure();
       window.addEventListener('resize', measure);
       return () => window.removeEventListener('resize', measure);
     }
-    const ro = new ResizeObserver(measure);
+    const ro = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+      setIsCollapsed(width < collapseWidth);
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, [collapseWidth]);
 
+  const tracksScroll = scrollBehavior !== 'none' || Boolean(transparentOnTop) || scrolledAppearance !== undefined;
+
   useEffect(() => {
-    if (scrollBehavior === 'none' && !transparentOnTop) return;
+    if (!tracksScroll) return;
 
     const target: EventTarget = scrollContainerRef?.current || window;
     const getScrollY = () =>
@@ -245,7 +336,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     handleScroll();
 
     return () => target.removeEventListener('scroll', handleScroll as EventListener);
-  }, [scrollBehavior, scrollThreshold, transparentOnTop, scrollContainerRef]);
+  }, [tracksScroll, scrollThreshold, scrollContainerRef]);
 
   const setIsMenuOpen = useCallback(
     (open: boolean) => {
@@ -261,17 +352,65 @@ export const Navbar: React.FC<NavbarProps> = ({
     setIsMenuOpen(!isMenuOpen);
   }, [setIsMenuOpen, isMenuOpen]);
 
-  // Close the mobile menu when the bar grows back into the full layout.
+  // Close the mobile menu when the bar grows back into the full layout. `isCollapsed` already
+  // says so; no width read needed (F2).
   useEffect(() => {
     if (collapseWidth !== undefined && !isCollapsed && isMenuOpen) {
-      const el = rootRef.current;
-      if (el && el.clientWidth >= collapseWidth) setIsMenuOpen(false);
+      setIsMenuOpen(false);
     }
   }, [collapseWidth, isCollapsed, isMenuOpen, setIsMenuOpen]);
 
+  const resolvedHeight =
+    typeof height === 'number'
+      ? `${height}px`
+      : height ?? (density === 'compact' ? '48px' : '56px');
+
+  // Publish the height on <html> (F6). The scroll offset is derived from it in CSS, so a
+  // consumer's own --field-scroll-offset is never overwritten. Layout effect: it's a style
+  // write, and Section underNavbar needs it before the first paint.
+  const publishesHeight = sticky || floating || Boolean(transparentOnTop);
+  useIsomorphicLayoutEffect(() => {
+    if (!publishesHeight) return;
+    const key = Symbol('navbar');
+    publishedHeights.set(key, resolvedHeight);
+    publishNavbarHeight();
+    return () => {
+      publishedHeights.delete(key);
+      publishNavbarHeight();
+    };
+  }, [publishesHeight, resolvedHeight]);
+
+  const scrolledVars = useMemo(() => {
+    if (!scrolledAppearance) return undefined;
+    const { background, borderColor, shadow, blur } = scrolledAppearance;
+    return {
+      '--field-navbar-scrolled-bg': background,
+      '--field-navbar-scrolled-border': borderColor,
+      '--field-navbar-scrolled-shadow': shadow === undefined ? undefined : SHADOW_PRESETS[shadow] ?? shadow,
+      '--field-navbar-scrolled-blur': blur === undefined || blur === false ? undefined : `blur(${blur === true ? '12px' : blur})`,
+    } as React.CSSProperties;
+  }, [scrolledAppearance]);
+
   const contextValue = useMemo(
-    () => ({ isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, isCollapsed, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness }),
-    [isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, isCollapsed, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness]
+    () => ({
+      menuId,
+      toggleRef,
+      rootRef,
+      isMenuOpen,
+      setIsMenuOpen,
+      toggleMenu,
+      density,
+      floating,
+      isScrolled,
+      isCollapsed,
+      variant,
+      animated,
+      glow,
+      hoverGlider,
+      indicatorWidth,
+      indicatorThickness,
+    }),
+    [menuId, toggleRef, rootRef, isMenuOpen, setIsMenuOpen, toggleMenu, density, floating, isScrolled, isCollapsed, variant, animated, glow, hoverGlider, indicatorWidth, indicatorThickness]
   );
 
   const shadowClass = useMemo(() => {
@@ -289,7 +428,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     density === 'compact' ? 'field-navbar-compact' : '',
     shadowClass,
     scrollBehavior !== 'none' ? `field-navbar-scroll-${scrollBehavior}` : '',
-    transparentOnTop && !isScrolled ? 'field-navbar-transparent' : '',
+    transparentOnTop && !isScrolled && !isMenuOpen ? 'field-navbar-transparent' : '',
+    transparentOnTop === 'auto' ? 'field-navbar-transparent-auto' : '',
+    scrolledAppearance ? 'field-navbar-scrolled-custom' : '',
+    isMenuOpen ? 'field-navbar-menu-open' : '',
     isScrolled ? 'field-navbar-scrolled' : '',
     isCollapsed ? 'field-navbar-collapsed' : '',
     className,
@@ -299,17 +441,44 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const containerMaxWidth = resolveMaxWidth(maxWidth);
 
+  const bar = (
+    <Component
+      ref={rootRef}
+      className={classNames}
+      style={{
+        '--field-navbar-height': resolvedHeight,
+        ...scrolledVars,
+        ...style,
+      } as React.CSSProperties}
+      {...props}
+    >
+      <nav
+        aria-label={navLabel}
+        className="field-navbar-container"
+        style={{ maxWidth: containerMaxWidth }}
+      >
+        {children}
+      </nav>
+    </Component>
+  );
+
+  // `theme` / `mode` scope the theme onto the <header> itself (no wrapper), so the bar can
+  // stick and be transparent (F7). Portals opened from the bar get the same theme.
+  const isPair = theme !== undefined && 'dark' in theme && 'light' in theme;
   return (
     <NavbarContext.Provider value={contextValue}>
-      <Component ref={rootRef} className={classNames} style={style} {...props}>
-        <nav
-          aria-label={navLabel}
-          className="field-navbar-container"
-          style={{ maxWidth: containerMaxWidth }}
+      {theme || mode ? (
+        <ThemeScope
+          asChild
+          mode={mode}
+          theme={isPair ? undefined : (theme as FieldTheme | undefined)}
+          themePair={isPair ? (theme as FieldThemePair) : undefined}
         >
-          {children}
-        </nav>
-      </Component>
+          {bar}
+        </ThemeScope>
+      ) : (
+        bar
+      )}
     </NavbarContext.Provider>
   );
 };
@@ -317,18 +486,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 Navbar.displayName = 'Navbar';
 
 /* --- NAVBAR BRAND --- */
-export interface NavbarBrandProps {
+export interface NavbarBrandProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
   children: React.ReactNode;
   href?: string;
   asChild?: boolean;
   as?: React.ElementType;
   className?: string;
   style?: React.CSSProperties;
-  onClick?: React.MouseEventHandler<any>;
 }
 
 /**
- * Logo / product name slot. Renders a link when `href` is set (or your router link via `as` / `asChild`).
+ * Logo / product name slot. Renders a link when `href` is set: the `ThemeProvider` `linkComponent`
+ * for internal paths, or your own component via `as` / `asChild`.
  */
 export const NavbarBrand: React.FC<NavbarBrandProps> = ({
   children,
@@ -340,14 +509,13 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
   onClick,
   ...props
 }) => {
-  const defaultTag = href ? 'a' : 'div';
+  const tag = useResolvedTag(as, href, href ? 'a' : 'div');
   const classNames = ['field-navbar-brand', className].filter(Boolean).join(' ');
 
   return renderPolymorphic(
-    defaultTag,
+    tag,
     {
       asChild,
-      as,
       href,
       onClick,
       className: classNames,
@@ -582,6 +750,12 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
   const prevVariantRef = useRef(variant);
   const animationRef = useRef<Animation | null>(null);
 
+  // The active item the indicator was last measured for. Set inside the measurement itself, so
+  // a scheduled measurement that hasn't run yet is retried on the next render.
+  const measuredActiveRef = useRef<HTMLElement | null | undefined>(undefined);
+  const prevPropsRef = useRef({ variant, animated, indicatorWidth, effectiveThickness });
+  const rafIdRef = useRef<number | null>(null);
+
   const [activeIndicator, setActiveIndicator] = useState<{
     left: number;
     width: number;
@@ -604,6 +778,8 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
       const activeEl = containerRef.current.querySelector(
         '.field-navbar-item.active'
       ) as HTMLElement | null;
+
+      measuredActiveRef.current = activeEl;
 
       if (activeEl) {
         const containerRect = containerRef.current.getBoundingClientRect();
@@ -694,10 +870,39 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
     [animated, variant, indicatorWidth]
   );
 
-  useEffect(() => {
-    updateActiveIndicator();
-  }, [children, updateActiveIndicator, variant, animated, indicatorWidth, effectiveThickness]);
+  const scheduleUpdate = useCallback(
+    (isResize = false) => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        updateActiveIndicator(isResize);
+      });
+    },
+    [updateActiveIndicator]
+  );
 
+  // After a render, re-measure only if the active item or an indicator option changed (F2).
+  // Querying for the active item is a DOM lookup, not a layout read; the measurement itself is
+  // batched into the next animation frame.
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const propsChanged =
+      prevPropsRef.current.variant !== variant ||
+      prevPropsRef.current.animated !== animated ||
+      prevPropsRef.current.indicatorWidth !== indicatorWidth ||
+      prevPropsRef.current.effectiveThickness !== effectiveThickness;
+    prevPropsRef.current = { variant, animated, indicatorWidth, effectiveThickness };
+
+    // On mount the ResizeObserver's first report positions the indicator.
+    if (measuredActiveRef.current === undefined && typeof ResizeObserver !== 'undefined') return;
+
+    const currentActive = containerRef.current.querySelector('.field-navbar-item.active');
+    if (propsChanged || currentActive !== measuredActiveRef.current) scheduleUpdate(false);
+  });
+
+  // The ResizeObserver reports after layout, so measuring there never forces a reflow.
   useEffect(() => {
     if (!containerRef.current) return;
     const el = containerRef.current;
@@ -708,10 +913,19 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
       return () => ro.disconnect();
     }
 
-    const handleResize = () => updateActiveIndicator(true);
+    scheduleUpdate(true);
+    const handleResize = () => scheduleUpdate(true);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [updateActiveIndicator]);
+  }, [updateActiveIndicator, scheduleUpdate]);
+
+  // Cancel a pending measurement only on unmount.
+  useEffect(
+    () => () => {
+      if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
+    },
+    []
+  );
 
   // Handle magnetic hover follower
   const handleMouseMove = useCallback(
@@ -828,7 +1042,7 @@ export const NavbarContent: React.FC<NavbarContentProps> = ({
 NavbarContent.displayName = 'NavbarContent';
 
 /* --- NAVBAR ITEM --- */
-export interface NavbarItemProps {
+export interface NavbarItemProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   isActive?: boolean;
   disabled?: boolean;
@@ -839,7 +1053,8 @@ export interface NavbarItemProps {
   /** Deprecated alias of `indicatorWidth`. */
   underlineWidth?: 'full' | 'content' | string | number;
   href?: string;
-  onClick?: React.MouseEventHandler<any>;
+  target?: string;
+  rel?: string;
   asChild?: boolean;
   as?: React.ElementType;
   className?: string;
@@ -849,21 +1064,24 @@ export interface NavbarItemProps {
 /**
  * A top-level navigation link or button. Mark the current route with `isActive` (sets `aria-current="page"`).
  */
-export const NavbarItem: React.FC<NavbarItemProps> = ({
-  children,
-  isActive = false,
-  disabled = false,
-  variant: propVariant,
-  indicatorWidth,
-  underlineWidth,
-  href,
-  onClick,
-  asChild = false,
-  as,
-  className = '',
-  style,
-  ...props
-}) => {
+export const NavbarItem = React.forwardRef<HTMLElement, NavbarItemProps>(function NavbarItem(
+  {
+    children,
+    isActive = false,
+    disabled = false,
+    variant: propVariant,
+    indicatorWidth,
+    underlineWidth,
+    href,
+    onClick,
+    asChild = false,
+    as,
+    className = '',
+    style,
+    ...props
+  },
+  forwardedRef
+) {
   const { variant: contextVariant } = useContext(NavbarContentContext);
   const variant = propVariant || contextVariant || 'underline';
   const { isInMenu } = useNavbarMenu();
@@ -889,13 +1107,14 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  const tag: React.ElementType = as ?? (href ? 'a' : 'button');
+  const resolvedTag = useResolvedTag(as, href, href ? 'a' : 'button');
 
   return renderPolymorphic(
-    tag,
+    resolvedTag,
     {
+      ref: forwardedRef,
       asChild,
-      ...(asChild ? { 'aria-disabled': disabled || undefined } : getInteractiveElementProps(tag, { href, disabled })),
+      ...(asChild ? { 'aria-disabled': disabled || undefined } : getInteractiveElementProps(resolvedTag, { href, disabled })),
       'aria-current': isActive ? 'page' : undefined,
       'data-active': isActive ? 'true' : undefined,
       'data-indicator-width': indicatorWidth || underlineWidth,
@@ -906,7 +1125,7 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
       ...props,
     }
   );
-};
+});
 
 NavbarItem.displayName = 'NavbarItem';
 
@@ -998,29 +1217,44 @@ export const NavbarFlyout: React.FC<NavbarFlyoutProps> = ({
     if ((e.target as Element).closest('a[href], .field-navbar-flyout-item')) setOpen(false);
   };
 
-  // Keep the panel inside the navbar's horizontal bounds (and the viewport): shift it
-  // sideways when the preferred alignment would overflow, and cap its width.
+  // Keep the panel inside the navbar's horizontal bounds (and the viewport) by shifting it
+  // sideways when the preferred alignment would overflow. CSS caps its width. All reads come
+  // before the single write, once per frame, so this never forces an extra layout (F2). A layout
+  // effect only so the first frame is scheduled before the panel paints.
   useIsomorphicLayoutEffect(() => {
     if (!open || isInMenu) return;
+    let rafId: number | null = null;
+    let appliedShift = 0;
     const constrain = () => {
+      rafId = null;
       const panel = panelRef.current;
       const container = containerRef.current;
       if (!panel || !container) return;
       const margin = 8;
       const navbarRect = (container.closest('.field-navbar') as HTMLElement | null)?.getBoundingClientRect();
+      const rect = panel.getBoundingClientRect();
       const minLeft = Math.max(margin, navbarRect?.left ?? margin);
       const maxRight = Math.min(window.innerWidth - margin, navbarRect?.right ?? window.innerWidth - margin);
-      panel.style.translate = '';
-      panel.style.maxWidth = `${Math.max(0, maxRight - minLeft)}px`;
-      const rect = panel.getBoundingClientRect();
+      // Where the panel sits without the shift applied last time.
+      const left = rect.left - appliedShift;
+      const right = rect.right - appliedShift;
       let shift = 0;
-      if (rect.right > maxRight) shift = maxRight - rect.right;
-      if (rect.left + shift < minLeft) shift = minLeft - rect.left;
-      if (shift) panel.style.translate = `${shift}px 0`;
+      if (right > maxRight) shift = maxRight - right;
+      if (left + shift < minLeft) shift = minLeft - left;
+      if (shift !== appliedShift) {
+        appliedShift = shift;
+        panel.style.translate = shift ? `${shift}px 0` : '';
+      }
     };
-    constrain();
-    window.addEventListener('resize', constrain);
-    return () => window.removeEventListener('resize', constrain);
+    const schedule = () => {
+      if (rafId === null) rafId = requestAnimationFrame(constrain);
+    };
+    schedule();
+    window.addEventListener('resize', schedule);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', schedule);
+    };
   }, [open, isInMenu, width, align]);
 
   const classNames = [
@@ -1211,7 +1445,7 @@ export const NavbarFlyoutItem: React.FC<NavbarFlyoutItemProps> = ({
     }
   };
 
-  const defaultTag = href ? 'a' : onClick ? 'button' : 'div';
+  const resolvedTag = useResolvedTag(as, href, onClick ? 'button' : 'div');
   const classNames = ['field-navbar-flyout-item', className].filter(Boolean).join(' ');
 
   const content = (
@@ -1230,12 +1464,12 @@ export const NavbarFlyoutItem: React.FC<NavbarFlyoutItemProps> = ({
   );
 
   return renderPolymorphic(
-    defaultTag,
+    resolvedTag,
     {
       asChild,
       as,
       href,
-      type: defaultTag === 'button' && (!as || as === 'button') ? 'button' : undefined,
+      type: resolvedTag === 'button' ? 'button' : undefined,
       onClick: handleClick,
       className: classNames,
       style,
@@ -1251,21 +1485,35 @@ NavbarFlyoutItem.displayName = 'NavbarFlyoutItem';
 export interface NavbarActionsProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   gap?: string | number;
+  /** Hide the whole group while the bar is in its mobile layout. Hide single children with `NavbarActionsItem`. */
+  hideOnMobile?: boolean;
+  /** Alias of `hideOnMobile`. */
+  hideWhenCollapsed?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
 /**
  * Right-aligned slot for utility buttons (search, theme toggle, avatar, `NavbarToggle`).
+ * Wrap a single child in `NavbarActionsItem hideOnMobile` to hide just that one on phones.
  */
 export const NavbarActions: React.FC<NavbarActionsProps> = ({
   children,
   gap,
+  hideOnMobile = false,
+  hideWhenCollapsed = false,
   className = '',
   style,
   ...props
 }) => {
-  const classNames = ['field-navbar-actions', className].filter(Boolean).join(' ');
+  const classNames = [
+    'field-navbar-actions',
+    hideOnMobile ? 'field-navbar-actions-hide-mobile' : '',
+    hideWhenCollapsed ? 'field-navbar-actions-hide-collapsed' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const computedStyle: React.CSSProperties = {
     gap: typeof gap === 'number' ? `${gap}px` : gap,
@@ -1280,6 +1528,41 @@ export const NavbarActions: React.FC<NavbarActionsProps> = ({
 };
 
 NavbarActions.displayName = 'NavbarActions';
+
+export interface NavbarActionsItemProps extends React.HTMLAttributes<HTMLElement> {
+  children: React.ReactNode;
+  /** Hide this child while the bar is in its mobile layout (below 768px or `collapseBelow`). */
+  hideOnMobile?: boolean;
+  /** Merge the props onto the single child instead of rendering a wrapper. */
+  asChild?: boolean;
+}
+
+/**
+ * One child of `NavbarActions` that can be hidden on its own while the bar is collapsed,
+ * e.g. a "Book tickets" button that moves into `NavbarMenu` on phones. Without `asChild` it
+ * renders a `display: contents` wrapper, so it doesn't affect the actions' layout.
+ *
+ * @example
+ * <NavbarActions>
+ *   <NavbarActionsItem hideOnMobile asChild><Button href="/tickets">Book</Button></NavbarActionsItem>
+ *   <NavbarToggle />
+ * </NavbarActions>
+ */
+export const NavbarActionsItem: React.FC<NavbarActionsItemProps> = ({
+  children,
+  hideOnMobile = false,
+  asChild = false,
+  className = '',
+  ...props
+}) =>
+  renderPolymorphic('div', {
+    asChild,
+    className: mergeClassNames(!asChild && 'field-navbar-actions-item', hideOnMobile && 'field-navbar-hide-mobile', className) || undefined,
+    children,
+    ...props,
+  });
+
+NavbarActionsItem.displayName = 'NavbarActionsItem';
 
 /* --- NAVBAR TOGGLE --- */
 export interface NavbarToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -1297,47 +1580,54 @@ export interface NavbarToggleProps extends React.ButtonHTMLAttributes<HTMLButton
 /**
  * Hamburger button that opens and closes `NavbarMenu`. Hidden on wide screens unless `display="always"`.
  */
-export const NavbarToggle: React.FC<NavbarToggleProps> = ({
-  icon,
-  openIcon,
-  'aria-label': ariaLabel = 'Toggle navigation menu',
-  display = 'auto',
-  className = '',
-  style,
-  onClick,
-  ...props
-}) => {
-  const { isMenuOpen, toggleMenu } = useNavbar();
+export const NavbarToggle = React.forwardRef<HTMLButtonElement, NavbarToggleProps>(
+  function NavbarToggle(
+    {
+      icon,
+      openIcon,
+      'aria-label': ariaLabel = 'Toggle navigation menu',
+      display = 'auto',
+      className = '',
+      style,
+      onClick,
+      ...props
+    },
+    forwardedRef
+  ) {
+    const { isMenuOpen, toggleMenu, menuId, toggleRef } = useNavbar();
+    const mergedRef = mergeRefs(toggleRef, forwardedRef);
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    toggleMenu();
-    onClick?.(e);
-  };
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      toggleMenu();
+      onClick?.(e);
+    };
 
-  const classNames = [
-    'field-navbar-toggle',
-    display !== 'auto' ? `field-navbar-toggle-${display}` : '',
-    isMenuOpen ? 'open' : '',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+    const classNames = [
+      'field-navbar-toggle',
+      display !== 'auto' ? `field-navbar-toggle-${display}` : '',
+      isMenuOpen ? 'open' : '',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-  return (
-    <button
-      type="button"
-      className={classNames}
-      aria-label={ariaLabel}
-      aria-expanded={isMenuOpen}
-      aria-controls={isMenuOpen ? 'field-navbar-menu' : undefined}
-      onClick={handleClick}
-      style={style}
-      {...props}
-    >
-      {isMenuOpen ? openIcon || <X size={20} /> : icon || <Menu size={20} />}
-    </button>
-  );
-};
+    return (
+      <button
+        ref={mergedRef}
+        type="button"
+        className={classNames}
+        aria-label={ariaLabel}
+        aria-expanded={isMenuOpen}
+        aria-controls={isMenuOpen ? (menuId || 'field-navbar-menu') : undefined}
+        onClick={handleClick}
+        style={style}
+        {...props}
+      >
+        {isMenuOpen ? openIcon || <X size={20} /> : icon || <Menu size={20} />}
+      </button>
+    );
+  }
+);
 
 NavbarToggle.displayName = 'NavbarToggle';
 
@@ -1357,17 +1647,38 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   style,
   ...props
 }) => {
-  const { isMenuOpen, setIsMenuOpen } = useNavbar();
+  const { isMenuOpen, setIsMenuOpen, menuId, toggleRef, rootRef } = useNavbar();
+  const menuRef = useRef<HTMLDivElement>(null);
 
+  // Lock page scroll while the menu is open.
+  useScrollLock(isMenuOpen);
+
+  // Keep focus in the bar while the menu is open. The trap covers the whole bar, not just the
+  // menu, so the toggle (and the brand and actions) stay reachable and Tab never reaches the page.
+  // Focus starts on the menu when it was opened from outside the bar.
+  const trapRef = rootRef.current ? rootRef : menuRef;
+  useFocusTrap(trapRef, isMenuOpen, { restoreFocus: true, initialFocusRef: menuRef });
+
+  // Escape key closes menu and restores focus to toggle button
   useEffect(() => {
     if (!isMenuOpen || typeof document === 'undefined') return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       setIsMenuOpen(false);
-      document.querySelector<HTMLElement>('.field-navbar-toggle')?.focus();
+      toggleRef.current?.focus();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen, setIsMenuOpen, toggleRef]);
+
+  // Handle browser back button (popstate) to dismiss open menu
+  useEffect(() => {
+    if (!isMenuOpen || typeof window === 'undefined') return;
+    const handlePopState = () => {
+      setIsMenuOpen(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [isMenuOpen, setIsMenuOpen]);
 
   if (!isMenuOpen) return null;
@@ -1388,8 +1699,15 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   return (
     <NavbarMenuContext.Provider value={{ isInMenu: true }}>
       <div
-        id="field-navbar-menu"
+        className="field-navbar-menu-backdrop"
+        onClick={() => setIsMenuOpen(false)}
+        aria-hidden="true"
+      />
+      <div
+        ref={menuRef}
+        id={menuId || 'field-navbar-menu'}
         role="region"
+        tabIndex={-1}
         aria-label="Navigation menu"
         className={classNames}
         style={style}

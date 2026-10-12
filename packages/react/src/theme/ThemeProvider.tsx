@@ -11,7 +11,8 @@ import {
   cobaltThemePair,
 } from '@sam.barfield/field-tokens';
 import { ThemeContextValue, ThemeMode, ThemeProviderProps, ThemeScopeProps } from './types.js';
-import { useIsomorphicLayoutEffect } from '../utils/hooks.js';
+import { useIsomorphicLayoutEffect, mergeRefs, getElementRef } from '../utils/hooks.js';
+import { mergeClassNames } from '../utils/classNames.js';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
@@ -56,6 +57,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   initialTheme,
   themePair,
+  linkComponent,
   defaultMode = 'dark',
   storageKey,
   injectGlobalStyles = true,
@@ -158,6 +160,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       theme,
       mode: theme.mode,
       themePair: currentPair,
+      linkComponent,
       scope,
       containerRef,
       setTheme: setThemeCallback,
@@ -166,7 +169,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       toggleMode,
       updateThemeSemantics,
     }),
-    [theme, currentPair, scope, setThemeCallback, setThemePair, setMode, toggleMode, updateThemeSemantics]
+    [theme, currentPair, linkComponent, scope, setThemeCallback, setThemePair, setMode, toggleMode, updateThemeSemantics]
   );
 
   if (scope === 'container') {
@@ -214,6 +217,7 @@ export const ThemeScope: React.FC<ThemeScopeProps> = ({
   theme: explicitTheme,
   themePair: explicitPair,
   mode: explicitMode,
+  asChild = false,
   as: Component = 'div',
   className = '',
   style,
@@ -240,6 +244,7 @@ export const ThemeScope: React.FC<ThemeScopeProps> = ({
       theme: resolvedTheme,
       mode: resolvedTheme.mode,
       themePair: explicitPair ?? outerContext?.themePair,
+      linkComponent: outerContext?.linkComponent,
       scope: 'container',
       containerRef,
       setTheme: outerContext?.setTheme ?? noop,
@@ -250,6 +255,26 @@ export const ThemeScope: React.FC<ThemeScopeProps> = ({
     }),
     [resolvedTheme, explicitPair, outerContext]
   );
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+    const childProps = child.props || {};
+    return (
+      <ThemeContext.Provider value={value}>
+        {React.cloneElement(child, {
+          ref: mergeRefs(containerRef, getElementRef(child) as React.Ref<HTMLElement>),
+          className: mergeClassNames('field-scope', className, childProps.className),
+          'data-field-theme': resolvedTheme.id,
+          'data-theme': resolvedTheme.mode,
+          style: {
+            ...cssVars,
+            ...style,
+            ...childProps.style,
+          },
+        })}
+      </ThemeContext.Provider>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={value}>
@@ -280,6 +305,13 @@ const fallbackContext: ThemeContextValue = {
   setThemePair: noop,
   toggleMode: noop,
   updateThemeSemantics: noop,
+};
+
+/**
+ * Returns the router link component provided to `<ThemeProvider linkComponent={...}>`, if any.
+ */
+export const useLinkComponent = (): React.ElementType | undefined => {
+  return useThemeSafe().linkComponent;
 };
 
 /**

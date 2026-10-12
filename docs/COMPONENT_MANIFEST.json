@@ -1,7 +1,7 @@
 {
   "name": "Field Design System Component Manifest",
   "package": "@sam.barfield/field-react",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "generatedBy": "scripts/generate-manifest.mjs - do not edit by hand",
   "components": {
     "Accordion": {
@@ -93,7 +93,7 @@
       ]
     },
     "AspectRatio": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
       "description": "Keeps its child (iframe, video, map, image) at a fixed aspect ratio; the child fills the box.",
       "props": {
@@ -120,6 +120,58 @@
       ],
       "examples": [
         "<AspectRatio ratio={16 / 9} radius=\"lg\">\n  <iframe src=\"https://www.youtube-nocookie.com/embed/…\" title=\"Tour of the café\" allowFullScreen />\n</AspectRatio>"
+      ]
+    },
+    "AsyncContent": {
+      "category": "Feedback",
+      "source": "packages/react/src/components/Feedback.tsx",
+      "description": "Loading, error and empty states for remote content (a post list, a gallery, a product grid), so\nevery list handles them the same way. Renders no wrapper element.",
+      "props": {
+        "isLoading": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show the loading state."
+        },
+        "error": {
+          "type": "unknown",
+          "required": false,
+          "description": "Any truthy value shows the error state (an `Error`'s message is shown by default)."
+        },
+        "isEmpty": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show the empty state (checked after loading and error)."
+        },
+        "loadingFallback": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Shown while loading. Default: a centred `Spinner`. Pass skeletons shaped like the content for less layout shift."
+        },
+        "errorFallback": {
+          "type": "ReactNode | ((error: unknown, retry?: (() => void)) => ReactNode)",
+          "required": false,
+          "description": "Shown on error. Default: a danger `Alert` with the message and, with `onRetry`, a \"Try again\" button."
+        },
+        "emptyFallback": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Shown when `isEmpty`. Default: a plain `EmptyState` titled \"Nothing here yet\"."
+        },
+        "onRetry": {
+          "type": "(() => void)",
+          "required": false,
+          "description": "Retry handler for the default error state."
+        },
+        "children": {
+          "type": "ReactNode | (() => ReactNode)",
+          "required": true,
+          "description": "The loaded content, or a function so it's only evaluated once the data is there."
+        }
+      },
+      "examples": [
+        "<AsyncContent isLoading={isLoading} error={error} isEmpty={posts?.length === 0} onRetry={refetch}\n  loadingFallback={<Skeleton height={120} />}>\n  {() => posts!.map(post => <PostCard key={post.id} post={post} />)}\n</AsyncContent>"
       ]
     },
     "Avatar": {
@@ -188,7 +240,7 @@
       }
     },
     "BackToTop": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "A floating button that appears after scrolling down and returns to the top of the page.",
       "props": {
@@ -252,7 +304,7 @@
     },
     "Box": {
       "category": "Layout",
-      "source": "packages/react/src/components/Typography.tsx",
+      "source": "packages/react/src/components/Layout.tsx",
       "description": "A plain block container, useful with `as`, `padding` and `hideBelow` / `hideFrom`.",
       "props": {
         "children": {
@@ -311,7 +363,7 @@
     "Button": {
       "category": "Actions",
       "source": "packages/react/src/components/Button.tsx",
-      "description": "The primary action element. Renders a `<button>` by default, an `<a>` when\n`href` is set, or any component via `as` / `asChild` (for router links).",
+      "description": "The primary action element. Renders a `<button>` by default, an `<a>` (or configured router link)\nwhen `href` is set, or any component via `as` / `asChild` (for custom router links).",
       "props": {
         "variant": {
           "type": "ButtonVariant",
@@ -323,7 +375,7 @@
           "type": "ButtonSize",
           "required": false,
           "default": "'md'",
-          "description": "Height and padding. `sm` 30px, `md` 36px, `lg` 44px. Default `md`."
+          "description": "Height and padding. `sm` 30px, `md` 36px, `lg` 44px, `xl` 48px. Default `md`."
         },
         "isLoading": {
           "type": "boolean",
@@ -361,7 +413,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Render as an `<a>` pointing at this URL."
+          "description": "Render as an anchor (or the configured router link) pointing at this URL."
         },
         "target": {
           "type": "string",
@@ -372,11 +424,12 @@
           "type": "string",
           "required": false,
           "description": "Link relationship, e.g. `noopener noreferrer`."
+        },
+        "download": {
+          "type": "string | boolean",
+          "required": false
         }
       },
-      "inherits": [
-        "ButtonHTMLAttributes<HTMLButtonElement>"
-      ],
       "examples": [
         "<Button variant=\"primary\" leftIcon={<Plus size={16} />} onClick={create}>New project</Button>\n<Button as={Link} to=\"/settings\" variant=\"ghost\">Settings</Button>"
       ]
@@ -408,20 +461,26 @@
       "description": "A raised surface for grouping related content. Compose with `CardHeader`,\n`CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make\nthe whole card a link.",
       "props": {
         "variant": {
-          "type": "\"default\" | \"interactive\"",
+          "type": "\"inset\" | \"default\" | \"interactive\"",
           "required": false,
-          "description": "`interactive` adds hover elevation for clickable cards. Defaults to `interactive` when `href` is set."
+          "description": "`interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set."
         },
         "padding": {
-          "type": "\"none\" | \"sm\" | \"md\" | \"lg\"",
+          "type": "Responsive<CardPadding>",
           "required": false,
           "default": "'md'",
-          "description": "Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`."
+          "description": "Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`. Accepts a breakpoint object."
+        },
+        "fill": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom."
         },
         "href": {
           "type": "string",
           "required": false,
-          "description": "Makes the whole card a link (renders an `<a>`, or `as`). Do not nest other links or buttons inside."
+          "description": "Makes the whole card a link (renders an `<a>`, or router link). Do not nest other links or buttons inside."
         },
         "target": {
           "type": "string",
@@ -448,7 +507,7 @@
         "HTMLAttributes<HTMLElement>"
       ],
       "examples": [
-        "<Card>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n</Card>\n<Card as={RouterLink} href=\"/pricing\"><Heading level={3}>Pricing</Heading></Card>"
+        "<Card fill>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n  <CardFooter>…</CardFooter>\n</Card>\n<Card href=\"/pricing\"><Heading level={3}>Pricing</Heading></Card>"
       ]
     },
     "CardContent": {
@@ -482,7 +541,7 @@
       ]
     },
     "Carousel": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
       "description": "A horizontally scrolling set of slides with native swipe (CSS scroll-snap),\narrow buttons, page dots and optional autoplay. Wrap each slide in `CarouselSlide`.",
       "props": {
@@ -498,10 +557,9 @@
           "description": "Slides visible at once; accepts a breakpoint object. Default `1`."
         },
         "gap": {
-          "type": "number",
+          "type": "Responsive<SpaceValue>",
           "required": false,
-          "default": "16",
-          "description": "Gap between slides (px). Default `16`."
+          "description": "Gap between slides: px number, CSS length or `$` spacing token; accepts a breakpoint object. Default `16`."
         },
         "showArrows": {
           "type": "boolean",
@@ -540,7 +598,7 @@
       ]
     },
     "CarouselSlide": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
       "description": "One slide inside a `Carousel`.",
       "props": {
@@ -610,6 +668,112 @@
       ],
       "examples": [
         "<Checkbox label=\"I accept the terms\" checked={accepted} onChange={setAccepted} />\n<Checkbox id=\"consent\" required label=\"I agree to the privacy policy\" error={errors.consent} />"
+      ]
+    },
+    "Chip": {
+      "category": "Forms",
+      "source": "packages/react/src/components/Controls.tsx",
+      "description": "Filter chip / toggle button with optional count, keyboard support and accessible aria-pressed state.",
+      "props": {
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "selected": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether the chip is toggled on / active."
+        },
+        "defaultSelected": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Initial selected state when uncontrolled."
+        },
+        "onSelectedChange": {
+          "type": "((selected: boolean) => void)",
+          "required": false,
+          "description": "Called when the toggle state changes."
+        },
+        "count": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Optional badge or item count displayed in the chip."
+        },
+        "variant": {
+          "type": "\"default\" | \"outline\" | \"accent\"",
+          "required": false,
+          "default": "'default'",
+          "description": "Visual variant. Default `default`."
+        },
+        "size": {
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "required": false,
+          "default": "'md'",
+          "description": "Height matching the Button of the same size: `sm` 30px, `md` 36px (default), `lg` 44px."
+        },
+        "disabled": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Disables interaction and dims the control."
+        },
+        "className": {
+          "type": "string",
+          "required": false,
+          "description": "Additional CSS class names."
+        },
+        "style": {
+          "type": "CSSProperties",
+          "required": false,
+          "description": "Inline styles."
+        }
+      },
+      "inherits": [
+        "Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'>"
+      ],
+      "examples": [
+        "<Chip selected={filter === 'ww2'} onSelectedChange={() => setFilter('ww2')} count={24}>\n  WWII Era\n</Chip>"
+      ]
+    },
+    "ChipGroup": {
+      "category": "Forms",
+      "source": "packages/react/src/components/Controls.tsx",
+      "description": "Horizontal grouping of filter chips with automatic touch scrolling on small screens.",
+      "props": {
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "scroll": {
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Allow horizontal touch scrolling on mobile without wrapping. Default `true`."
+        },
+        "gap": {
+          "type": "Responsive<SpaceValue>",
+          "required": false,
+          "description": "Gap between chips: px number, CSS length or `$` spacing token; accepts a breakpoint object. Default `$2` (8px)."
+        },
+        "className": {
+          "type": "string",
+          "required": false,
+          "description": "Additional CSS class names."
+        },
+        "style": {
+          "type": "CSSProperties",
+          "required": false,
+          "description": "Inline styles."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLDivElement>"
+      ],
+      "examples": [
+        "<ChipGroup scroll>\n  <Chip selected count={12}>All</Chip>\n  <Chip count={4}>Photographs</Chip>\n  <Chip count={8}>Documents</Chip>\n</ChipGroup>"
       ]
     },
     "Code": {
@@ -865,7 +1029,7 @@
     },
     "Container": {
       "category": "Layout",
-      "source": "packages/react/src/components/Typography.tsx",
+      "source": "packages/react/src/components/Layout.tsx",
       "description": "Centres content with a max width and horizontal padding (wider gutters from `md`).",
       "props": {
         "maxWidth": {
@@ -933,7 +1097,7 @@
       ]
     },
     "CookieConsent": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/CookieConsent.tsx",
       "description": "Cookie consent banner with accept all / reject non-essential / customise.\nChoices are saved in localStorage and exposed through `useCookieConsent`.\nReject is as prominent as accept, and nothing optional is enabled by default,\nin line with GDPR / PECR guidance. Only load non-essential scripts once\n`consent[category]` is true.",
       "props": {
@@ -1318,6 +1482,74 @@
         "<DateRangePicker label=\"Billing period\" value={range} onChange={setRange} />"
       ]
     },
+    "DescriptionItem": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/DataDisplay.tsx",
+      "description": "",
+      "props": {
+        "label": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Visible label, linked to the control for screen readers."
+        },
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "className": {
+          "type": "string",
+          "required": false,
+          "description": "Additional CSS class names."
+        },
+        "style": {
+          "type": "CSSProperties",
+          "required": false,
+          "description": "Inline styles."
+        }
+      }
+    },
+    "DescriptionList": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/DataDisplay.tsx",
+      "description": "A responsive label/value description list for metadata, facts, specifications, and details.",
+      "props": {
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "columns": {
+          "type": "Responsive<number>",
+          "required": false,
+          "default": "1",
+          "description": "Number of columns; accepts a breakpoint object. Default 1."
+        },
+        "density": {
+          "type": "\"default\" | \"compact\"",
+          "required": false,
+          "default": "'default'",
+          "description": "Visual density. Default `default`."
+        },
+        "divided": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show hairline divider borders between items. Default `false`."
+        },
+        "className": {
+          "type": "string",
+          "required": false,
+          "description": "Additional CSS class names."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLDListElement>"
+      ],
+      "examples": [
+        "<DescriptionList columns={{ base: 1, md: 2 }} divided>\n  <DescriptionItem label=\"Role\">Heavy Bomber</DescriptionItem>\n  <DescriptionItem label=\"Manufacturer\">Avro</DescriptionItem>\n</DescriptionList>"
+      ]
+    },
     "DiffViewer": {
       "category": "Data Display",
       "source": "packages/react/src/components/CodeBlock.tsx",
@@ -1341,6 +1573,53 @@
       },
       "examples": [
         "<DiffViewer title=\"config.yaml\" lines={[{ type: 'removed', content: 'replicas: 2', oldLineNumber: 4 },\n  { type: 'added', content: 'replicas: 3', newLineNumber: 4 }]} />"
+      ]
+    },
+    "Divided": {
+      "category": "Layout",
+      "source": "packages/react/src/components/Layout.tsx",
+      "description": "Several parts sharing one surface (a card, a panel, a band), separated by hairlines instead of\neach getting its own box. The outer edges get no extra space, so the parts line up with the\ncontainer's padding. Line colour: `--field-divided-color`.",
+      "props": {
+        "direction": {
+          "type": "Responsive<\"column\" | \"row\">",
+          "required": false,
+          "default": "'column'",
+          "description": "`column` (default) stacks the parts with horizontal lines between them; `row` puts them side by\nside, equal width, with vertical lines. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`."
+        },
+        "space": {
+          "type": "SpaceValue",
+          "required": false,
+          "description": "Space on each side of a line (number = px, `$6` = spacing token). Default `$6` (24px)."
+        },
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "default": "'div'",
+          "description": "Element to render. Default `div`."
+        },
+        "padding": {
+          "type": "Responsive<SpaceValue>",
+          "required": false,
+          "description": "Padding (number = px, `$4` = spacing token); accepts a breakpoint object."
+        },
+        "hideBelow": {
+          "type": "Breakpoint",
+          "required": false,
+          "description": "Hide below this breakpoint (e.g. `hideBelow=\"md\"` shows only from 768px)."
+        },
+        "hideFrom": {
+          "type": "Breakpoint",
+          "required": false,
+          "description": "Hide from this breakpoint up (e.g. `hideFrom=\"md\"` shows only below 768px)."
+        }
+      },
+      "examples": [
+        "<Card>\n  <Divided direction={{ base: 'column', md: 'row' }}>\n    <Stack gap=\"$2\">…opening hours…</Stack>\n    <Stack gap=\"$2\">…admission…</Stack>\n    <Stack gap=\"$2\">…getting here…</Stack>\n  </Divided>\n</Card>"
       ]
     },
     "Divider": {
@@ -1400,6 +1679,12 @@
           "type": "ReactNode",
           "required": false,
           "description": "Footer content, typically action buttons."
+        },
+        "footerLayout": {
+          "type": "\"actions\" | \"stack\"",
+          "required": false,
+          "default": "'actions'",
+          "description": "Layout for footer buttons: `actions` (row, right-aligned) or `stack` (full-width stacked column). Default `actions`."
         },
         "side": {
           "type": "\"left\" | \"right\"",
@@ -1637,16 +1922,26 @@
           "required": false,
           "description": "Secondary text under the title."
         },
-        "action": {
+        "actions": {
           "type": "ReactNode",
           "required": false,
-          "description": "Call to action, e.g. a primary `Button`."
+          "description": "One or more calls to action (a `Button`, or a fragment / array of them). They sit in a wrapping row\nand stack to full width on phones, where long labels wrap instead of overflowing."
+        },
+        "action": {
+          "type": "ReactNode",
+          "required": false
         },
         "titleAs": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
           "default": "'div'",
-          "description": "Element for the title, e.g. `h1` on a 404 page or `h2` inside a page section. Default `div`."
+          "description": "Element for the title. Default `div`, because the right heading level depends on where the empty state\nsits: pass `h1` on a 404 page or `h2` / `h3` inside a page section to keep the document outline correct."
+        },
+        "variant": {
+          "type": "\"boxed\" | \"plain\"",
+          "required": false,
+          "default": "'boxed'",
+          "description": "`boxed` (default): dashed border on a sunken surface. `plain`: no box, e.g. inside a `Card`."
         },
         "className": {
           "type": "string",
@@ -1654,6 +1949,9 @@
           "description": "Additional CSS class names."
         }
       },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLDivElement>, 'title'>"
+      ],
       "examples": [
         "<EmptyState icon={<Inbox />} title=\"No buckets yet\" description=\"Create one to start storing objects.\"\n  action={<Button variant=\"primary\">Create bucket</Button>} />"
       ]
@@ -1697,26 +1995,23 @@
     },
     "Flex": {
       "category": "Layout",
-      "source": "packages/react/src/components/Typography.tsx",
+      "source": "packages/react/src/components/Layout.tsx",
       "description": "Flexbox row/column. Every layout prop accepts a breakpoint object (mobile first).",
       "props": {
         "direction": {
           "type": "Responsive<FlexDirection>",
           "required": false,
-          "default": "'row'",
-          "description": "Main axis; accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`."
+          "description": "Main axis. Default `row`. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`."
         },
         "align": {
           "type": "Responsive<FlexAlign>",
           "required": false,
-          "default": "'stretch'",
-          "description": "Cross-axis alignment; accepts a breakpoint object."
+          "description": "Cross-axis alignment: `start`, `center`, `end`, `stretch` (default) or `baseline` (`flex-start` / `flex-end` also work). Accepts a breakpoint object."
         },
         "justify": {
           "type": "Responsive<FlexJustify>",
           "required": false,
-          "default": "'flex-start'",
-          "description": "Main-axis distribution; accepts a breakpoint object."
+          "description": "Main-axis distribution: `start` (default), `center`, `end`, `space-between`, `space-around` or `space-evenly` (`flex-start` / `flex-end` also work). Accepts a breakpoint object."
         },
         "gap": {
           "type": "Responsive<SpaceValue>",
@@ -1726,8 +2021,7 @@
         "wrap": {
           "type": "Responsive<\"nowrap\" | \"wrap\" | \"wrap-reverse\">",
           "required": false,
-          "default": "'nowrap'",
-          "description": "Wrapping; accepts a breakpoint object."
+          "description": "Wrapping. Default `nowrap`. Accepts a breakpoint object."
         },
         "inline": {
           "type": "boolean",
@@ -1766,8 +2060,85 @@
         "<Flex align=\"center\" justify=\"space-between\" gap={12}>…</Flex>\n<Flex direction={{ base: 'column', md: 'row' }} gap={{ base: '$4', lg: '$8' }}>…</Flex>"
       ]
     },
+    "FloatingButton": {
+      "category": "Website",
+      "source": "packages/react/src/components/Website.tsx",
+      "description": "A button fixed to the bottom-right corner, e.g. a basket or \"Book now\". `BackToTop` moves up\nabove it automatically. Use one per page; give it a `leftIcon` if you set `compactOnMobile`.",
+      "props": {
+        "compactOnMobile": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "On phones (below 640px), hide the label visually (it stays the accessible name) and show only the icon."
+        },
+        "variant": {
+          "type": "ButtonVariant",
+          "required": false,
+          "default": "'primary'",
+          "description": "Visual style. Use one `primary` per view for the main action. Default `secondary`."
+        },
+        "size": {
+          "type": "ButtonSize",
+          "required": false,
+          "default": "'xl'",
+          "description": "Height and padding. `sm` 30px, `md` 36px, `lg` 44px, `xl` 48px. Default `md`."
+        },
+        "isLoading": {
+          "type": "boolean",
+          "required": false,
+          "description": "Shows a spinner, disables the button and sets `aria-busy`."
+        },
+        "leftIcon": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Icon rendered before the label (hidden while loading)."
+        },
+        "rightIcon": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Icon rendered after the label (hidden while loading)."
+        },
+        "isFullWidth": {
+          "type": "boolean",
+          "required": false,
+          "description": "Stretch to the width of the container."
+        },
+        "asChild": {
+          "type": "boolean",
+          "required": false,
+          "description": "Merge button styling onto the single child element (e.g. a router `<Link>`)."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Render as another element/component, e.g. `as={Link}`."
+        },
+        "href": {
+          "type": "string",
+          "required": false,
+          "description": "Render as an anchor (or the configured router link) pointing at this URL."
+        },
+        "target": {
+          "type": "string",
+          "required": false,
+          "description": "Link target when rendered as an anchor."
+        },
+        "rel": {
+          "type": "string",
+          "required": false,
+          "description": "Link relationship, e.g. `noopener noreferrer`."
+        },
+        "download": {
+          "type": "string | boolean",
+          "required": false
+        }
+      },
+      "examples": [
+        "<FloatingButton href=\"/basket\" leftIcon={<ShoppingBag size={18} />} compactOnMobile>\n  Basket ({count})\n</FloatingButton>"
+      ]
+    },
     "Footer": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "Site footer. Columns (`FooterBrand`, `FooterColumn`) flow into a responsive grid;\n`FooterBottom` sits underneath for copyright and legal links.",
       "props": {
@@ -1797,7 +2168,7 @@
       ]
     },
     "FooterBottom": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "The bottom row of the footer: copyright, legal links, cookie settings.",
       "props": {
@@ -1812,7 +2183,7 @@
       ]
     },
     "FooterBrand": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "The wide first footer column: logo, short description, contact details or social links.",
       "props": {
@@ -1827,7 +2198,7 @@
       ]
     },
     "FooterColumn": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "A titled footer column. When it only contains `FooterLink`s they are rendered as a list inside a `nav`.",
       "props": {
@@ -1853,7 +2224,7 @@
       ]
     },
     "FooterLink": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "A footer link. Same API as `Link` (`href`, `as`, `asChild`, `external`), styled for footers.",
       "props": {
@@ -1880,7 +2251,7 @@
       }
     },
     "Gallery": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
       "description": "A grid of image tiles that open in a full-screen `Lightbox`.",
       "props": {
@@ -1901,10 +2272,10 @@
           "description": "Tile aspect ratio. Default `1` (square)."
         },
         "gap": {
-          "type": "number",
+          "type": "Responsive<SpaceValue>",
           "required": false,
           "default": "8",
-          "description": "Gap between tiles (px). Default `8`."
+          "description": "Gap between tiles. Accepts px number, token or breakpoint object. Default `8`."
         },
         "radius": {
           "type": "Radius",
@@ -1917,6 +2288,28 @@
           "required": false,
           "default": "true",
           "description": "Open a full-screen `Lightbox` when a tile is clicked. Default `true`."
+        },
+        "previewCount": {
+          "type": "Responsive<number>",
+          "required": false,
+          "description": "Show only the first N photos, with a \"Show all\" button; accepts a breakpoint object, e.g.\n`{ base: 6, md: 9 }`. Hidden photos are still in the lightbox."
+        },
+        "showAllLabel": {
+          "type": "string | ((total: number, remaining: number) => ReactNode)",
+          "required": false,
+          "description": "Custom label for the expand button when `previewCount` is set."
+        },
+        "isLoading": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Display skeleton placeholders while images are loading."
+        },
+        "skeletonCount": {
+          "type": "number",
+          "required": false,
+          "default": "6",
+          "description": "Number of skeletons to render when `isLoading` is true. Default 6."
         }
       },
       "inherits": [
@@ -1928,13 +2321,12 @@
     },
     "Grid": {
       "category": "Layout",
-      "source": "packages/react/src/components/Typography.tsx",
+      "source": "packages/react/src/components/Layout.tsx",
       "description": "CSS grid. Use `minChildWidth` for card grids that reflow on their own, or a\nbreakpoint object on `columns` for explicit control.",
       "props": {
         "columns": {
           "type": "Responsive<string | number>",
           "required": false,
-          "default": "1",
           "description": "Number of equal columns, or any `grid-template-columns` value. Accepts a breakpoint object, e.g. `{ base: 1, md: 2, lg: 3 }`."
         },
         "minChildWidth": {
@@ -1945,13 +2337,12 @@
         "gap": {
           "type": "Responsive<SpaceValue>",
           "required": false,
-          "default": "16",
-          "description": "Space between cells; accepts a breakpoint object."
+          "description": "Space between cells. Default 16px (`$4`). Accepts a breakpoint object."
         },
         "align": {
-          "type": "Responsive<\"center\" | \"stretch\" | \"end\" | \"start\" | \"baseline\">",
+          "type": "Responsive<FlexAlign>",
           "required": false,
-          "description": "Vertical alignment of items within their row (`align-items`). Default `stretch`; accepts a breakpoint object."
+          "description": "Vertical alignment of items within their row (`align-items`): the same values as `Flex align`. Default `stretch`; accepts a breakpoint object."
         },
         "children": {
           "type": "ReactNode",
@@ -2023,6 +2414,47 @@
         "<Heading level={1} display=\"lg\" align={{ base: 'start', md: 'center' }}>Fresh bread, every morning</Heading>"
       ]
     },
+    "Icon": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/Icon.tsx",
+      "description": "A theme-coloured, sized icon. Decorative by default (hidden from screen readers); give it a\n`label` when the icon is the only thing conveying the meaning.",
+      "props": {
+        "icon": {
+          "type": "ElementType<any, keyof IntrinsicElements> | ReactElement<any, string | JSXElementConstructor<any>>",
+          "required": true,
+          "description": "The icon: a component such as Lucide's `MapPin`, or an element (`<MapPin />`)."
+        },
+        "size": {
+          "type": "number | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xs\"",
+          "required": false,
+          "default": "'md'",
+          "description": "`xs` 14px, `sm` 16px, `md` 20px (default), `lg` 24px, `xl` 32px, or a px number."
+        },
+        "tone": {
+          "type": "IconTone",
+          "required": false,
+          "default": "'inherit'",
+          "description": "Colour from the theme. Default `inherit` (the surrounding text colour)."
+        },
+        "label": {
+          "type": "string",
+          "required": false,
+          "description": "Accessible name. Without it the icon is decorative and hidden from screen readers."
+        },
+        "inline": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Sit the icon on the text baseline, for an icon before a few words in a sentence."
+        }
+      },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLSpanElement>, 'children'>"
+      ],
+      "examples": [
+        "<Icon icon={MapPin} tone=\"accent\" />\n<Icon icon={AlertTriangle} tone=\"warning\" label=\"Warning\" />"
+      ]
+    },
     "IconButton": {
       "category": "Actions",
       "source": "packages/react/src/components/Button.tsx",
@@ -2075,7 +2507,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Render as a link (`<a>`) pointing at this URL."
+          "description": "Render as an anchor (or the `ThemeProvider` router link for internal paths)."
         },
         "target": {
           "type": "string",
@@ -2089,16 +2521,70 @@
         }
       },
       "inherits": [
-        "Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>"
+        "Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>",
+        "Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'download' | 'hrefLang' | 'referrerPolicy'>"
       ],
       "examples": [
         "<IconButton icon={<Trash2 size={16} />} aria-label=\"Delete\" variant=\"ghost\" />"
       ]
     },
+    "IconText": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/Icon.tsx",
+      "description": "An icon beside a block of text: an address, opening hours, a feature list item. The icon is\ndecorative; the text carries the meaning.",
+      "props": {
+        "icon": {
+          "type": "ElementType<any, keyof IntrinsicElements> | ReactElement<any, string | JSXElementConstructor<any>>",
+          "required": true,
+          "description": "The icon: a component such as Lucide's `Clock`, or an element."
+        },
+        "iconSize": {
+          "type": "number | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xs\"",
+          "required": false,
+          "default": "'md'",
+          "description": "Icon size, as on `Icon`. Default `md` (20px)."
+        },
+        "tone": {
+          "type": "IconTone",
+          "required": false,
+          "default": "'accent'",
+          "description": "Icon colour, as on `Icon`. Default `accent`."
+        },
+        "gap": {
+          "type": "SpaceValue",
+          "required": false,
+          "default": "'$2.5'",
+          "description": "Space between the icon and the text (number = px, `$3` = spacing token). Default `$2.5` (10px)."
+        },
+        "align": {
+          "type": "\"center\" | \"start\"",
+          "required": false,
+          "default": "'start'",
+          "description": "Align the icon with the first line of text (`start`, default) or centre it on the whole block."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "default": "'div'",
+          "description": "Element to render. Default `div`."
+        },
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLDivElement>"
+      ],
+      "examples": [
+        "<IconText icon={MapPin}>\n  <Text weight=\"semibold\">RAF Snaith Museum</Text>\n  <Text tone=\"secondary\">Pollington, East Yorkshire</Text>\n</IconText>"
+      ]
+    },
     "Image": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
-      "description": "Responsive image with optional aspect-ratio cropping, rounded corners, caption and an\nerror fallback. Lazy-loads by default; pass `loading=\"eager\"` for above-the-fold heroes.\nWorks with `srcSet` / `sizes` like a normal `<img>`.",
+      "description": "Responsive image with optional aspect-ratio cropping, rounded corners, caption and an\nerror fallback. Lazy-loads by default; pass `priority` or `loading=\"eager\"` for above-the-fold heroes.\nWorks with `srcSet` / `sizes` like a normal `<img>`.",
       "props": {
         "src": {
           "type": "string",
@@ -2131,6 +2617,12 @@
           "default": "'md'",
           "description": "Corner radius from the theme. Default `md`."
         },
+        "priority": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Load first: for the above-the-fold hero or the Largest Contentful Paint image. Sets\n`loading=\"eager\"` and `fetchpriority=\"high\"` (in the spelling your React version accepts)."
+        },
         "caption": {
           "type": "ReactNode",
           "required": false,
@@ -2146,7 +2638,7 @@
         "Omit<ImgHTMLAttributes<HTMLImageElement>, 'alt'>"
       ],
       "examples": [
-        "<Image src=\"/img/latte.jpg\" alt=\"Latte art in a ceramic cup\" ratio={4 / 3} caption=\"Our house blend\" />"
+        "<Image src=\"/img/latte.jpg\" alt=\"Latte art in a ceramic cup\" ratio={4 / 3} priority caption=\"Our house blend\" />"
       ]
     },
     "Kbd": {
@@ -2160,7 +2652,7 @@
       ]
     },
     "Lightbox": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Media.tsx",
       "description": "Full-screen image viewer with previous/next, captions, a counter, arrow-key and swipe\nnavigation. Used by `Gallery`; render it yourself for custom triggers.",
       "props": {
@@ -2207,7 +2699,7 @@
       }
     },
     "Link": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "Inline text link for body copy, footers and legal text.",
       "props": {
@@ -2341,6 +2833,12 @@
           "required": false,
           "description": "Action row, typically Cancel + primary action buttons."
         },
+        "footerLayout": {
+          "type": "\"actions\" | \"stack\"",
+          "required": false,
+          "default": "'actions'",
+          "description": "Layout for footer buttons: `actions` (row, right-aligned) or `stack` (full-width stacked column). Default `actions`."
+        },
         "size": {
           "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"full\"",
           "required": false,
@@ -2459,10 +2957,15 @@
           "description": "Element to watch for scrolling instead of `window` (e.g. a scrollable `<main>`)."
         },
         "transparentOnTop": {
-          "type": "boolean",
+          "type": "boolean | \"auto\"",
           "required": false,
           "default": "false",
-          "description": "Transparent background until the page is scrolled."
+          "description": "Transparent background until the page is scrolled (it turns solid while the mobile menu is open).\n`true` is always transparent at the top. `'auto'` is only transparent while the page has a band\nunder the bar: a `Section underNavbar`, or any element with `data-navbar-overlap`. Pages\nwithout one (loading, error and not-found states) get a solid bar."
+        },
+        "scrolledAppearance": {
+          "type": "NavbarScrolledAppearance",
+          "required": false,
+          "description": "Look of the bar once the page scrolls past `scrollThreshold`. Each value is any CSS value;\n`shadow` also takes `sm` / `md` / `lg`, and `blur: true` means 12px. Also settable from CSS with\n`--field-navbar-scrolled-bg`, `-border`, `-shadow` and `-blur`."
         },
         "maxWidth": {
           "type": "string | number",
@@ -2525,6 +3028,21 @@
           "required": false,
           "description": "Line thickness for `underline` / `elastic` indicators."
         },
+        "height": {
+          "type": "string | number",
+          "required": false,
+          "description": "Height of the bar (e.g. `68` or `\"4.25rem\"`). Default 56px, or 48px when compact. Sets\n`--field-navbar-height` on the bar; a sticky, floating or `transparentOnTop` bar also sets it on\n`<html>`, where `Section underNavbar`, the anchor scroll offset and your own CSS can read it.\nFor server-rendered pages, also set it in CSS (`:root { --field-navbar-height: 68px }`) so the\nfirst paint is right."
+        },
+        "mode": {
+          "type": "ThemeMode",
+          "required": false,
+          "description": "Force dark or light mode for the navbar without needing a separate ThemeScope wrapper."
+        },
+        "theme": {
+          "type": "FieldTheme | FieldThemePair",
+          "required": false,
+          "description": "Explicit theme or theme pair to apply directly to the navbar."
+        },
         "navLabel": {
           "type": "string",
           "required": false,
@@ -2558,7 +3076,7 @@
     "NavbarActions": {
       "category": "Navigation",
       "source": "packages/react/src/components/Navbar.tsx",
-      "description": "Right-aligned slot for utility buttons (search, theme toggle, avatar, `NavbarToggle`).",
+      "description": "Right-aligned slot for utility buttons (search, theme toggle, avatar, `NavbarToggle`).\nWrap a single child in `NavbarActionsItem hideOnMobile` to hide just that one on phones.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -2569,6 +3087,18 @@
           "type": "string | number",
           "required": false,
           "description": "Space between children (number = px, `\"$4\"` = spacing token)."
+        },
+        "hideOnMobile": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the whole group while the bar is in its mobile layout. Hide single children with `NavbarActionsItem`."
+        },
+        "hideWhenCollapsed": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Alias of `hideOnMobile`."
         },
         "className": {
           "type": "string",
@@ -2585,10 +3115,40 @@
         "HTMLAttributes<HTMLDivElement>"
       ]
     },
+    "NavbarActionsItem": {
+      "category": "Navigation",
+      "source": "packages/react/src/components/Navbar.tsx",
+      "description": "One child of `NavbarActions` that can be hidden on its own while the bar is collapsed,\ne.g. a \"Book tickets\" button that moves into `NavbarMenu` on phones. Without `asChild` it\nrenders a `display: contents` wrapper, so it doesn't affect the actions' layout.",
+      "props": {
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "hideOnMobile": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide this child while the bar is in its mobile layout (below 768px or `collapseBelow`)."
+        },
+        "asChild": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Merge the props onto the single child instead of rendering a wrapper."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLElement>"
+      ],
+      "examples": [
+        "<NavbarActions>\n  <NavbarActionsItem hideOnMobile asChild><Button href=\"/tickets\">Book</Button></NavbarActionsItem>\n  <NavbarToggle />\n</NavbarActions>"
+      ]
+    },
     "NavbarBrand": {
       "category": "Navigation",
       "source": "packages/react/src/components/Navbar.tsx",
-      "description": "Logo / product name slot. Renders a link when `href` is set (or your router link via `as` / `asChild`).",
+      "description": "Logo / product name slot. Renders a link when `href` is set: the `ThemeProvider` `linkComponent`\nfor internal paths, or your own component via `as` / `asChild`.",
       "props": {
         "children": {
           "type": "ReactNode",
@@ -2620,13 +3180,11 @@
           "type": "CSSProperties",
           "required": false,
           "description": "Inline styles."
-        },
-        "onClick": {
-          "type": "MouseEventHandler<any>",
-          "required": false,
-          "description": "Click handler."
         }
-      }
+      },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLElement>, 'children'>"
+      ]
     },
     "NavbarContent": {
       "category": "Navigation",
@@ -2902,10 +3460,15 @@
           "required": false,
           "description": "Render as a link (`<a>`) pointing at this URL."
         },
-        "onClick": {
-          "type": "MouseEventHandler<any>",
+        "target": {
+          "type": "string",
           "required": false,
-          "description": "Click handler."
+          "description": "Link target, e.g. `_blank`."
+        },
+        "rel": {
+          "type": "string",
+          "required": false,
+          "description": "Link relationship, e.g. `noopener noreferrer`."
         },
         "asChild": {
           "type": "boolean",
@@ -2928,7 +3491,10 @@
           "required": false,
           "description": "Inline styles."
         }
-      }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLElement>"
+      ]
     },
     "NavbarMenu": {
       "category": "Navigation",
@@ -3036,6 +3602,23 @@
           "default": "1",
           "description": "Increment used by arrow keys and stepper buttons."
         },
+        "size": {
+          "type": "FieldControlSize",
+          "required": false,
+          "default": "'md'",
+          "description": "Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px). Default `md`."
+        },
+        "width": {
+          "type": "string | number",
+          "required": false,
+          "description": "Width of the field (number = px, or any CSS length)."
+        },
+        "isFullWidth": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch to the container width. Default `false`."
+        },
         "unit": {
           "type": "string",
           "required": false,
@@ -3066,6 +3649,11 @@
           "type": "string",
           "required": false,
           "description": "Additional CSS class names."
+        },
+        "style": {
+          "type": "CSSProperties",
+          "required": false,
+          "description": "Inline styles."
         },
         "name": {
           "type": "string",
@@ -3105,7 +3693,7 @@
     "Pagination": {
       "category": "Navigation",
       "source": "packages/react/src/components/Table.tsx",
-      "description": "Page navigation with first/prev/next/last, a page window with ellipses and\nan optional page-size selector. `variant=\"simple\"` swaps the page window for a\ncompact \"Page 4 of 48\" status between prev/next.",
+      "description": "Page navigation with first/prev/next/last, a page window with ellipses and\nan optional page-size selector. `variant=\"simple\"` swaps the page window for a\ncompact \"Page 4 of 48\" status between prev/next. Use `surface={false}` for flat pagination under a card grid.",
       "props": {
         "currentPage": {
           "type": "number",
@@ -3149,6 +3737,12 @@
           "required": false,
           "default": "'full'",
           "description": "`full` (default): first/prev, numbered page window, next/last.\n`simple`: prev/next with a \"Page 4 of 48\" status between them — for cards, feeds and tight spaces."
+        },
+        "surface": {
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the raised bar (padding, top border and background) that suits a table footer. Set `false` for\nflat pagination under a grid of cards. Default `true`."
         },
         "showFirstLast": {
           "type": "boolean",
@@ -3290,15 +3884,45 @@
       ]
     },
     "Prose": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "Styles raw HTML content (headings, paragraphs, lists, quotes, images, tables, code)\nfrom Markdown or a CMS, e.g. about pages, blog posts and policies.",
       "props": {
         "size": {
-          "type": "\"base\" | \"sm\" | \"lg\"",
+          "type": "Responsive<\"base\" | \"sm\" | \"lg\">",
           "required": false,
           "default": "'base'",
-          "description": "Base text size. Default `base`."
+          "description": "Base text size. Default `base`. Accepts a breakpoint object, e.g. `{ base: 'base', lg: 'lg' }`."
+        },
+        "maxWidth": {
+          "type": "string",
+          "required": false,
+          "default": "'68ch'",
+          "description": "Max line length. Default `68ch`; pass `none` to fill the container."
+        },
+        "collapsible": {
+          "type": "boolean | \"always\"",
+          "required": false,
+          "default": "false",
+          "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width. The toggle only appears when there\nis more to show. When set, the content and toggle render inside a `div.field-prose-collapsible`\nwrapper, which receives `className` and `style`."
+        },
+        "previewParagraphs": {
+          "type": "number",
+          "required": false,
+          "default": "2",
+          "description": "Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`."
+        },
+        "expandLabel": {
+          "type": "string",
+          "required": false,
+          "default": "'Read more'",
+          "description": "Label for expand button. Default `Read more`."
+        },
+        "collapseLabel": {
+          "type": "string",
+          "required": false,
+          "default": "'Show less'",
+          "description": "Label for collapse button. Default `Show less`."
         },
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
@@ -3306,13 +3930,15 @@
           "default": "'div'",
           "description": "Element to render. Default `div`; use `article` for posts."
         },
-        "maxWidth": {
-          "type": "string",
+        "children": {
+          "type": "ReactNode",
           "required": false,
-          "default": "'68ch'",
-          "description": "Max line length. Default `68ch`; pass `none` to fill the container."
+          "description": "Content to render."
         }
       },
+      "inherits": [
+        "HTMLAttributes<HTMLElement>"
+      ],
       "examples": [
         "<Prose as=\"article\" dangerouslySetInnerHTML={{ __html: post.html }} />"
       ]
@@ -3395,7 +4021,7 @@
       ]
     },
     "Reveal": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "Fades content in as it scrolls into view. Skipped entirely for users who prefer\nreduced motion, and content stays visible if JavaScript has not run (SSR).",
       "props": {
@@ -3417,6 +4043,18 @@
           "default": "true",
           "description": "Animate only the first time it enters the viewport. Default `true`."
         },
+        "asChild": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Apply reveal directly to the single child instead of creating a wrapper element."
+        },
+        "fill": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch wrapper to 100% height of parent container (preserves equal-height grids)."
+        },
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
@@ -3434,9 +4072,9 @@
       ]
     },
     "Section": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "A full-width page band with consistent vertical rhythm, an optional background\ntone or image, and a centred container. The building block of marketing pages.\nGive it an `id` to make it an in-page link target; set `--field-scroll-offset`\nto the height of a sticky navbar so anchors are not hidden under it.",
+      "description": "A full-width page band with consistent vertical rhythm, an optional background\ntone or image, and a centred container. The building block of marketing pages.\nGive it an `id` to make it an in-page link target: anchors stop below a sticky `Navbar`\nautomatically (`--field-scroll-offset`, derived from `--field-navbar-height`).",
       "props": {
         "tone": {
           "type": "SurfaceTone",
@@ -3456,10 +4094,16 @@
           "default": "'xl'",
           "description": "Wraps children in a `Container` of this width. Pass `false` for full-bleed content. Default `xl`."
         },
-        "backgroundImage": {
-          "type": "string",
+        "underNavbar": {
+          "type": "boolean",
           "required": false,
-          "description": "Cover image behind the content. The section switches to the dark theme (or the pair's\n`band` theme, see `createThemePair`) and adds `overlay`."
+          "default": "false",
+          "description": "Pull the section up under a transparent sticky `Navbar` (negative margin of `--field-navbar-height`, with the\nsame amount added to the top padding). Also tells `Navbar transparentOnTop=\"auto\"` that a band sits under it."
+        },
+        "backgroundImage": {
+          "type": "SectionBackgroundImage",
+          "required": false,
+          "description": "Cover image behind the content: a URL, or `{ src, srcSet, sizes, position, priority }`. It renders as an\n`<img>` (object-fit cover), so `srcSet` picks the right file on phones and `priority` (for the hero)\nloads it first. The section switches to the dark theme (or the pair's `band` theme, see\n`createThemePair`) and adds `overlay`."
         },
         "overlay": {
           "type": "number",
@@ -3484,6 +4128,51 @@
       ],
       "examples": [
         "<Section tone=\"muted\" id=\"menu\" aria-labelledby=\"menu-title\">\n  <Heading id=\"menu-title\" display=\"sm\">Our menu</Heading>\n</Section>"
+      ]
+    },
+    "SectionHeader": {
+      "category": "Website",
+      "source": "packages/react/src/components/Website.tsx",
+      "description": "Responsive header block for section introductions: eyebrow, title, lead text, and optional action.\nOn mobile, actions wrap underneath the title and description cleanly.",
+      "props": {
+        "eyebrow": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Eyebrow / overline label displayed above the title."
+        },
+        "title": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Primary section title."
+        },
+        "headingLevel": {
+          "type": "1 | 2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "2",
+          "description": "Heading element level. Default `2`."
+        },
+        "description": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Optional lead or description paragraph."
+        },
+        "action": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Call to action button or link, placed beside the header on wide screens and below on mobile."
+        },
+        "align": {
+          "type": "\"center\" | \"start\"",
+          "required": false,
+          "default": "'start'",
+          "description": "Text alignment: `start` (default) or `center`, as on `Heading` and `Text`."
+        }
+      },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLDivElement>, 'title'>"
+      ],
+      "examples": [
+        "<SectionHeader\n  eyebrow=\"Collections\"\n  title=\"Our Aircraft Archive\"\n  description=\"Explore photographic history from RAF Snaith.\"\n  action={<Button variant=\"outline\">View all</Button>}\n/>"
       ]
     },
     "SegmentedControl": {
@@ -3590,6 +4279,11 @@
           "type": "ReactNode",
           "required": false,
           "description": "Error message shown under the control; also sets `aria-invalid`."
+        },
+        "size": {
+          "type": "FieldControlSize",
+          "required": false,
+          "description": "Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px). Without it the trigger is 40px tall."
         },
         "className": {
           "type": "string",
@@ -4082,14 +4776,21 @@
         "height": {
           "type": "string | number",
           "required": false,
-          "default": "'20px'",
           "description": "Height (number = px)."
+        },
+        "ratio": {
+          "type": "string | number",
+          "required": false,
+          "description": "Aspect ratio, e.g. `16 / 9`, `1`, or `\"4/3\"`. When provided, height defaults to `auto`."
+        },
+        "radius": {
+          "type": "string",
+          "required": false,
+          "description": "Corner radius: a token name (`none`, `xs`, `sm`, `md`, `lg`, `xl`, `full`) or any CSS length. Default `sm`."
         },
         "borderRadius": {
           "type": "string",
-          "required": false,
-          "default": "'var(--field-radius-sm)'",
-          "description": "Corner radius (any CSS length or token)."
+          "required": false
         },
         "circle": {
           "type": "boolean",
@@ -4110,7 +4811,7 @@
       }
     },
     "SkipLink": {
-      "category": "Other",
+      "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
       "description": "\"Skip to content\" link for keyboard users. Hidden until focused; place it first in the page\nand give your main landmark the matching id (`<main id=\"main\">`). Focus is moved to the\ntarget directly, so it also works with hash routers and targets that are not focusable.",
       "props": {
@@ -4325,20 +5026,18 @@
     },
     "Stack": {
       "category": "Layout",
-      "source": "packages/react/src/components/Typography.tsx",
+      "source": "packages/react/src/components/Layout.tsx",
       "description": "Vertical stack with consistent spacing between children.",
       "props": {
         "gap": {
           "type": "Responsive<SpaceValue>",
           "required": false,
-          "default": "16",
-          "description": "Space between children. Default 16px. Accepts a breakpoint object."
+          "description": "Space between children. Default 16px (`$4`). Accepts a breakpoint object."
         },
         "align": {
-          "type": "Responsive<\"center\" | \"stretch\" | \"flex-end\" | \"flex-start\">",
+          "type": "Responsive<FlexAlign>",
           "required": false,
-          "default": "'stretch'",
-          "description": "Horizontal alignment of children; accepts a breakpoint object. With the default `stretch`,\ndirect `img`, `svg`, `video` and `canvas` children keep their own width so they are not distorted."
+          "description": "Horizontal alignment of children: `start`, `center`, `end`, `stretch` (default) or `baseline`.\nAccepts a breakpoint object. With `stretch`,\ndirect `img`, `svg`, `video` and `canvas` children keep their own width so they are not distorted."
         },
         "children": {
           "type": "ReactNode",
@@ -4811,22 +5510,22 @@
       "description": "Horizontal tabs. Arrow keys move between tabs, Home/End jump to the ends.\nRender content with `<TabPanel id>` children, or read `activeId` yourself.",
       "props": {
         "items": {
-          "type": "TabItem[]",
+          "type": "TabItem<T>[]",
           "required": true,
           "description": "Items to render."
         },
         "activeId": {
-          "type": "string",
+          "type": "T",
           "required": false,
           "description": "Controlled active tab id."
         },
         "defaultActiveId": {
-          "type": "string",
+          "type": "T",
           "required": false,
           "description": "Initial tab when uncontrolled. Defaults to the first tab."
         },
         "onChange": {
-          "type": "((id: string) => void)",
+          "type": "((id: T) => void)",
           "required": false,
           "description": "Called with the new value whenever it changes."
         },
@@ -5092,6 +5791,12 @@
       "source": "packages/react/src/components/Typography.tsx",
       "description": "Body text with size, tone and weight presets.",
       "props": {
+        "variant": {
+          "type": "\"body\" | \"overline\"",
+          "required": false,
+          "default": "'body'",
+          "description": "Text style variant. `overline` renders compact uppercase tracked text for badges/eyebrows."
+        },
         "size": {
           "type": "\"base\" | \"sm\" | \"lg\" | \"xl\" | \"xs\"",
           "required": false,
@@ -5126,6 +5831,17 @@
           "required": false,
           "default": "false",
           "description": "Truncate to a single line with an ellipsis."
+        },
+        "measure": {
+          "type": "string | number | boolean",
+          "required": false,
+          "description": "Limit the line length for readability: `true` = 66ch, a number = px (as on every Field size prop), or any CSS length such as `\"60ch\"`."
+        },
+        "tabularNums": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Tabular lining figures for numbers, timers, prices, and metrics."
         },
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
@@ -5216,6 +5932,16 @@
           "default": "true",
           "description": "Stretch to the container width. Default `true`."
         },
+        "size": {
+          "type": "FieldControlSize",
+          "required": false,
+          "description": "Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px), so a field\nand a button line up in a row. Without it the field is 40px tall."
+        },
+        "htmlSize": {
+          "type": "number",
+          "required": false,
+          "description": "The native `size` attribute (visible width in characters)."
+        },
         "wrapperClassName": {
           "type": "string",
           "required": false,
@@ -5223,7 +5949,7 @@
         }
       },
       "inherits": [
-        "InputHTMLAttributes<HTMLInputElement>"
+        "Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>"
       ],
       "examples": [
         "<TextInput label=\"Email\" type=\"email\" required helperText=\"We'll never share it.\" />"
@@ -5248,6 +5974,11 @@
           "type": "FieldThemePair",
           "required": false,
           "description": "Dark/light theme pair to use. Defaults to the built-in Obsidian / Cobalt pair."
+        },
+        "linkComponent": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Router link component used for internal `href`s by link-rendering components. It receives\n`href` (never `to`): `next/link` works as is; for React Router or TanStack Router pass an\nadapter that maps `href` to `to` (see the Routing guide)."
         },
         "defaultMode": {
           "type": "ThemeMode | \"system\"",
@@ -5315,6 +6046,12 @@
           "required": false,
           "description": "Force dark or light for this subtree, using the current pair."
         },
+        "asChild": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Merge theme attributes and variables directly onto the child element without creating a wrapper div."
+        },
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
@@ -5339,12 +6076,23 @@
     "Timeline": {
       "category": "Navigation",
       "source": "packages/react/src/components/DataDisplay.tsx",
-      "description": "A vertical feed of events (deploys, audit logs, activity).",
+      "description": "A vertical feed of events (deploys, audit logs, activity, history milestones).\n\nRestyle it with CSS variables on the list (or any ancestor): `--field-timeline-marker-size`,\n`-marker-border-width`, `-marker-color` (overrides every status), `-marker-bg`, `-rail-width`,\n`-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight` and\n`-time-width` (the `left` column).",
       "props": {
         "items": {
           "type": "TimelineEvent[]",
           "required": true,
           "description": "Items to render."
+        },
+        "markerSize": {
+          "type": "number | \"sm\" | \"md\" | \"lg\"",
+          "required": false,
+          "description": "Marker diameter: `sm` 10px, `md` 16px (default), `lg` 28px (fits an icon), or a px number. Sets `--field-timeline-marker-size`."
+        },
+        "timestampPosition": {
+          "type": "\"left\" | \"top\" | \"inline\"",
+          "required": false,
+          "default": "'inline'",
+          "description": "Where the timestamp renders: `inline` (beside the title), `top` (above the title) or `left` (a column left of the rail). Default `inline`."
         },
         "className": {
           "type": "string",
@@ -5352,8 +6100,11 @@
           "description": "Additional CSS class names."
         }
       },
+      "inherits": [
+        "HTMLAttributes<HTMLOListElement>"
+      ],
       "examples": [
-        "<Timeline items={[{ id: '1', title: 'Deployed v2.4.0', timestamp: '2m ago', status: 'success' }]} />"
+        "<Timeline items={[{ id: '1', title: 'Deployed v2.4.0', timestamp: '2m ago', dateTime: '2026-10-12T09:30', status: 'success' }]} />"
       ]
     },
     "ToastProvider": {
@@ -5715,6 +6466,40 @@
       "examples": [
         "<UnfoldingHeading as=\"h1\" size=\"hero\" text=\"Build faster\" highlightWords={['faster']} trigger=\"scroll\" />"
       ]
+    },
+    "VisuallyHidden": {
+      "category": "Layout",
+      "source": "packages/react/src/components/Primitives.tsx",
+      "description": "Hides content visually while keeping it fully accessible to screen readers.\nUse `below` (e.g. `below=\"sm\"`) to hide labels on small mobile screens only.",
+      "props": {
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "Content to render."
+        },
+        "below": {
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\"",
+          "required": false,
+          "description": "Only visually hide on screens narrower than this breakpoint.\nOn wider screens, the element renders visibly."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "default": "'span'",
+          "description": "Element to render. Default `span`."
+        },
+        "className": {
+          "type": "string",
+          "required": false,
+          "description": "Additional CSS class names."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLSpanElement>"
+      ],
+      "examples": [
+        "<VisuallyHidden>Current page</VisuallyHidden>\n<VisuallyHidden below=\"sm\">Basket ({count})</VisuallyHidden>"
+      ]
     }
   },
   "hooks": {
@@ -5742,6 +6527,10 @@
       "signature": "(effect: EffectCallback, deps?: DependencyList): void",
       "description": "`useLayoutEffect` on the client, `useEffect` on the server (avoids SSR warnings)."
     },
+    "useLinkComponent": {
+      "signature": "(): ElementType<any, keyof IntrinsicElements>",
+      "description": "Returns the router link component provided to `<ThemeProvider linkComponent={...}>`, if any."
+    },
     "useMediaQuery": {
       "signature": "(query: string, defaultValue?: boolean): boolean",
       "description": "Track a CSS media query. Returns `defaultValue` during SSR and the first render."
@@ -5761,6 +6550,10 @@
     "usePrefersReducedMotion": {
       "signature": "(): boolean",
       "description": "True when the user asked the OS to reduce motion."
+    },
+    "useResolvedTag": {
+      "signature": "(as?: ElementType<any, keyof IntrinsicElements>, href?: string, defaultTag?: ElementType<any, keyof IntrinsicElements>): ElementType<...>",
+      "description": "`resolveTag` with the provider-level `linkComponent` from `ThemeProvider`."
     },
     "useSafeId": {
       "signature": "(prefix?: string): string",

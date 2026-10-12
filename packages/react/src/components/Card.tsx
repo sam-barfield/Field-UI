@@ -3,14 +3,26 @@
 import React, { forwardRef } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Skeleton } from './Primitives.js';
-import { mergeClassNames } from '../utils/polymorphic.js';
+import { mergeClassNames, useResolvedTag } from '../utils/polymorphic.js';
+import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
+
+export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
+
+const resolveCardPadding = (p: CardPadding) => {
+  if (p === 'none') return '0';
+  if (p === 'sm') return 'var(--field-space-3)';
+  if (p === 'lg') return 'var(--field-space-6)';
+  return 'var(--field-space-5)';
+};
 
 export interface CardProps extends React.HTMLAttributes<HTMLElement> {
-  /** `interactive` adds hover elevation for clickable cards. Defaults to `interactive` when `href` is set. */
-  variant?: 'default' | 'interactive';
-  /** Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`. */
-  padding?: 'none' | 'sm' | 'md' | 'lg';
-  /** Makes the whole card a link (renders an `<a>`, or `as`). Do not nest other links or buttons inside. */
+  /** `interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set. */
+  variant?: 'default' | 'interactive' | 'inset';
+  /** Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`. Accepts a breakpoint object. */
+  padding?: Responsive<CardPadding>;
+  /** Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom. */
+  fill?: boolean;
+  /** Makes the whole card a link (renders an `<a>`, or router link). Do not nest other links or buttons inside. */
   href?: string;
   /** Link target, used with `href`. */
   target?: string;
@@ -27,16 +39,24 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
  * the whole card a link.
  *
  * @example
- * <Card>
+ * <Card fill>
  *   <CardHeader><Heading level={4}>Usage</Heading></CardHeader>
  *   <CardContent>…</CardContent>
+ *   <CardFooter>…</CardFooter>
  * </Card>
- * <Card as={RouterLink} href="/pricing"><Heading level={3}>Pricing</Heading></Card>
+ * <Card href="/pricing"><Heading level={3}>Pricing</Heading></Card>
  */
 export const Card = forwardRef<HTMLElement, CardProps>(
-  ({ variant, padding = 'md', href, as, children, className = '', ...props }, ref) => {
-    const Tag: React.ElementType = as ?? (href ? 'a' : 'div');
+  ({ variant, padding = 'md', fill = false, href, as, children, className = '', style, ...props }, ref) => {
+    const Tag: React.ElementType = useResolvedTag(as, href, 'div');
     const resolvedVariant = variant ?? (href ? 'interactive' : 'default');
+
+    const acc = createResponsiveAccumulator();
+    const isStringPadding = typeof padding === 'string';
+    if (!isStringPadding && padding) {
+      applyResponsive(acc, 'p', 'padding', padding, resolveCardPadding, 'md');
+    }
+
     return (
       <Tag
         ref={ref}
@@ -44,10 +64,14 @@ export const Card = forwardRef<HTMLElement, CardProps>(
         className={mergeClassNames(
           'field-card',
           resolvedVariant === 'interactive' && 'field-card-interactive',
+          resolvedVariant === 'inset' && 'field-card-inset',
+          fill && 'field-card-fill',
           href && 'field-card-link',
-          padding !== 'md' && `field-card-padding-${padding}`,
+          isStringPadding && padding !== 'md' && `field-card-padding-${padding}`,
+          ...acc.classes,
           className
         )}
+        style={{ ...acc.style, ...style }}
         {...props}
       >
         {children}

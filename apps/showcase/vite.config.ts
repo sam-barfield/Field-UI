@@ -7,10 +7,12 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   resolve: {
-    alias: {
-      '@sam.barfield/field-tokens': path.resolve(__dirname, '../../packages/tokens/src'),
-      '@sam.barfield/field-react': path.resolve(__dirname, '../../packages/react/src'),
-    },
+    alias: [
+      // Field's stylesheet, in the cascade layers the published package uses (see src/field-layered.css).
+      { find: '@sam.barfield/field-react/styles/field.css', replacement: path.resolve(__dirname, 'src/field-layered.css') },
+      { find: '@sam.barfield/field-tokens', replacement: path.resolve(__dirname, '../../packages/tokens/src') },
+      { find: '@sam.barfield/field-react', replacement: path.resolve(__dirname, '../../packages/react/src') },
+    ],
   },
   build: {
     // The docs bundle every live example eagerly (~165 kB gzipped); that's fine for a docs site.

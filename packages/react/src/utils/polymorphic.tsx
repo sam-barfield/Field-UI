@@ -1,5 +1,48 @@
 import React, { cloneElement, isValidElement } from 'react';
 import { getElementRef, mergeRefs } from './hooks.js';
+import { mergeClassNames } from './classNames.js';
+import { useLinkComponent } from '../theme/ThemeProvider.js';
+
+export { mergeClassNames };
+
+/**
+ * True for hrefs a client-side router can't handle: any URL with a scheme (`https:`, `mailto:`,
+ * `tel:`, `sms:`, `data:` …), protocol-relative URLs (`//cdn…`) and same-page anchors (`#id`).
+ */
+export const isExternalHref = (href?: string): boolean => {
+  if (!href) return false;
+  return /^([a-z][a-z\d+.-]*:|\/\/|#)/i.test(href);
+};
+
+/**
+ * Resolves the rendered element or component for interactive items.
+ *
+ * Honors `as` first, then `linkComponent` when `href` is present and internal,
+ * falling back to `a` or the specified `defaultTag`. Not a hook: use it inside
+ * loops with a `linkComponent` read once from `useLinkComponent()`.
+ */
+export function resolveTag(
+  linkComponent: React.ElementType | undefined,
+  as?: React.ElementType,
+  href?: string,
+  defaultTag: React.ElementType = 'a'
+): React.ElementType {
+  if (as) return as;
+  if (href) {
+    if (isExternalHref(href)) return 'a';
+    return linkComponent ?? 'a';
+  }
+  return defaultTag;
+}
+
+/** `resolveTag` with the provider-level `linkComponent` from `ThemeProvider`. */
+export function useResolvedTag(
+  as?: React.ElementType,
+  href?: string,
+  defaultTag: React.ElementType = 'a'
+): React.ElementType {
+  return resolveTag(useLinkComponent(), as, href, defaultTag);
+}
 
 export interface PolymorphicProps {
   /** Merge this component's props onto its single child element instead of rendering its own (e.g. a router `<Link>`). */
@@ -23,13 +66,6 @@ export function composeEventHandlers<E extends React.SyntheticEvent>(
       ourHandler?.(event);
     }
   };
-}
-
-/**
- * Merges class names, filtering out falsy values.
- */
-export function mergeClassNames(...classes: unknown[]): string {
-  return classes.filter(Boolean).join(' ');
 }
 
 /**

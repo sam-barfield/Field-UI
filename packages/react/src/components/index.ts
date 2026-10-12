@@ -11,6 +11,8 @@ export * from './Accordion.js';
 export * from './Feedback.js';
 export * from './Primitives.js';
 export * from './Typography.js';
+export * from './Layout.js';
+export * from './Icon.js';
 export * from './Sidebar.js';
 export * from './Terminal.js';
 export * from './DatePicker.js';

@@ -9,7 +9,7 @@ export default function EmptyStateBasic() {
         icon={<HardDrive size={22} />}
         title="No buckets yet"
         description="Buckets store files, backups and static assets. Create one to get started."
-        action={<Button variant="primary" leftIcon={<Plus size={16} />}>Create bucket</Button>}
+        actions={<Button variant="primary" leftIcon={<Plus size={16} />}>Create bucket</Button>}
       />
     </div>
   );

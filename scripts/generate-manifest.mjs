@@ -49,6 +49,11 @@ const CATEGORY_BY_FILE = {
   Sidebar: 'Navigation',
   Navbar: 'Navigation',
   Typography: 'Typography',
+  Layout: 'Layout',
+  Icon: 'Data Display',
+  Website: 'Website',
+  Media: 'Website',
+  CookieConsent: 'Website',
   UnfoldingHeading: 'Typography',
 };
 /** Fallback descriptions for conventional props that aren't documented inline. */
@@ -115,7 +120,7 @@ const COMMON_DESCRIPTIONS = {
   width: 'Width (number = px, or any CSS length).',
 };
 
-const LAYOUT_COMPONENTS = new Set(['Box', 'Flex', 'Stack', 'Grid', 'Container', 'Divider']);
+const LAYOUT_COMPONENTS = new Set(['Box', 'Flex', 'Stack', 'Grid', 'Container', 'Divider', 'Divided', 'VisuallyHidden']);
 const NAVIGATION_COMPONENTS = new Set(['Breadcrumb', 'Pagination', 'Stepper', 'Timeline']);
 
 const configPath = join(reactPkg, 'tsconfig.json');

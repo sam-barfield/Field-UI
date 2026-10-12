@@ -1,11 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useId, useRef } from 'react';
-import { getInteractiveElementProps, mergeClassNames, renderPolymorphic } from '../utils/polymorphic.js';
+import { getInteractiveElementProps, mergeClassNames, renderPolymorphic, resolveTag } from '../utils/polymorphic.js';
 import { handleListKeyNavigation, useControllableState } from '../utils/hooks.js';
+import { useLinkComponent } from '../theme/ThemeProvider.js';
 
-export interface TabItem {
-  id: string;
+export interface TabItem<T extends string = string> {
+  id: T;
   label: React.ReactNode;
   icon?: React.ReactNode;
   /** Small count or status shown after the label. */
@@ -18,13 +19,13 @@ export interface TabItem {
   as?: React.ElementType;
 }
 
-export interface TabsProps {
-  items: TabItem[];
+export interface TabsProps<T extends string = string> {
+  items: TabItem<T>[];
   /** Controlled active tab id. */
-  activeId?: string;
+  activeId?: T;
   /** Initial tab when uncontrolled. Defaults to the first tab. */
-  defaultActiveId?: string;
-  onChange?: (id: string) => void;
+  defaultActiveId?: T;
+  onChange?: (id: T) => void;
   /** Accessible name for the tab list. */
   'aria-label'?: string;
   className?: string;
@@ -49,7 +50,7 @@ const TabsContext = createContext<TabsContextValue | null>(null);
  *   <TabPanel id="logs">…</TabPanel>
  * </Tabs>
  */
-export const Tabs: React.FC<TabsProps> = ({
+export function Tabs<T extends string = string>({
   items,
   activeId: controlledActiveId,
   defaultActiveId,
@@ -57,13 +58,14 @@ export const Tabs: React.FC<TabsProps> = ({
   'aria-label': ariaLabel,
   className = '',
   children,
-}) => {
+}: TabsProps<T>): React.ReactElement {
   const baseId = useId();
   const listRef = useRef<HTMLDivElement>(null);
-  const [activeId, setActiveId] = useControllableState<string | undefined>({
+  const linkComponent = useLinkComponent();
+  const [activeId, setActiveId] = useControllableState<T | undefined>({
     value: controlledActiveId,
     defaultValue: defaultActiveId ?? items.find(item => !item.disabled)?.id,
-    onChange: onChange as ((id: string | undefined) => void) | undefined,
+    onChange: onChange as ((id: T | undefined) => void) | undefined,
   });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -76,7 +78,7 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   return (
-    <TabsContext.Provider value={{ baseId, activeId }}>
+    <TabsContext.Provider value={{ baseId, activeId: activeId as string | undefined }}>
       <div className={mergeClassNames('field-tabs', className)}>
         <div className="field-tabs-container">
           <div
@@ -112,7 +114,7 @@ export const Tabs: React.FC<TabsProps> = ({
                 );
               }
 
-              const tag: React.ElementType = item.as ?? (item.href ? 'a' : 'button');
+              const tag: React.ElementType = resolveTag(linkComponent, item.as, item.href, item.href ? 'a' : 'button');
               return (
                 <React.Fragment key={item.id}>
                   {renderPolymorphic(tag, {
@@ -135,7 +137,9 @@ export const Tabs: React.FC<TabsProps> = ({
       </div>
     </TabsContext.Provider>
   );
-};
+}
+
+Tabs.displayName = 'Tabs';
 
 export interface TabPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Must match the `id` of a tab item. */

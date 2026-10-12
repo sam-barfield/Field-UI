@@ -3,7 +3,9 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
-import { IconButton } from './Button.js';
+import { Button, IconButton } from './Button.js';
+import { Spinner } from './Primitives.js';
+import { EmptyState } from './DataDisplay.js';
 import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
 
@@ -218,4 +220,69 @@ export const useToast = (): ToastContextValue => {
     throw new Error('useToast must be used within a <ToastProvider>');
   }
   return context;
+};
+
+/* --- AsyncContent --- */
+export interface AsyncContentProps {
+  /** Show the loading state. */
+  isLoading?: boolean;
+  /** Any truthy value shows the error state (an `Error`'s message is shown by default). */
+  error?: unknown;
+  /** Show the empty state (checked after loading and error). */
+  isEmpty?: boolean;
+  /** Shown while loading. Default: a centred `Spinner`. Pass skeletons shaped like the content for less layout shift. */
+  loadingFallback?: React.ReactNode;
+  /** Shown on error. Default: a danger `Alert` with the message and, with `onRetry`, a "Try again" button. */
+  errorFallback?: React.ReactNode | ((error: unknown, retry?: () => void) => React.ReactNode);
+  /** Shown when `isEmpty`. Default: a plain `EmptyState` titled "Nothing here yet". */
+  emptyFallback?: React.ReactNode;
+  /** Retry handler for the default error state. */
+  onRetry?: () => void;
+  /** The loaded content, or a function so it's only evaluated once the data is there. */
+  children: React.ReactNode | (() => React.ReactNode);
+}
+
+const errorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : typeof error === 'string' ? error : undefined;
+
+/**
+ * Loading, error and empty states for remote content (a post list, a gallery, a product grid), so
+ * every list handles them the same way. Renders no wrapper element.
+ *
+ * @example
+ * <AsyncContent isLoading={isLoading} error={error} isEmpty={posts?.length === 0} onRetry={refetch}
+ *   loadingFallback={<Skeleton height={120} />}>
+ *   {() => posts!.map(post => <PostCard key={post.id} post={post} />)}
+ * </AsyncContent>
+ */
+export const AsyncContent: React.FC<AsyncContentProps> = ({
+  isLoading = false,
+  error,
+  isEmpty = false,
+  loadingFallback,
+  errorFallback,
+  emptyFallback,
+  onRetry,
+  children,
+}) => {
+  if (isLoading) {
+    return <>{loadingFallback ?? <div className="field-async-loading"><Spinner /></div>}</>;
+  }
+  if (error) {
+    if (typeof errorFallback === 'function') return <>{errorFallback(error, onRetry)}</>;
+    if (errorFallback !== undefined) return <>{errorFallback}</>;
+    return (
+      <Alert
+        variant="danger"
+        title="Something went wrong"
+        actions={onRetry && <Button size="sm" onClick={onRetry}>Try again</Button>}
+      >
+        {errorMessage(error) ?? 'The content could not be loaded.'}
+      </Alert>
+    );
+  }
+  if (isEmpty) {
+    return <>{emptyFallback ?? <EmptyState variant="plain" title="Nothing here yet" />}</>;
+  }
+  return <>{typeof children === 'function' ? children() : children}</>;
 };

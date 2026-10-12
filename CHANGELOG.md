@@ -2,6 +2,85 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [0.4.0] - 2026-10-12
+
+Fixes and additions from building and running a production website on Field (the RAF Snaith Museum site): every finding in its review (F1–F22) and its forced-reflow report. See **Breaking changes** before upgrading.
+
+### Breaking changes
+- **Styles are in cascade layers.** `styles.css` / `styles/field.css` / `styles/components.css` now wrap everything in `@layer field.tokens, field.base, field.components`. Any unlayered CSS in your app beats Field regardless of specificity. That is the point (overrides no longer need to out-specify Field), but it also means **unlayered resets and base styles now override Field's components**: a `button { background: none }`, `a { color: inherit }` or `* { margin: 0; padding: 0 }` reset will strip Field's buttons, links and spacing. To migrate, put resets in a layer that comes *before* Field. Layer order is fixed by first appearance, so declare it in a file imported before Field's stylesheet:
+  ```css
+  /* layers.css: import this before '@sam.barfield/field-react/styles.css' */
+  @layer reset, field;
+  @layer reset {
+    /* your resets */
+  }
+  ```
+  Tailwind v4: declare `@layer theme, base, field, components, utilities;` the same way so Preflight sits under Field and utilities sit over it. Tailwind v3's Preflight is unlayered and now overrides Field (e.g. buttons lose their background); disable it with `corePlugins: { preflight: false }` or load it from a layer declared before `field`.
+  Overrides you wrote to out-specify Field keep working; `!important` in your CSS still beats Field.
+- **Layout props render a class and CSS variables, not inline properties.** `gap`, `padding`, `direction`, `align`, `justify`, `wrap`, `columns` and text `align` on `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divided`, `Heading`, `Text`, `Card`, `Gallery`, `DescriptionList`, `ChipGroup` and `Carousel` set `--field-r-*` variables plus a `.field-r-*` class (as breakpoint objects already did), so a class of yours can override them without `!important`. Props you don't set emit nothing; the component's CSS has the defaults.
+- **Navbar no longer writes `--field-scroll-offset`.** It publishes only `--field-navbar-height` on `<html>`; Field's CSS derives `--field-scroll-offset` from it and sets `scroll-padding-top` on `:root` (so every in-page anchor, not only `Section`, stops below a sticky bar). If you set `--field-scroll-offset` yourself it now wins. `Section` no longer sets `scroll-margin-top`.
+- **`Section backgroundImage` given as a string now renders an `<img>`** like the object form (the `--field-section-image` CSS variable is gone). Same look; the photo is found earlier and can use `srcSet` / `priority`.
+- **`CardFooter`'s gap moved into its padding** (the divider is drawn by `::before`), so a footer pinned with `margin-top: auto` keeps it. Custom CSS that adjusted the footer's `margin-top` or `border-top` needs a look.
+- **`Timeline` is laid out with `--field-timeline-*` variables**, and the list's modifier class is `field-timeline-time-{inline|top|left}` (the left-column wrapper is `.field-timeline-aside`). CSS that positioned markers or the rail by hand can be replaced by the variables.
+- **`TextInput`'s `size` is now a size preset** (`sm | md | lg | xl`). The native `size` attribute is `htmlSize`.
+- **`EmptyState`** renders its actions in `.field-empty-state-actions` (was `.field-empty-state-action`); `action` is deprecated in favour of `actions`.
+- **Packages** are `0.4.0`; `@sam.barfield/field-react` depends on `@sam.barfield/field-tokens@^0.4.0`.
+
+### Theming and CSS
+- **Portalled layers keep a custom theme (F1).** The default theme blocks skip `.field-layer`, so a `ThemeProvider` with a custom pair shows its colours, fonts and radii in Drawer, Modal, Toast, Select and the other popups; `ThemeScope` with another mode still gives its portals that mode.
+- **Consumer CSS wins without specificity wars (F3)**: cascade layers and class-based layout props (see Breaking changes).
+- **Button theming (F16).** Themes take a `button` group (`createTheme({ button })`, `createThemePair({ shared: { button } })`): height, horizontal padding and font size per size, radius, font weight, letter-spacing, text-transform, shadows at rest / hover / pressed, and the press transform. The same values are CSS variables (`--field-btn-height-md`, `--field-btn-text-transform`, `--field-btn-press-transform`, …). Button shadows now follow the theme's shadow scale (new `--field-shadow-inset` token) instead of fixed `rgba` values. `TextInput`, `Select`, `NumberInput`, `IconButton` and `Chip` sizes follow the button heights.
+- **Public CSS API (F22).** The variables, classes, container name and layer names consumers can rely on are documented in the Styling guide ("Public CSS API") and in `docs/AGENTS.md`: `--field-navbar-height`, `--field-scroll-offset`, `--field-back-to-top-offset`, `--field-btn-*`, `--field-navbar-scrolled-*`, `--field-timeline-*`, `.field-navbar-collapsed`, `.field-navbar-hide-mobile`, `.field-sr-only`, the `field-navbar` container and the `field.*` layers.
+- Raw colours and pixel spacing replaced with tokens in the navbar, flyout, chip, gallery, empty state and timeline styles.
+
+### Performance (F2, forced-reflow report)
+- `Navbar` reads its width only from the `ResizeObserver` entry (after layout), guesses the collapsed state before paint with `matchMedia` (no layout read), and closes the menu from `isCollapsed` instead of reading `clientWidth`. Its initial state is the same on server and client.
+- `NavbarContent` re-measures the indicator only when the active item or an indicator option changes, batched into one animation frame, and lets the `ResizeObserver`'s first report position it on mount. A pending measurement is never dropped by a re-render.
+- `NavbarFlyout` reads before it writes (once per frame) and caps the panel width in CSS with container units.
+- `Reveal` uses an `IntersectionObserver` instead of measuring in a layout effect.
+- `Carousel` measures from its `ResizeObserver` and batches scroll measurements per frame.
+
+### Navigation and links
+- **Router links (F4).** `ThemeProvider linkComponent` is used for internal `href`s by `Button`, `IconButton`, `Card`, `Link`, `FooterLink`, `NavbarBrand`, `NavbarItem`, `NavbarFlyoutItem`, `Breadcrumb`, `Tabs` and the `CookieConsent` policy link. The component receives `href`: `next/link` works directly; React Router and TanStack Router need an `href` → `to` adapter (see the Routing guide). External URLs (any scheme, `//`, `#`) stay plain anchors. `useLinkComponent()` and `resolveTag()` are exported.
+- `Breadcrumb` items with `as` (and `linkProps`) but no `href` render as that component.
+- **Transparent navbar (F5).** The bar turns solid while the mobile menu is open. `transparentOnTop="auto"` stays transparent only while a `Section underNavbar` (or an element with `data-navbar-overlap`) sits under it, so loading, error and not-found pages get a solid bar. `scrolledAppearance` (`background`, `borderColor`, `shadow`, `blur`) sets the scrolled look.
+- **Navbar height (F6).** `height` sets `--field-navbar-height` on the bar; a sticky, floating or transparent bar also publishes it on `<html>` (several navbars no longer overwrite each other). `.field-navbar` uses it, as do the menu's max height, the backdrop, `Section underNavbar` and the anchor offset.
+- **Themed navbar (F7).** `mode` / `theme` on `Navbar` scope the theme onto the `<header>` itself, so a dark bar on a light site is sticky and transparent-on-top without a wrapper.
+- **Mobile menu accessibility (F8).** Each navbar has its own menu id and toggle; Escape returns focus to that toggle. While the menu is open the page can't scroll, a backdrop covers it (click to close), Tab stays within the bar (menu, toggle and actions), and browser back closes it.
+- `NavbarActions hideOnMobile` is CSS only (no unmount), and the new `NavbarActionsItem hideOnMobile` hides a single action (F22).
+
+### Components
+- **Section (F9).** `backgroundImage` accepts `{ src, srcSet, sizes, position, priority }` and renders an `<img>` (object-fit cover) under the overlay; `priority` loads it eagerly with `fetchpriority="high"`. `underNavbar` pulls a hero under a transparent sticky navbar.
+- **Image (F10).** `priority` sets `loading="eager"` and `fetchpriority="high"` in the spelling the installed React accepts: no warning on React 18 or 19.
+- **EmptyState (F11).** Rest props reach the root; `variant="plain"` drops the box (e.g. inside a Card); `actions` takes several buttons, which wrap and stack at full width on phones with long labels wrapping.
+- **Gallery (F12).** Tiles are keyed by `id` or index (no duplicate keys), get `srcSet`, `sizes` (worked out from the columns), `width` and `height`; `gap` takes spacing tokens and breakpoints; `previewCount` (a number or breakpoint object) shows the first photos with a "Show all" button (`showAllLabel`) while the lightbox keeps them all; `isLoading` / `skeletonCount`.
+- **Card (F13).** `fill` gives equal-height cards in a grid row with the footer pinned to the bottom (gap kept); `padding` accepts a breakpoint object; `variant="inset"`.
+- **Timeline (F14).** `status="accent"`, `markerSize` (`sm | md | lg` or px), `timestampPosition` (`inline | top | left`), `ReactNode` timestamps with `dateTime`, rest props on the `<ol>`, and `--field-timeline-*` variables for the marker, rail, gaps and timestamp.
+- **Drawer / Modal footer (F15).** A single block (e.g. a `Stack`) passed as `footer` fills the footer; `footerLayout="stack"` stacks several children at full width.
+- **Button (F16).** `size="xl"` (48px), `variant="link"` (an inline text link; its right icon nudges on hover), and refs typed `HTMLButtonElement | HTMLAnchorElement`, so `<Button href ref={anchorRef} download>` type-checks.
+- **Form sizes and Skeleton (F17).** `size` on `TextInput`, `Select` and `NumberInput` matches the Button heights; `NumberInput` also takes `width` and `isFullWidth`. `Skeleton` takes `ratio` and radius token names (`radius="md"`; `borderRadius` is deprecated).
+- **Pagination (F18).** `surface={false}` for flat pagination under a card grid.
+- **Reveal (F19).** `asChild` applies the reveal to the single child, so equal-height grids keep working.
+- **Website patterns (F20):**
+  - `Chip` / `ChipGroup` (filter toggles with counts, sideways scrolling on phones; `gap` takes tokens and breakpoints).
+  - `Text variant="overline"`, `measure` (`true` = 66ch, a number = px) and `tabularNums`.
+  - `SectionHeader` (eyebrow, title, description, an action that drops under the title on phones; `align="start" | "center"`).
+  - `DescriptionList` / `DescriptionItem` with responsive `columns`, `density` and `divided`.
+  - New `Divided`: parts of one card separated by hairlines, stacked or side by side by breakpoint.
+  - New `Icon` (theme tone, size presets, decorative unless labelled) and `IconText` (an icon beside a block of text).
+  - `VisuallyHidden` with `below="sm"` to hide only on phones.
+  - New `FloatingButton`: a fixed action button that `BackToTop` moves above (`compactOnMobile` keeps just the icon on phones).
+  - `Prose collapsible` (phones only by default, `'always'` for every width) with a real `previewParagraphs`, and a toggle that appears only when there is more to show; `size` accepts a breakpoint object; works with `dangerouslySetInnerHTML`.
+  - New `AsyncContent`: loading, error (with retry) and empty states for remote lists.
+  - The route-change focus and scroll recipe is in the Routing guide ("After navigation").
+- **Consistency (F21).** `Flex`, `Stack` and `Grid` take `start` / `end` alignment (the `flex-` spellings still work); `gap` takes spacing tokens and breakpoints on `Gallery`, `Carousel` and `ChipGroup` too; `Tabs` is generic over its ids; layout components live in `components/Layout.tsx`.
+
+### Fixed
+- A responsive prop given as a breakpoint object without `base` (e.g. `direction={{ md: 'row' }}`) could pick up an outer responsive element's values below that breakpoint.
+
+### Docs
+- Showcase: the docs site loads Field's stylesheet in the same cascade layers as the published package; new examples for Divided, Icon, IconText, AsyncContent, FloatingButton, Gallery preview, button theming, the transparent Navbar, Timeline variables, EmptyState actions, control sizes and flat Pagination. The Styling guide has a "Public CSS API" section and cascade-layer setup (including Tailwind); the Routing guide documents the `href` → `to` adapter.
+
 ## [0.3.1] - 2026-10-07
 
 Fixes and additions from building a complete multi-page marketing site with a custom brand theme.

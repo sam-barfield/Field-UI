@@ -27,6 +27,8 @@ export interface ModalProps extends OverlayBehaviourProps {
   children: React.ReactNode;
   /** Action row, typically Cancel + primary action buttons. */
   footer?: React.ReactNode;
+  /** Layout for footer buttons: `actions` (row, right-aligned) or `stack` (full-width stacked column). Default `actions`. */
+  footerLayout?: 'actions' | 'stack';
   /** Max width: `sm` 400px, `md` 540px, `lg` 720px, `xl` 960px, `full` 92vw. Default `md`. */
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
@@ -61,6 +63,7 @@ export const Modal: React.FC<ModalProps> = ({
   description,
   children,
   footer,
+  footerLayout = 'actions',
   size = 'md',
   showCloseButton = true,
   closeOnBackdropClick = true,
@@ -125,7 +128,11 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
         <div className="field-modal-body">{children}</div>
-        {footer && <div className="field-modal-footer">{footer}</div>}
+        {footer && (
+          <div className={mergeClassNames('field-modal-footer', footerLayout === 'stack' && 'field-modal-footer-stack')}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     portalTarget
@@ -139,6 +146,8 @@ export interface DrawerProps extends OverlayBehaviourProps {
   description?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** Layout for footer buttons: `actions` (row, right-aligned) or `stack` (full-width stacked column). Default `actions`. */
+  footerLayout?: 'actions' | 'stack';
   /** Edge the panel slides in from. Default `right`. */
   side?: 'left' | 'right';
   /** Panel width (any CSS length). Default `420px`. */
@@ -162,6 +171,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   description,
   children,
   footer,
+  footerLayout = 'actions',
   side = 'right',
   width = '420px',
   closeOnBackdropClick = true,
@@ -222,7 +232,11 @@ export const Drawer: React.FC<DrawerProps> = ({
           <IconButton icon={<X size={16} />} variant="ghost" size="sm" aria-label="Close panel" onClick={onClose} />
         </div>
         <div className="field-drawer-body">{children}</div>
-        {footer && <div className="field-modal-footer">{footer}</div>}
+        {footer && (
+          <div className={mergeClassNames('field-modal-footer', footerLayout === 'stack' && 'field-modal-footer-stack')}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     portalTarget

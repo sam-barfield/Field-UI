@@ -11,7 +11,7 @@ export default function EmptyStatePageHeading() {
         icon={<MapPinOff size={22} />}
         title="Page not found"
         description="The page may have moved. Try the homepage or get in touch."
-        action={<Button href="#/" variant="primary">Back to home</Button>}
+        actions={<Button href="#/" variant="primary">Back to home</Button>}
       />
     </div>
   );

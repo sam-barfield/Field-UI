@@ -10,6 +10,8 @@ export interface ThemeContextValue {
   mode: ThemeMode;
   /** The dark/light pair the active theme belongs to, if any. */
   themePair?: FieldThemePair;
+  /** Global router link component. Receives `href`; see `ThemeProviderProps.linkComponent`. */
+  linkComponent?: React.ElementType;
   /** Where CSS variables are applied: `<html>` (`root`) or a wrapper element (`container`). */
   scope: 'root' | 'container';
   containerRef?: React.RefObject<HTMLElement | null>;
@@ -31,6 +33,12 @@ export interface ThemeProviderProps {
   initialTheme?: FieldTheme;
   /** Dark/light theme pair to use. Defaults to the built-in Obsidian / Cobalt pair. */
   themePair?: FieldThemePair;
+  /**
+   * Router link component used for internal `href`s by link-rendering components. It receives
+   * `href` (never `to`): `next/link` works as is; for React Router or TanStack Router pass an
+   * adapter that maps `href` to `to` (see the Routing guide).
+   */
+  linkComponent?: React.ElementType;
   /** Initial mode. `'system'` follows the OS `prefers-color-scheme` setting. Default `'dark'`. */
   defaultMode?: ThemeMode | 'system';
   /** When set, the chosen mode is saved to `localStorage` under this key and restored on load. */
@@ -53,6 +61,8 @@ export interface ThemeScopeProps extends Omit<React.HTMLAttributes<HTMLElement>,
   themePair?: FieldThemePair;
   /** Force dark or light for this subtree, using the current pair. */
   mode?: ThemeMode;
+  /** Merge theme attributes and variables directly onto the child element without creating a wrapper div. */
+  asChild?: boolean;
   as?: React.ElementType;
   className?: string;
   style?: React.CSSProperties;

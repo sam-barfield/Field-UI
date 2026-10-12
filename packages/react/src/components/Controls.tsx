@@ -11,8 +11,9 @@ import {
   useIsomorphicLayoutEffect,
 } from '../utils/hooks.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
+import { applyResponsive, createResponsiveAccumulator, resolveSpace, type Responsive, type SpaceValue } from '../utils/responsive.js';
 import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
-import { FieldLabel, FieldMessage, getFieldDescriptionId } from './Input.js';
+import { FieldLabel, FieldMessage, getFieldDescriptionId, type FieldControlSize } from './Input.js';
 
 type NativeCheckboxProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -606,6 +607,12 @@ export interface NumberInputProps {
   min?: number;
   max?: number;
   step?: number;
+  /** Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px). Default `md`. */
+  size?: FieldControlSize;
+  /** Width of the field (number = px, or any CSS length). */
+  width?: number | string;
+  /** Stretch to the container width. Default `false`. */
+  isFullWidth?: boolean;
   /** Unit label shown inside the field, e.g. `GB`. */
   unit?: string;
   label?: React.ReactNode;
@@ -613,6 +620,7 @@ export interface NumberInputProps {
   error?: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   name?: string;
   id?: string;
   required?: boolean;
@@ -643,12 +651,16 @@ export const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
       min = -Infinity,
       max = Infinity,
       step = 1,
+      size = 'md',
+      width,
+      isFullWidth = false,
       unit,
       label,
       helperText,
       error,
       disabled = false,
       className = '',
+      style,
       name,
       id: customId,
       required,
@@ -710,14 +722,28 @@ export const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
     const describedBy = getFieldDescriptionId(id, error, helperText);
     const displayValue = draft ?? (Number.isNaN(currentVal) ? '' : String(currentVal));
 
+    const wrapperStyle: React.CSSProperties = {
+      ...(width !== undefined ? { width: typeof width === 'number' ? `${width}px` : width } : {}),
+      ...(isFullWidth ? { width: '100%' } : {}),
+    };
+
     return (
-      <div className={mergeClassNames('field-form-item', className)}>
+      <div className={mergeClassNames('field-form-item', isFullWidth && 'field-form-item-full', className)} style={style}>
         {label && (
           <FieldLabel htmlFor={id} required={required}>
             {label}
           </FieldLabel>
         )}
-        <div className={mergeClassNames('field-number-input-wrapper', error && 'error', disabled && 'disabled')}>
+        <div
+          className={mergeClassNames(
+            'field-number-input-wrapper',
+            `field-number-input-${size}`,
+            isFullWidth && 'full-width',
+            error && 'error',
+            disabled && 'disabled'
+          )}
+          style={wrapperStyle}
+        >
           <input
             ref={ref}
             type="text"
@@ -1036,3 +1062,137 @@ export const Combobox: React.FC<ComboboxProps> = ({
     </div>
   );
 };
+
+/* --- CHIP / FILTER CHIP (F20) --- */
+export interface ChipProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
+  children: React.ReactNode;
+  /** Whether the chip is toggled on / active. */
+  selected?: boolean;
+  /** Initial selected state when uncontrolled. */
+  defaultSelected?: boolean;
+  /** Called when the toggle state changes. */
+  onSelectedChange?: (selected: boolean) => void;
+  /** Optional badge or item count displayed in the chip. */
+  count?: React.ReactNode;
+  /** Visual variant. Default `default`. */
+  variant?: 'default' | 'accent' | 'outline';
+  /** Height matching the Button of the same size: `sm` 30px, `md` 36px (default), `lg` 44px. */
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+/**
+ * Filter chip / toggle button with optional count, keyboard support and accessible aria-pressed state.
+ *
+ * @example
+ * <Chip selected={filter === 'ww2'} onSelectedChange={() => setFilter('ww2')} count={24}>
+ *   WWII Era
+ * </Chip>
+ */
+export const Chip: React.FC<ChipProps> = ({
+  children,
+  selected: controlledSelected,
+  defaultSelected = false,
+  onSelectedChange,
+  count,
+  variant = 'default',
+  size = 'md',
+  disabled = false,
+  className = '',
+  style,
+  onClick,
+  ...props
+}) => {
+  const [selected, setSelected] = useControllableState({
+    value: controlledSelected,
+    defaultValue: defaultSelected,
+    onChange: onSelectedChange,
+  });
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    setSelected(!selected);
+    onClick?.(e);
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={handleClick}
+      className={mergeClassNames(
+        'field-chip',
+        `field-chip-${size}`,
+        `field-chip-${variant}`,
+        selected && 'selected',
+        disabled && 'disabled',
+        className
+      )}
+      style={style}
+      {...props}
+    >
+      <span className="field-chip-label">{children}</span>
+      {count !== undefined && count !== null && (
+        <span className="field-chip-count">{count}</span>
+      )}
+    </button>
+  );
+};
+
+Chip.displayName = 'Chip';
+
+/* --- CHIP GROUP (F20) --- */
+export interface ChipGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  /** Allow horizontal touch scrolling on mobile without wrapping. Default `true`. */
+  scroll?: boolean;
+  /** Gap between chips: px number, CSS length or `$` spacing token; accepts a breakpoint object. Default `$2` (8px). */
+  gap?: Responsive<SpaceValue>;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+/**
+ * Horizontal grouping of filter chips with automatic touch scrolling on small screens.
+ *
+ * @example
+ * <ChipGroup scroll>
+ *   <Chip selected count={12}>All</Chip>
+ *   <Chip count={4}>Photographs</Chip>
+ *   <Chip count={8}>Documents</Chip>
+ * </ChipGroup>
+ */
+export const ChipGroup: React.FC<ChipGroupProps> = ({
+  children,
+  scroll = true,
+  gap,
+  className = '',
+  style,
+  ...props
+}) => {
+  const acc = createResponsiveAccumulator();
+  applyResponsive(acc, 'gap', 'gap', gap, resolveSpace, '$2');
+  const computedStyle = { ...acc.style, ...style } as React.CSSProperties;
+
+  return (
+    <div
+      role="group"
+      className={mergeClassNames(
+        'field-chip-group',
+        scroll && 'field-chip-group-scroll',
+        ...acc.classes,
+        className
+      )}
+      style={computedStyle}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+ChipGroup.displayName = 'ChipGroup';
+

@@ -6,7 +6,7 @@ import { ChevronDown, Check } from 'lucide-react';
 import { useAnchoredPosition, useControllableState, useDismissableLayer } from '../utils/hooks.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
 import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
-import { FieldLabel, FieldMessage, getFieldDescriptionId } from './Input.js';
+import { FieldLabel, FieldMessage, getFieldDescriptionId, type FieldControlSize } from './Input.js';
 
 export interface SelectOption<T extends string = string> {
   value: T;
@@ -31,6 +31,8 @@ export interface SelectProps<T extends string = string> {
   disabled?: boolean;
   helperText?: React.ReactNode;
   error?: React.ReactNode;
+  /** Height matching the Button of the same size (`sm` 30px, `md` 36px, `lg` 44px, `xl` 48px). Without it the trigger is 40px tall. */
+  size?: FieldControlSize;
   className?: string;
   /** Renders a hidden input so the value is submitted with native forms. */
   name?: string;
@@ -54,6 +56,7 @@ function SelectInner<T extends string = string>(
     disabled = false,
     helperText,
     error,
+    size,
     className = '',
     name,
     id: customId,
@@ -215,7 +218,7 @@ function SelectInner<T extends string = string>(
         onClick={() => (isOpen ? close(false) : open())}
         onKeyDown={handleKeyDown}
         onBlur={onBlur}
-        className={mergeClassNames('field-select-trigger', error && 'error', isOpen && 'open')}
+        className={mergeClassNames('field-select-trigger', size && `field-control-${size}`, error && 'error', isOpen && 'open')}
       >
         <span className={mergeClassNames('field-select-value', !selectedOption && 'placeholder')}>
           {selectedOption?.icon && <span className="field-select-option-icon">{selectedOption.icon}</span>}

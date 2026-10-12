@@ -475,6 +475,11 @@ export interface PaginationProps {
    * `simple`: prev/next with a "Page 4 of 48" status between them — for cards, feeds and tight spaces.
    */
   variant?: 'full' | 'simple';
+  /**
+   * Draw the raised bar (padding, top border and background) that suits a table footer. Set `false` for
+   * flat pagination under a grid of cards. Default `true`.
+   */
+  surface?: boolean;
   /** Show the first/last page buttons. Default `true` for `full`, `false` for `simple`. */
   showFirstLast?: boolean;
   className?: string;
@@ -496,7 +501,7 @@ function getPageWindow(current: number, total: number): Array<number | 'ellipsis
 /**
  * Page navigation with first/prev/next/last, a page window with ellipses and
  * an optional page-size selector. `variant="simple"` swaps the page window for a
- * compact "Page 4 of 48" status between prev/next.
+ * compact "Page 4 of 48" status between prev/next. Use `surface={false}` for flat pagination under a card grid.
  *
  * @example
  * <Pagination currentPage={page} totalPages={12} onPageChange={setPage} totalItems={118} pageSize={10} />
@@ -511,18 +516,25 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageSizeChange,
   totalItems,
   variant = 'full',
+  surface = true,
   showFirstLast = variant === 'full',
   className = '',
 }) => {
   const safeTotal = Math.max(1, totalPages);
   const isSimple = variant === 'simple';
+  const isBare = !surface;
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = totalItems !== undefined ? Math.min(currentPage * pageSize, totalItems) : currentPage * pageSize;
   const pageSizeId = React.useId();
 
   return (
     <nav
-      className={mergeClassNames('field-pagination-container', isSimple && 'field-pagination-simple', className)}
+      className={mergeClassNames(
+        'field-pagination-container',
+        isSimple && 'field-pagination-simple',
+        isBare && 'field-pagination-bare',
+        className
+      )}
       aria-label="Pagination"
     >
       {/* The simple variant shows the page status between prev/next, so the summary is only needed with totalItems. */}

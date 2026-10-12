@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUp, ExternalLink } from 'lucide-react';
-import { mergeClassNames, renderPolymorphic } from '../utils/polymorphic.js';
-import { useIsomorphicLayoutEffect } from '../utils/hooks.js';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { ArrowUp, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { mergeClassNames, renderPolymorphic, useResolvedTag } from '../utils/polymorphic.js';
+import { getElementRef, mergeRefs } from '../utils/hooks.js';
 import { ThemeScope, useThemeSafe } from '../theme/ThemeProvider.js';
-import { Container, type ContainerProps } from './Typography.js';
+import { Container, type ContainerProps } from './Layout.js';
+import { Button, type ButtonElement, type ButtonProps } from './Button.js';
+import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
+import { fetchPriorityProps } from '../utils/dom.js';
 
 /* --- SURFACE (shared by Section and Footer) --- */
 type SurfaceTone = 'default' | 'muted' | 'raised' | 'accent' | 'inverse';
@@ -40,6 +43,16 @@ const Surface: React.FC<SurfaceProps> = ({ as, tone, forceDark, className, child
   );
 };
 
+export type SectionBackgroundImage =
+  | string
+  | {
+      src: string;
+      srcSet?: string;
+      sizes?: string;
+      position?: string;
+      priority?: boolean;
+    };
+
 /* --- SECTION --- */
 export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /**
@@ -52,10 +65,17 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /** Wraps children in a `Container` of this width. Pass `false` for full-bleed content. Default `xl`. */
   container?: ContainerProps['maxWidth'] | false;
   /**
-   * Cover image behind the content. The section switches to the dark theme (or the pair's
-   * `band` theme, see `createThemePair`) and adds `overlay`.
+   * Pull the section up under a transparent sticky `Navbar` (negative margin of `--field-navbar-height`, with the
+   * same amount added to the top padding). Also tells `Navbar transparentOnTop="auto"` that a band sits under it.
    */
-  backgroundImage?: string;
+  underNavbar?: boolean;
+  /**
+   * Cover image behind the content: a URL, or `{ src, srcSet, sizes, position, priority }`. It renders as an
+   * `<img>` (object-fit cover), so `srcSet` picks the right file on phones and `priority` (for the hero)
+   * loads it first. The section switches to the dark theme (or the pair's `band` theme, see
+   * `createThemePair`) and adds `overlay`.
+   */
+  backgroundImage?: SectionBackgroundImage;
   /** Darkness of the overlay over `backgroundImage`, 0 to 1. Default `0.55`. */
   overlay?: number;
   /** Element to render. Default `section`. */
@@ -66,8 +86,8 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
 /**
  * A full-width page band with consistent vertical rhythm, an optional background
  * tone or image, and a centred container. The building block of marketing pages.
- * Give it an `id` to make it an in-page link target; set `--field-scroll-offset`
- * to the height of a sticky navbar so anchors are not hidden under it.
+ * Give it an `id` to make it an in-page link target: anchors stop below a sticky `Navbar`
+ * automatically (`--field-scroll-offset`, derived from `--field-navbar-height`).
  *
  * @example
  * <Section tone="muted" id="menu" aria-labelledby="menu-title">
@@ -79,6 +99,7 @@ export const Section: React.FC<SectionProps> = ({
   spacing = 'lg',
   container = 'xl',
   backgroundImage,
+  underNavbar = false,
   overlay = 0.55,
   as = 'section',
   className = '',
@@ -86,11 +107,11 @@ export const Section: React.FC<SectionProps> = ({
   children,
   ...props
 }) => {
-  const imageStyle = backgroundImage
-    ? ({
-        '--field-section-image': `url("${backgroundImage.replace(/"/g, '\\"')}")`,
-        '--field-section-overlay': String(Math.min(1, Math.max(0, overlay))),
-      } as React.CSSProperties)
+  // Both forms render a real <img>, so the browser finds it straight away and can use
+  // srcSet, sizes and fetchpriority (a CSS background can't) (F9).
+  const image = typeof backgroundImage === 'string' ? { src: backgroundImage } : backgroundImage;
+  const imageStyle = image
+    ? ({ '--field-section-overlay': String(Math.min(1, Math.max(0, overlay))) } as React.CSSProperties)
     : undefined;
 
   return (
@@ -103,11 +124,26 @@ export const Section: React.FC<SectionProps> = ({
         `field-section-${tone}`,
         `field-section-spacing-${spacing}`,
         backgroundImage && 'field-section-image',
+        underNavbar && 'field-section-under-navbar',
         className
       )}
       style={{ ...imageStyle, ...style }}
       {...props}
     >
+      {image && (
+        <img
+          src={image.src}
+          srcSet={image.srcSet}
+          sizes={image.sizes ?? (image.srcSet ? '100vw' : undefined)}
+          loading={image.priority ? 'eager' : 'lazy'}
+          decoding={image.priority ? 'sync' : 'async'}
+          {...fetchPriorityProps(image.priority ? 'high' : undefined)}
+          className="field-section-bg-image"
+          style={{ objectPosition: image.position }}
+          alt=""
+          aria-hidden="true"
+        />
+      )}
       {container === false ? children : <Container maxWidth={container}>{children}</Container>}
     </Surface>
   );
@@ -137,6 +173,7 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
  */
 export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
   ({ tone = 'accent', underline = 'always', external = false, as, asChild, className = '', children, ...props }, ref) => {
+    const tag = useResolvedTag(as, external ? undefined : props.href, 'a');
     const content = external && !asChild ? (
       <>
         {children}
@@ -147,10 +184,10 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
       children
     );
     return renderPolymorphic(
-      'a',
+      tag,
       {
         asChild,
-        as,
+        as: tag,
         ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
         ...props,
         className: mergeClassNames('field-link', `field-link-${tone}`, `field-link-underline-${underline}`, className),
@@ -262,14 +299,34 @@ export const FooterBottom: React.FC<FooterBottomProps> = ({ className = '', chil
 );
 
 /* --- PROSE --- */
+const PROSE_SIZES = {
+  sm: { fontSize: '0.875rem', lineHeight: '1.65' },
+  base: { fontSize: '1rem', lineHeight: '1.7' },
+  lg: { fontSize: '1.125rem', lineHeight: '1.75' },
+} as const;
+type ProseSize = keyof typeof PROSE_SIZES;
+
 export interface ProseProps extends React.HTMLAttributes<HTMLElement> {
-  /** Base text size. Default `base`. */
-  size?: 'sm' | 'base' | 'lg';
+  /** Base text size. Default `base`. Accepts a breakpoint object, e.g. `{ base: 'base', lg: 'lg' }`. */
+  size?: Responsive<'sm' | 'base' | 'lg'>;
   /** Max line length. Default `68ch`; pass `none` to fill the container. */
   maxWidth?: string;
+  /**
+   * Collapse long text to its first `previewParagraphs` paragraphs with a "Read more" toggle. `true`
+   * collapses on phones only (below 640px); `'always'` at every width. The toggle only appears when there
+   * is more to show. When set, the content and toggle render inside a `div.field-prose-collapsible`
+   * wrapper, which receives `className` and `style`.
+   */
+  collapsible?: boolean | 'always';
+  /** Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`. */
+  previewParagraphs?: number;
+  /** Label for expand button. Default `Read more`. */
+  expandLabel?: string;
+  /** Label for collapse button. Default `Show less`. */
+  collapseLabel?: string;
   /** Element to render. Default `div`; use `article` for posts. */
   as?: React.ElementType;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 /**
@@ -279,19 +336,89 @@ export interface ProseProps extends React.HTMLAttributes<HTMLElement> {
  * @example
  * <Prose as="article" dangerouslySetInnerHTML={{ __html: post.html }} />
  */
-export const Prose: React.FC<Omit<ProseProps, 'children'> & { children?: React.ReactNode }> = ({
+export const Prose: React.FC<ProseProps> = ({
   size = 'base',
   maxWidth = '68ch',
+  collapsible = false,
+  previewParagraphs = 2,
+  expandLabel = 'Read more',
+  collapseLabel = 'Show less',
   as: Tag = 'div',
   className = '',
   style,
+  id,
   children,
   ...props
-}) => (
-  <Tag className={mergeClassNames('field-prose', `field-prose-${size}`, className)} style={{ maxWidth, ...style }} {...props}>
-    {children}
-  </Tag>
-);
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const generatedId = useId();
+  const contentId = id ?? `${generatedId}-prose`;
+  const acc = createResponsiveAccumulator();
+  const isStringSize = typeof size === 'string';
+  if (!isStringSize && size) {
+    applyResponsive<ProseSize>(acc, 'psz', 'fontSize', size, s => PROSE_SIZES[s].fontSize, 'base');
+    applyResponsive<ProseSize>(acc, 'plh', 'lineHeight', size, s => PROSE_SIZES[s].lineHeight, 'base');
+  }
+  const preview = Math.min(10, Math.max(1, Math.round(previewParagraphs)));
+
+  // When collapsible, the toggle sits beside the content inside a wrapper (which takes
+  // `className` and `style`), so the content element can take `dangerouslySetInnerHTML`
+  // and the collapse selectors only see the content. The collapsing itself is CSS
+  // (field.css: .field-prose-preview-N), so it can be limited to phones without JS.
+  const content = (
+    <Tag
+      id={collapsible ? contentId : id}
+      className={mergeClassNames(
+        'field-prose',
+        isStringSize && size !== 'base' && `field-prose-${size}`,
+        ...acc.classes,
+        !collapsible && className
+      )}
+      style={{
+        maxWidth: maxWidth === 'none' ? 'none' : maxWidth,
+        ...acc.style,
+        ...(!collapsible && style),
+      }}
+      {...props}
+    >
+      {children}
+    </Tag>
+  );
+
+  if (!collapsible) return content;
+
+  return (
+    <div
+      className={mergeClassNames(
+        'field-prose-collapsible',
+        `field-prose-preview-${preview}`,
+        collapsible === 'always' ? 'field-prose-collapse-always' : 'field-prose-collapse-phone',
+        !expanded && 'field-prose-collapsed',
+        className
+      )}
+      style={style}
+    >
+      {content}
+      <button
+        type="button"
+        className="field-prose-toggle"
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        onClick={() => setExpanded(prev => !prev)}
+      >
+        {expanded ? (
+          <>
+            {collapseLabel} <ChevronUp size={16} aria-hidden="true" />
+          </>
+        ) : (
+          <>
+            {expandLabel} <ChevronDown size={16} aria-hidden="true" />
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
 
 /* --- SKIP LINK --- */
 export interface SkipLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -384,6 +511,10 @@ export interface RevealProps extends React.HTMLAttributes<HTMLElement> {
   delay?: number;
   /** Animate only the first time it enters the viewport. Default `true`. */
   once?: boolean;
+  /** Apply reveal directly to the single child instead of creating a wrapper element. */
+  asChild?: boolean;
+  /** Stretch wrapper to 100% height of parent container (preserves equal-height grids). */
+  fill?: boolean;
   /** Element to render. Default `div`. */
   as?: React.ElementType;
   children: React.ReactNode;
@@ -397,6 +528,8 @@ export const Reveal: React.FC<RevealProps> = ({
   effect = 'fade-up',
   delay = 0,
   once = true,
+  asChild = false,
+  fill = false,
   as: Tag = 'div',
   className = '',
   style,
@@ -406,21 +539,29 @@ export const Reveal: React.FC<RevealProps> = ({
   const ref = useRef<HTMLElement>(null);
   const [state, setState] = useState<'static' | 'hidden' | 'shown'>('static');
 
-  // Before paint: hide only when the element starts below the fold, so content
-  // already on screen never flashes and server-rendered HTML stays visible.
-  useIsomorphicLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    if (el.getBoundingClientRect().top < window.innerHeight) return;
-    setState('hidden');
-  }, []);
-
   useEffect(() => {
     const el = ref.current;
-    if (!el || state === 'static') return;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setState('static');
+      return;
+    }
+
+    let isInitial = true;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
+        if (isInitial) {
+          isInitial = false;
+          if (entry.isIntersecting) {
+            setState('shown');
+            if (once) observer.disconnect();
+            return;
+          }
+          setState('hidden');
+          return;
+        }
+
         if (entry.isIntersecting) {
           setState('shown');
           if (once) observer.disconnect();
@@ -432,16 +573,125 @@ export const Reveal: React.FC<RevealProps> = ({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [state === 'static', once]);
+  }, [once]);
+
+  const classNames = mergeClassNames(
+    'field-reveal',
+    `field-reveal-${effect}`,
+    fill && 'field-reveal-fill',
+    state !== 'static' && `field-reveal-${state}`,
+    className
+  );
+  const revealStyle = { transitionDelay: delay ? `${delay}ms` : undefined, ...style };
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+    const childProps = child.props || {};
+    return React.cloneElement(child, {
+      ref: mergeRefs(ref, getElementRef(child) as React.Ref<HTMLElement>),
+      className: mergeClassNames(classNames, childProps.className),
+      style: { ...revealStyle, ...childProps.style },
+      ...props,
+    });
+  }
 
   return (
     <Tag
       ref={ref}
-      className={mergeClassNames('field-reveal', `field-reveal-${effect}`, state !== 'static' && `field-reveal-${state}`, className)}
-      style={{ transitionDelay: delay ? `${delay}ms` : undefined, ...style }}
+      className={classNames}
+      style={revealStyle}
       {...props}
     >
       {children}
     </Tag>
+  );
+};
+
+/* --- FLOATING BUTTON --- */
+export interface FloatingButtonProps extends ButtonProps {
+  /** On phones (below 640px), hide the label visually (it stays the accessible name) and show only the icon. */
+  compactOnMobile?: boolean;
+}
+
+/**
+ * A button fixed to the bottom-right corner, e.g. a basket or "Book now". `BackToTop` moves up
+ * above it automatically. Use one per page; give it a `leftIcon` if you set `compactOnMobile`.
+ *
+ * @example
+ * <FloatingButton href="/basket" leftIcon={<ShoppingBag size={18} />} compactOnMobile>
+ *   Basket ({count})
+ * </FloatingButton>
+ */
+export const FloatingButton = React.forwardRef<ButtonElement, FloatingButtonProps>(
+  ({ compactOnMobile = false, variant = 'primary', size = 'xl', className = '', ...props }, ref) => (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={mergeClassNames('field-floating-button', compactOnMobile && 'field-floating-button-compact', className)}
+      {...props}
+    />
+  )
+);
+FloatingButton.displayName = 'FloatingButton';
+
+/* --- SECTION HEADER --- */
+export interface SectionHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  /** Eyebrow / overline label displayed above the title. */
+  eyebrow?: React.ReactNode;
+  /** Primary section title. */
+  title: React.ReactNode;
+  /** Heading element level. Default `2`. */
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Optional lead or description paragraph. */
+  description?: React.ReactNode;
+  /** Call to action button or link, placed beside the header on wide screens and below on mobile. */
+  action?: React.ReactNode;
+  /** Text alignment: `start` (default) or `center`, as on `Heading` and `Text`. */
+  align?: 'start' | 'center';
+}
+
+/**
+ * Responsive header block for section introductions: eyebrow, title, lead text, and optional action.
+ * On mobile, actions wrap underneath the title and description cleanly.
+ *
+ * @example
+ * <SectionHeader
+ *   eyebrow="Collections"
+ *   title="Our Aircraft Archive"
+ *   description="Explore photographic history from RAF Snaith."
+ *   action={<Button variant="outline">View all</Button>}
+ * />
+ */
+export const SectionHeader: React.FC<SectionHeaderProps> = ({
+  eyebrow,
+  title,
+  headingLevel = 2,
+  description,
+  action,
+  align = 'start',
+  className = '',
+  children,
+  ...props
+}) => {
+  const HeadingTag = `h${headingLevel}` as React.ElementType;
+  return (
+    <div
+      className={mergeClassNames(
+        'field-section-header',
+        `field-section-header-${align}`,
+        action && 'field-section-header-has-action',
+        className
+      )}
+      {...props}
+    >
+      <div className="field-section-header-content">
+        {eyebrow && <span className="field-section-eyebrow">{eyebrow}</span>}
+        <HeadingTag className="field-section-title">{title}</HeadingTag>
+        {description && <p className="field-section-description">{description}</p>}
+        {children}
+      </div>
+      {action && <div className="field-section-header-action">{action}</div>}
+    </div>
   );
 };

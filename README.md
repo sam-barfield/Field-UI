@@ -2,6 +2,10 @@
 
 **Field** is a React design system for dashboards, consoles and developer tools, and for the customer-facing websites around them: accessible components, a token-driven theme engine with light-mode parity and website theme presets, and documentation generated from the source.
 
+My intentions for this project are to explore the capabilities of LLMs like Opus 5.5 for myself, and to kill two birds with one stone - make a useful design system I can use for internal projects. Packages are hosted on my personal GitLab instance:
+
+https://gitlab.xencloud.io/sam.barfield/field-ui
+
 ```tsx
 import '@sam.barfield/field-react/styles.css';
 import { ThemeProvider, ToastProvider, Button } from '@sam.barfield/field-react';

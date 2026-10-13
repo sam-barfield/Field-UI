@@ -5,7 +5,16 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, ImageOff, Pause, Play, X } from 'lucide-react';
 import { mergeClassNames } from '../utils/polymorphic.js';
 import { useControllableState, useDismissableLayer, useFocusTrap, usePrefersReducedMotion, useScrollLock } from '../utils/hooks.js';
-import { applyResponsive, breakpoints, createResponsiveAccumulator, resolveSpace, type Responsive, type SpaceValue } from '../utils/responsive.js';
+import {
+  applyResponsive,
+  BREAKPOINT_RANGES,
+  breakpoints,
+  createResponsiveAccumulator,
+  resolvePerRange,
+  resolveSpace,
+  type Responsive,
+  type SpaceValue,
+} from '../utils/responsive.js';
 import { fetchPriorityProps } from '../utils/dom.js';
 import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js';
 import { Button } from './Button.js';
@@ -333,7 +342,7 @@ export const Gallery: React.FC<GalleryProps> = ({
 
   // Preview: every tile renders, and CSS hides the ones past each breakpoint's count, so a
   // responsive `previewCount` needs no JS media queries (and server and client markup match).
-  const preview = previewCount !== undefined && !isExpanded ? resolvePerRange(previewCount) : undefined;
+  const preview = previewCount !== undefined && !isExpanded ? resolvePerRange(previewCount, Infinity) : undefined;
   const hiddenRanges = (i: number) =>
     preview ? RANGE_KEYS.filter(range => i >= preview[range]).map(range => `field-gallery-hidden-${range}`) : [];
   // The "Show all" button is hidden in the ranges where every photo already shows.
@@ -414,25 +423,12 @@ export const Gallery: React.FC<GalleryProps> = ({
   );
 };
 
-/** Breakpoint ranges (each up to the next breakpoint), matching the `.field-gallery-hidden-*` rules in field.css. */
-const RANGE_KEYS = ['base', 'sm', 'md', 'lg', 'xl'] as const;
-type RangeKey = (typeof RANGE_KEYS)[number];
-
-/** Resolves a responsive number to a value per range, mobile first; unset ranges inherit. */
-function resolvePerRange(value: Responsive<number>): Record<RangeKey, number> {
-  const values = (typeof value === 'number' ? { base: value } : value) as Partial<Record<RangeKey, number>>;
-  const out = {} as Record<RangeKey, number>;
-  let current = Infinity;
-  for (const range of RANGE_KEYS) {
-    if (values[range] !== undefined) current = values[range] as number;
-    out[range] = current;
-  }
-  return out;
-}
+/** Breakpoint ranges, matching the `.field-gallery-hidden-*` rules in field.css. */
+const RANGE_KEYS = BREAKPOINT_RANGES;
 
 /** A `sizes` attribute for gallery tiles: the viewport width divided by the columns at each breakpoint. */
 function gallerySizes(columns: Responsive<number>): string {
-  const perRange = resolvePerRange(columns);
+  const perRange = resolvePerRange(columns, Infinity);
   const width = (n: number) => `${Math.ceil(100 / (Number.isFinite(n) ? n : 2))}vw`;
   const parts: string[] = [];
   // Only the breakpoints where the column count changes, largest first.

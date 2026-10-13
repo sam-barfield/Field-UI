@@ -7,7 +7,8 @@ import { getElementRef, mergeRefs } from '../utils/hooks.js';
 import { ThemeScope, useThemeSafe } from '../theme/ThemeProvider.js';
 import { Container, type ContainerProps } from './Layout.js';
 import { Button, type ButtonElement, type ButtonProps } from './Button.js';
-import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
+import { Heading, Text, type HeadingProps } from './Typography.js';
+import { applyResponsive, BREAKPOINT_RANGES, createResponsiveAccumulator, resolvePerRange, type Responsive } from '../utils/responsive.js';
 import { fetchPriorityProps } from '../utils/dom.js';
 
 /* --- SURFACE (shared by Section and Footer) --- */
@@ -313,11 +314,13 @@ export interface ProseProps extends React.HTMLAttributes<HTMLElement> {
   maxWidth?: string;
   /**
    * Collapse long text to its first `previewParagraphs` paragraphs with a "Read more" toggle. `true`
-   * collapses on phones only (below 640px); `'always'` at every width. The toggle only appears when there
-   * is more to show. When set, the content and toggle render inside a `div.field-prose-collapsible`
-   * wrapper, which receives `className` and `style`.
+   * collapses on phones only (below 640px); `'always'` at every width; a breakpoint object chooses per
+   * breakpoint, e.g. `{ base: true, lg: false }` collapses below 1024px. It is CSS only, so the first
+   * paint is already right. The toggle only appears where the text collapses and there is more to show.
+   * When set, the content and toggle render inside a `div.field-prose-collapsible` wrapper, which
+   * receives `className` and `style`.
    */
-  collapsible?: boolean | 'always';
+  collapsible?: boolean | 'always' | Responsive<boolean>;
   /** Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`. */
   previewParagraphs?: number;
   /** Label for expand button. Default `Read more`. */
@@ -360,6 +363,18 @@ export const Prose: React.FC<ProseProps> = ({
     applyResponsive<ProseSize>(acc, 'plh', 'lineHeight', size, s => PROSE_SIZES[s].lineHeight, 'base');
   }
   const preview = Math.min(10, Math.max(1, Math.round(previewParagraphs)));
+  // The breakpoint ranges the text collapses in (field.css: .field-prose-collapse-<range>).
+  const collapsePerRange =
+    collapsible === 'always' || collapsible === true || !collapsible ? undefined : resolvePerRange(collapsible, false);
+  const collapseRanges: readonly string[] =
+    collapsible === 'always'
+      ? BREAKPOINT_RANGES
+      : collapsible === true
+      ? ['base']
+      : collapsePerRange
+      ? BREAKPOINT_RANGES.filter(range => collapsePerRange[range])
+      : [];
+  const isCollapsible = collapseRanges.length > 0;
 
   // When collapsible, the toggle sits beside the content inside a wrapper (which takes
   // `className` and `style`), so the content element can take `dangerouslySetInnerHTML`
@@ -367,17 +382,17 @@ export const Prose: React.FC<ProseProps> = ({
   // (field.css: .field-prose-preview-N), so it can be limited to phones without JS.
   const content = (
     <Tag
-      id={collapsible ? contentId : id}
+      id={isCollapsible ? contentId : id}
       className={mergeClassNames(
         'field-prose',
         isStringSize && size !== 'base' && `field-prose-${size}`,
         ...acc.classes,
-        !collapsible && className
+        !isCollapsible && className
       )}
       style={{
         maxWidth: maxWidth === 'none' ? 'none' : maxWidth,
         ...acc.style,
-        ...(!collapsible && style),
+        ...(!isCollapsible && style),
       }}
       {...props}
     >
@@ -385,14 +400,14 @@ export const Prose: React.FC<ProseProps> = ({
     </Tag>
   );
 
-  if (!collapsible) return content;
+  if (!isCollapsible) return content;
 
   return (
     <div
       className={mergeClassNames(
         'field-prose-collapsible',
         `field-prose-preview-${preview}`,
-        collapsible === 'always' ? 'field-prose-collapse-always' : 'field-prose-collapse-phone',
+        ...collapseRanges.map(range => `field-prose-collapse-${range}`),
         !expanded && 'field-prose-collapsed',
         className
       )}
@@ -609,8 +624,17 @@ export const Reveal: React.FC<RevealProps> = ({
 
 /* --- FLOATING BUTTON --- */
 export interface FloatingButtonProps extends ButtonProps {
-  /** On phones (below 640px), hide the label visually (it stays the accessible name) and show only the icon. */
+  /**
+   * On phones (below 640px), hide the label visually (it stays part of the accessible name) and show only
+   * the icon, plus `badge` when set.
+   */
   compactOnMobile?: boolean;
+  /**
+   * A count or short status after the label, styled like `Chip`'s count, e.g. the items in a basket. It stays
+   * visible when `compactOnMobile` hides the label, and is read after it ("Basket 3"), so word the label to
+   * suit. `0` is shown; pass `undefined` to hide it.
+   */
+  badge?: React.ReactNode;
 }
 
 /**
@@ -618,32 +642,62 @@ export interface FloatingButtonProps extends ButtonProps {
  * above it automatically. Use one per page; give it a `leftIcon` if you set `compactOnMobile`.
  *
  * @example
- * <FloatingButton href="/basket" leftIcon={<ShoppingBag size={18} />} compactOnMobile>
- *   Basket ({count})
+ * <FloatingButton href="/basket" leftIcon={<ShoppingBag size={18} />} badge={count} compactOnMobile>
+ *   Basket
  * </FloatingButton>
  */
 export const FloatingButton = React.forwardRef<ButtonElement, FloatingButtonProps>(
-  ({ compactOnMobile = false, variant = 'primary', size = 'xl', className = '', ...props }, ref) => (
-    <Button
-      ref={ref}
-      variant={variant}
-      size={size}
-      className={mergeClassNames('field-floating-button', compactOnMobile && 'field-floating-button-compact', className)}
-      {...props}
-    />
-  )
+  ({ compactOnMobile = false, badge, variant = 'primary', size = 'xl', className = '', asChild, children, ...props }, ref) => {
+    const hasBadge = badge !== undefined && badge !== null && badge !== false;
+    // The label text gets its own span so compact mode can hide it while the badge stays visible.
+    const wrapLabel = (label: React.ReactNode) => (
+      <>
+        <span className="field-floating-button-text">{label}</span>
+        {/* A space so the accessible name reads "Basket 3", not "Basket3" (collapsed by the flex label). */}
+        {hasBadge && ' '}
+        {hasBadge && <span className="field-floating-button-badge">{badge}</span>}
+      </>
+    );
+    const content =
+      asChild && React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<any>, {
+            children: wrapLabel((children as React.ReactElement<any>).props.children),
+          })
+        : wrapLabel(children);
+    return (
+      <Button
+        ref={ref}
+        variant={variant}
+        size={size}
+        asChild={asChild}
+        className={mergeClassNames(
+          'field-floating-button',
+          compactOnMobile && 'field-floating-button-compact',
+          hasBadge && 'field-floating-button-has-badge',
+          className
+        )}
+        {...props}
+      >
+        {content}
+      </Button>
+    );
+  }
 );
 FloatingButton.displayName = 'FloatingButton';
 
 /* --- SECTION HEADER --- */
 export interface SectionHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
-  /** Eyebrow / overline label displayed above the title. */
+  /** Eyebrow / overline label displayed above the title (rendered as `Text variant="overline"`). */
   eyebrow?: React.ReactNode;
-  /** Primary section title. */
+  /** Primary section title, rendered with `Heading`, so it uses the theme's display font, weights and tracking. */
   title: React.ReactNode;
   /** Heading element level. Default `2`. */
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
-  /** Optional lead or description paragraph. */
+  /** `Heading` display size of the title. Default `sm`; pass `false` for the size `headingLevel` implies (levels 5 and 6 use level 4's). */
+  display?: HeadingProps['display'] | false;
+  /** `id` of the heading element, e.g. for the section's `aria-labelledby`. Other props go to the wrapper. */
+  headingId?: string;
+  /** Optional lead or description paragraph (`Text size="lg" tone="secondary" measure`). */
   description?: React.ReactNode;
   /** Call to action button or link, placed beside the header on wide screens and below on mobile. */
   action?: React.ReactNode;
@@ -653,45 +707,67 @@ export interface SectionHeaderProps extends Omit<React.HTMLAttributes<HTMLDivEle
 
 /**
  * Responsive header block for section introductions: eyebrow, title, lead text, and optional action.
- * On mobile, actions wrap underneath the title and description cleanly.
+ * On mobile, actions wrap underneath the title and description cleanly. It has no outer margin, so
+ * space it with the parent's `gap` (e.g. a `Stack`).
  *
  * @example
- * <SectionHeader
- *   eyebrow="Collections"
- *   title="Our Aircraft Archive"
- *   description="Explore photographic history from RAF Snaith."
- *   action={<Button variant="outline">View all</Button>}
- * />
+ * <Section aria-labelledby="archive-title">
+ *   <Stack gap="$8">
+ *     <SectionHeader
+ *       eyebrow="Collections"
+ *       title="Our Aircraft Archive"
+ *       headingId="archive-title"
+ *       description="Explore photographic history from RAF Snaith."
+ *       action={<Button variant="outline">View all</Button>}
+ *     />
+ *     …
+ *   </Stack>
+ * </Section>
  */
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
   eyebrow,
   title,
   headingLevel = 2,
+  display = 'sm',
+  headingId,
   description,
   action,
   align = 'start',
   className = '',
   children,
   ...props
-}) => {
-  const HeadingTag = `h${headingLevel}` as React.ElementType;
-  return (
-    <div
-      className={mergeClassNames(
-        'field-section-header',
-        `field-section-header-${align}`,
-        action && 'field-section-header-has-action',
-        className
+}) => (
+  <div
+    className={mergeClassNames(
+      'field-section-header',
+      `field-section-header-${align}`,
+      action && 'field-section-header-has-action',
+      className
+    )}
+    {...props}
+  >
+    <div className="field-section-header-content">
+      {eyebrow && (
+        <Text as="span" variant="overline" className="field-section-eyebrow">
+          {eyebrow}
+        </Text>
       )}
-      {...props}
-    >
-      <div className="field-section-header-content">
-        {eyebrow && <span className="field-section-eyebrow">{eyebrow}</span>}
-        <HeadingTag className="field-section-title">{title}</HeadingTag>
-        {description && <p className="field-section-description">{description}</p>}
-        {children}
-      </div>
-      {action && <div className="field-section-header-action">{action}</div>}
+      <Heading
+        id={headingId}
+        level={Math.min(headingLevel, 4) as HeadingProps['level']}
+        as={`h${headingLevel}`}
+        display={display || undefined}
+        className="field-section-title"
+      >
+        {title}
+      </Heading>
+      {description && (
+        <Text size="lg" tone="secondary" measure className="field-section-description">
+          {description}
+        </Text>
+      )}
+      {children}
     </div>
-  );
-};
+    {action && <div className="field-section-header-action">{action}</div>}
+  </div>
+);

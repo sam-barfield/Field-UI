@@ -15,12 +15,12 @@ const resolveCardPadding = (p: CardPadding) => {
   return 'var(--field-space-5)';
 };
 
-export interface CardProps extends React.HTMLAttributes<HTMLElement> {
-  /** `interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set. */
+export interface CardBaseProps {
+  /** `interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set or the card renders a `<button>`. */
   variant?: 'default' | 'interactive' | 'inset';
   /** Inner padding. `none` is useful for media or tables that run edge to edge. Default `md`. Accepts a breakpoint object. */
   padding?: Responsive<CardPadding>;
-  /** Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom. */
+  /** Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom. Works with `href` and `as="button"`. */
   fill?: boolean;
   /** Makes the whole card a link (renders an `<a>`, or router link). Do not nest other links or buttons inside. */
   href?: string;
@@ -28,15 +28,27 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
   target?: string;
   /** Link rel, used with `href`. */
   rel?: string;
-  /** Element or component to render, e.g. `as="article"` or a router link with `href`. */
+  /**
+   * Element or component to render, e.g. `as="article"`, a router link with `href`, or `as="button"` for a
+   * selectable card (it gets `type="button"` and loses the browser's button styles).
+   */
   as?: React.ElementType;
   children: React.ReactNode;
 }
 
 /**
+ * Element attributes for every element a card can render: a `<div>` / `<article>`, an `<a>` (with `href`)
+ * or a `<button>` (`as="button"`), so `type`, `disabled`, `aria-pressed` and `download` type-check.
+ */
+export type CardProps = CardBaseProps &
+  Omit<React.HTMLAttributes<HTMLElement>, keyof CardBaseProps> &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof CardBaseProps> &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof CardBaseProps>;
+
+/**
  * A raised surface for grouping related content. Compose with `CardHeader`,
  * `CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make
- * the whole card a link.
+ * the whole card a link, or `as="button"` to make it a button.
  *
  * @example
  * <Card fill>
@@ -45,11 +57,13 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
  *   <CardFooter>…</CardFooter>
  * </Card>
  * <Card href="/pricing"><Heading level={3}>Pricing</Heading></Card>
+ * <Card as="button" aria-pressed={selected} onClick={select}>Album</Card>
  */
 export const Card = forwardRef<HTMLElement, CardProps>(
-  ({ variant, padding = 'md', fill = false, href, as, children, className = '', style, ...props }, ref) => {
+  ({ variant, padding = 'md', fill = false, href, as, type, children, className = '', style, ...props }, ref) => {
     const Tag: React.ElementType = useResolvedTag(as, href, 'div');
-    const resolvedVariant = variant ?? (href ? 'interactive' : 'default');
+    const isButton = Tag === 'button';
+    const resolvedVariant = variant ?? (href || isButton ? 'interactive' : 'default');
 
     const acc = createResponsiveAccumulator();
     const isStringPadding = typeof padding === 'string';
@@ -61,12 +75,14 @@ export const Card = forwardRef<HTMLElement, CardProps>(
       <Tag
         ref={ref}
         href={href}
+        type={isButton ? type ?? 'button' : type}
         className={mergeClassNames(
           'field-card',
           resolvedVariant === 'interactive' && 'field-card-interactive',
           resolvedVariant === 'inset' && 'field-card-inset',
-          fill && 'field-card-fill',
           href && 'field-card-link',
+          isButton && 'field-card-button',
+          fill && 'field-card-fill',
           isStringPadding && padding !== 'md' && `field-card-padding-${padding}`,
           ...acc.classes,
           className

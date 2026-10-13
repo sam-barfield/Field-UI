@@ -4,7 +4,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { ChevronRight, Check, Folder, File } from 'lucide-react';
 import { useControllableState } from '../utils/hooks.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
-import { applyResponsive, createResponsiveAccumulator, type Responsive } from '../utils/responsive.js';
+import { applyResponsive, BREAKPOINT_RANGES, createResponsiveAccumulator, resolvePerRange, type Responsive } from '../utils/responsive.js';
 
 /* --- EmptyState --- */
 export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
@@ -363,6 +363,12 @@ export interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
   markerSize?: 'sm' | 'md' | 'lg' | number;
   /** Where the timestamp renders: `inline` (beside the title), `top` (above the title) or `left` (a column left of the rail). Default `inline`. */
   timestampPosition?: 'inline' | 'top' | 'left';
+  /**
+   * `ring` (default): an outlined marker in the status colour. `solid`: filled with the status colour, with
+   * the icon in its contrast colour (`--field-timeline-marker-icon-color` overrides it). Use `markerSize="lg"`
+   * for icons.
+   */
+  markerVariant?: 'ring' | 'solid';
   className?: string;
 }
 
@@ -373,8 +379,8 @@ const TIMELINE_MARKER_SIZES = { sm: '10px', md: '16px', lg: '28px' } as const;
  *
  * Restyle it with CSS variables on the list (or any ancestor): `--field-timeline-marker-size`,
  * `-marker-border-width`, `-marker-color` (overrides every status), `-marker-bg`, `-rail-width`,
- * `-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight` and
- * `-time-width` (the `left` column).
+ * `-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight`,
+ * `-time-width` (the `left` column) and `-marker-icon-color` (`markerVariant="solid"`).
  *
  * @example
  * <Timeline items={[{ id: '1', title: 'Deployed v2.4.0', timestamp: '2m ago', dateTime: '2026-10-12T09:30', status: 'success' }]} />
@@ -383,6 +389,7 @@ export const Timeline: React.FC<TimelineProps> = ({
   items,
   markerSize,
   timestampPosition = 'inline',
+  markerVariant = 'ring',
   className = '',
   style,
   ...props
@@ -395,7 +402,12 @@ export const Timeline: React.FC<TimelineProps> = ({
       : TIMELINE_MARKER_SIZES[markerSize];
   return (
     <ol
-      className={mergeClassNames('field-timeline', `field-timeline-time-${timestampPosition}`, className)}
+      className={mergeClassNames(
+        'field-timeline',
+        `field-timeline-time-${timestampPosition}`,
+        markerVariant === 'solid' && 'field-timeline-marker-solid',
+        className
+      )}
       style={{ ...(markerVar ? { '--field-timeline-marker-size': markerVar } : {}), ...style } as React.CSSProperties}
       {...props}
     >
@@ -465,7 +477,10 @@ export interface DescriptionListProps extends React.HTMLAttributes<HTMLDListElem
   columns?: Responsive<number>;
   /** Visual density. Default `default`. */
   density?: 'default' | 'compact';
-  /** Show hairline divider borders between items. Default `false`. */
+  /**
+   * Draw hairlines between rows. With several columns the first row has no line above it at any
+   * breakpoint (supported up to 6 columns). Default `false`.
+   */
   divided?: boolean;
   className?: string;
 }
@@ -490,6 +505,12 @@ export const DescriptionList: React.FC<DescriptionListProps> = ({
 }) => {
   const acc = createResponsiveAccumulator();
   applyResponsive(acc, 'gtc', 'gridTemplateColumns', columns, n => `repeat(${n}, minmax(0, 1fr))`, 1);
+  // Lines go above every item but the first row, whose length is the column count in each
+  // breakpoint range (field.css: .field-description-list-cols-<range>-<n>).
+  const perRange = divided ? resolvePerRange(columns, 1) : undefined;
+  const rowClasses = perRange
+    ? BREAKPOINT_RANGES.map(range => `field-description-list-cols-${range}-${Math.min(6, Math.max(1, Math.round(perRange[range])))}`)
+    : [];
 
   return (
     <dl
@@ -497,6 +518,7 @@ export const DescriptionList: React.FC<DescriptionListProps> = ({
         'field-description-list',
         density === 'compact' && 'field-description-list-compact',
         divided && 'field-description-list-divided',
+        ...rowClasses,
         ...acc.classes,
         className
       )}

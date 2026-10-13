@@ -122,7 +122,7 @@ export const componentPages: ComponentPageDef[] = [
     whenToUse: [
       'Filtering galleries, tables, or search views by tags, categories, or status values.',
       'Showing count badges next to category labels.',
-      'Use ChipGroup with scroll={true} so long filter lists scroll horizontally on mobile without excessive page height.',
+      'Use ChipGroup with scroll={true} so long filter lists scroll horizontally on mobile without excessive page height; scroll={{ base: true, md: false }} scrolls on phones and wraps from 768px.',
       'Chip heights match Button (sm 30px, md 36px, lg 44px), so chips and buttons line up in a toolbar.',
     ],
     whenNotToUse: [
@@ -308,7 +308,7 @@ export const componentPages: ComponentPageDef[] = [
       'hideBelow / hideFrom show content only on larger or smaller screens.',
       'Alignment values are start / center / end on Flex, Stack and Grid (flex-start / flex-end also work).',
       'Layout props render CSS variables plus a class, not inline properties, so a class of yours can override them.',
-      'Divided splits one card or panel into parts separated by hairlines, stacked or side by side (direction accepts a breakpoint object).',
+      'Divided splits one card or panel into parts separated by hairlines, stacked or side by side. direction and space accept breakpoint objects; columns (e.g. "3fr 2fr") sets the widths while side by side.',
     ],
     related: ['card', 'section', 'styling-guide'],
   },
@@ -321,11 +321,12 @@ export const componentPages: ComponentPageDef[] = [
     whenToUse: [
       'Grouping a form section, a chart, or a summary on a dashboard.',
       'href makes the whole card a link with hover elevation (the ThemeProvider linkComponent routes internal paths).',
-      'fill makes cards in a grid row equal height with their footers pinned to the bottom; padding accepts a breakpoint object to shrink on phones.',
+      'fill makes cards in a grid row equal height with their footers pinned to the bottom (link and button cards too); padding accepts a breakpoint object to shrink on phones.',
+      'as="button" makes a selectable card (e.g. an album picker): it gets type="button", loses the browser\'s button styles, and aria-pressed={true} highlights it.',
       'variant="inset" for a sunken area inside another surface.',
     ],
     whenNotToUse: ['Link cards that also contain buttons or other links: nested interactive elements are invalid. Put a link in the card title instead.'],
-    accessibility: ['A card with href renders an <a>, so it is focusable and opens with Enter. Avoid role="link" with onClick, which needs its own keyboard handling.'],
+    accessibility: ['A card with href renders an <a>, so it is focusable and opens with Enter. Avoid role="link" with onClick, which needs its own keyboard handling; use as="button" for a card that runs an action.'],
     related: ['metrics', 'layout'],
   },
 
@@ -338,12 +339,12 @@ export const componentPages: ComponentPageDef[] = [
     api: ['Section', 'SectionHeader'],
     whenToUse: [
       'Every top-level band of a marketing page: hero, features, testimonials, call to action.',
-      'Use SectionHeader for a consistent eyebrow, title, description, and action layout across sections.',
+      'Use SectionHeader for a consistent eyebrow, title, description, and action layout across sections. Its title is a Heading (display="sm" by default) in the theme\'s display font; headingId gives the heading an id for aria-labelledby. It has no outer margin, so space it with the parent Stack\'s gap.',
       'Use underNavbar on a hero Section to slide seamlessly under a sticky transparent navbar without content overlap.',
       'Alternate tone="default" and tone="muted" to separate sections; use accent or inverse sparingly for emphasis, typically one accent call-to-action band per page.',
       'tone="accent" text and buttons use accent.contrast on the brand fill; a primary Button there is inverted (contrast fill, brand-coloured text).',
       'Give sections an id for in-page navigation: anchors stop below a sticky Navbar automatically (--field-scroll-offset is derived from the --field-navbar-height it publishes).',
-      'backgroundImage renders a real <img>: pass { src, srcSet, sizes, priority } on the hero so the right file loads first.',
+      'backgroundImage renders a real <img>: pass { src, srcSet, sizes, priority } on the hero so the right file loads first. The photo and overlay sit behind the content without repositioning it, so absolutely positioned decoration is placed against the section, inside the container or not.',
     ],
     whenNotToUse: ['Grouping content inside an app screen (use Card or Stack).'],
     accessibility: [
@@ -434,7 +435,7 @@ export const componentPages: ComponentPageDef[] = [
     api: ['Prose'],
     whenToUse: [
       'About pages, blog posts, privacy policies and terms rendered from Markdown or a CMS.',
-      'collapsible shortens long text on phones to its first previewParagraphs paragraphs with a "Read more" toggle; collapsible="always" at every width.',
+      'collapsible shortens long text on phones to its first previewParagraphs paragraphs with a "Read more" toggle; collapsible="always" at every width; a breakpoint object such as collapsible={{ base: true, lg: false }} collapses below 1024px. It is CSS only, so the first paint is already collapsed.',
       'size accepts a breakpoint object, e.g. size={{ base: "base", lg: "lg" }}.',
     ],
     accessibility: [
@@ -469,7 +470,7 @@ export const componentPages: ComponentPageDef[] = [
     whenToUse: [
       'SkipLink first in every page layout, pointing at your <main id="main">.',
       'BackToTop on long pages such as menus and articles. FooterBottom leaves room for it automatically, so right-aligned legal links stay clickable.',
-      'FloatingButton for one persistent action (a basket, "Book now"); BackToTop moves up above it. compactOnMobile keeps just the icon on phones.',
+      'FloatingButton for one persistent action (a basket, "Book now"); BackToTop moves up above it. compactOnMobile keeps just the icon on phones; badge (e.g. a basket count) stays visible when compact.',
       'Reveal for subtle entrances on marketing pages; avoid it on app screens. Reveal asChild animates a card directly, so equal-height grids keep working.',
     ],
     accessibility: ['Reveal is skipped for prefers-reduced-motion, and never hides content that is already on screen or rendered without JavaScript.'],
@@ -615,7 +616,7 @@ export const componentPages: ComponentPageDef[] = [
     api: ['Timeline'],
     whenToUse: [
       'timestampPosition: inline (beside the title), top (above it) or left (a date column). Give items a dateTime for a machine-readable <time>.',
-      'status colours the marker (accent for brand milestones); markerSize="lg" fits an icon.',
+      'status colours the marker (accent for brand milestones); markerSize="lg" fits an icon; markerVariant="solid" fills markers with the status colour and draws the icon in the contrast colour.',
       'Restyle the rail, markers, gaps and timestamps with the --field-timeline-* variables instead of overriding classes.',
     ],
     related: ['terminal'],
@@ -656,7 +657,7 @@ export const componentPages: ComponentPageDef[] = [
     whenToUse: [
       'Displaying metadata, system specifications, flight logs, or entity details.',
       'Choosing between default and compact densities for administrative screens.',
-      'Configuring responsive grid columns (1, 2, 3, or 4) with optional hairline dividers.',
+      'Configuring responsive grid columns (1, 2, 3, or 4) with optional hairline dividers between rows (no line above the first row in any column).',
     ],
     whenNotToUse: [
       'Tabular data with multiple rows and sortable columns - use Table.',

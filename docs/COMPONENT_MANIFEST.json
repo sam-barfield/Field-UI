@@ -1,7 +1,7 @@
 {
   "name": "Field Design System Component Manifest",
   "package": "@sam.barfield/field-react",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "generatedBy": "scripts/generate-manifest.mjs - do not edit by hand",
   "components": {
     "Accordion": {
@@ -458,12 +458,12 @@
     "Card": {
       "category": "Data Display",
       "source": "packages/react/src/components/Card.tsx",
-      "description": "A raised surface for grouping related content. Compose with `CardHeader`,\n`CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make\nthe whole card a link.",
+      "description": "A raised surface for grouping related content. Compose with `CardHeader`,\n`CardContent` and `CardFooter`. Set `href` (and `as` for a router link) to make\nthe whole card a link, or `as=\"button\"` to make it a button.",
       "props": {
         "variant": {
           "type": "\"inset\" | \"default\" | \"interactive\"",
           "required": false,
-          "description": "`interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set."
+          "description": "`interactive` adds hover elevation for clickable cards; `inset` gives a sunken background. Defaults to `interactive` when `href` is set or the card renders a `<button>`."
         },
         "padding": {
           "type": "Responsive<CardPadding>",
@@ -475,7 +475,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom."
+          "description": "Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom. Works with `href` and `as=\"button\"`."
         },
         "href": {
           "type": "string",
@@ -495,7 +495,7 @@
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
-          "description": "Element or component to render, e.g. `as=\"article\"` or a router link with `href`."
+          "description": "Element or component to render, e.g. `as=\"article\"`, a router link with `href`, or `as=\"button\"` for a\nselectable card (it gets `type=\"button\"` and loses the browser's button styles)."
         },
         "children": {
           "type": "ReactNode",
@@ -503,11 +503,8 @@
           "description": "Content to render."
         }
       },
-      "inherits": [
-        "HTMLAttributes<HTMLElement>"
-      ],
       "examples": [
-        "<Card fill>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n  <CardFooter>…</CardFooter>\n</Card>\n<Card href=\"/pricing\"><Heading level={3}>Pricing</Heading></Card>"
+        "<Card fill>\n  <CardHeader><Heading level={4}>Usage</Heading></CardHeader>\n  <CardContent>…</CardContent>\n  <CardFooter>…</CardFooter>\n</Card>\n<Card href=\"/pricing\"><Heading level={3}>Pricing</Heading></Card>\n<Card as=\"button\" aria-pressed={selected} onClick={select}>Album</Card>"
       ]
     },
     "CardContent": {
@@ -748,10 +745,10 @@
           "description": "Content to render."
         },
         "scroll": {
-          "type": "boolean",
+          "type": "Responsive<boolean>",
           "required": false,
           "default": "true",
-          "description": "Allow horizontal touch scrolling on mobile without wrapping. Default `true`."
+          "description": "Keep the chips on one row that scrolls sideways (`true`) or wrap them onto more rows (`false`).\nAccepts a breakpoint object, e.g. `{ base: true, md: false }` scrolls on phones and wraps from 768px.\nDefault `true`."
         },
         "gap": {
           "type": "Responsive<SpaceValue>",
@@ -1535,7 +1532,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Show hairline divider borders between items. Default `false`."
+          "description": "Draw hairlines between rows. With several columns the first row has no line above it at any\nbreakpoint (supported up to 6 columns). Default `false`."
         },
         "className": {
           "type": "string",
@@ -1584,12 +1581,17 @@
           "type": "Responsive<\"column\" | \"row\">",
           "required": false,
           "default": "'column'",
-          "description": "`column` (default) stacks the parts with horizontal lines between them; `row` puts them side by\nside, equal width, with vertical lines. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`."
+          "description": "`column` (default) stacks the parts with horizontal lines between them; `row` puts them side by\nside (equal width unless `columns` is set), with vertical lines. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`."
         },
         "space": {
-          "type": "SpaceValue",
+          "type": "Responsive<SpaceValue>",
           "required": false,
-          "description": "Space on each side of a line (number = px, `$6` = spacing token). Default `$6` (24px)."
+          "description": "Space on each side of a line (number = px, `$6` = spacing token). Default `$6` (24px). Accepts a\nbreakpoint object, e.g. `{ base: '$6', md: '$8' }` for 24px stacked and 32px side by side."
+        },
+        "columns": {
+          "type": "Responsive<string>",
+          "required": false,
+          "description": "Column widths while the parts are side by side, as a `grid-template-columns` value, e.g.\n`'3fr 2fr'` for a 60/40 split. Default equal widths. Ignored while stacked; accepts a breakpoint object."
         },
         "children": {
           "type": "ReactNode",
@@ -2069,7 +2071,12 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "On phones (below 640px), hide the label visually (it stays the accessible name) and show only the icon."
+          "description": "On phones (below 640px), hide the label visually (it stays part of the accessible name) and show only\nthe icon, plus `badge` when set."
+        },
+        "badge": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "A count or short status after the label, styled like `Chip`'s count, e.g. the items in a basket. It stays\nvisible when `compactOnMobile` hides the label, and is read after it (\"Basket 3\"), so word the label to\nsuit. `0` is shown; pass `undefined` to hide it."
         },
         "variant": {
           "type": "ButtonVariant",
@@ -2134,7 +2141,7 @@
         }
       },
       "examples": [
-        "<FloatingButton href=\"/basket\" leftIcon={<ShoppingBag size={18} />} compactOnMobile>\n  Basket ({count})\n</FloatingButton>"
+        "<FloatingButton href=\"/basket\" leftIcon={<ShoppingBag size={18} />} badge={count} compactOnMobile>\n  Basket\n</FloatingButton>"
       ]
     },
     "Footer": {
@@ -3901,10 +3908,10 @@
           "description": "Max line length. Default `68ch`; pass `none` to fill the container."
         },
         "collapsible": {
-          "type": "boolean | \"always\"",
+          "type": "\"always\" | Responsive<boolean>",
           "required": false,
           "default": "false",
-          "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width. The toggle only appears when there\nis more to show. When set, the content and toggle render inside a `div.field-prose-collapsible`\nwrapper, which receives `className` and `style`."
+          "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width; a breakpoint object chooses per\nbreakpoint, e.g. `{ base: true, lg: false }` collapses below 1024px. It is CSS only, so the first\npaint is already right. The toggle only appears where the text collapses and there is more to show.\nWhen set, the content and toggle render inside a `div.field-prose-collapsible` wrapper, which\nreceives `className` and `style`."
         },
         "previewParagraphs": {
           "type": "number",
@@ -4133,17 +4140,17 @@
     "SectionHeader": {
       "category": "Website",
       "source": "packages/react/src/components/Website.tsx",
-      "description": "Responsive header block for section introductions: eyebrow, title, lead text, and optional action.\nOn mobile, actions wrap underneath the title and description cleanly.",
+      "description": "Responsive header block for section introductions: eyebrow, title, lead text, and optional action.\nOn mobile, actions wrap underneath the title and description cleanly. It has no outer margin, so\nspace it with the parent's `gap` (e.g. a `Stack`).",
       "props": {
         "eyebrow": {
           "type": "ReactNode",
           "required": false,
-          "description": "Eyebrow / overline label displayed above the title."
+          "description": "Eyebrow / overline label displayed above the title (rendered as `Text variant=\"overline\"`)."
         },
         "title": {
           "type": "ReactNode",
           "required": true,
-          "description": "Primary section title."
+          "description": "Primary section title, rendered with `Heading`, so it uses the theme's display font, weights and tracking."
         },
         "headingLevel": {
           "type": "1 | 2 | 3 | 4 | 5 | 6",
@@ -4151,10 +4158,21 @@
           "default": "2",
           "description": "Heading element level. Default `2`."
         },
+        "display": {
+          "type": "false | \"sm\" | \"md\" | \"lg\" | \"xl\"",
+          "required": false,
+          "default": "'sm'",
+          "description": "`Heading` display size of the title. Default `sm`; pass `false` for the size `headingLevel` implies (levels 5 and 6 use level 4's)."
+        },
+        "headingId": {
+          "type": "string",
+          "required": false,
+          "description": "`id` of the heading element, e.g. for the section's `aria-labelledby`. Other props go to the wrapper."
+        },
         "description": {
           "type": "ReactNode",
           "required": false,
-          "description": "Optional lead or description paragraph."
+          "description": "Optional lead or description paragraph (`Text size=\"lg\" tone=\"secondary\" measure`)."
         },
         "action": {
           "type": "ReactNode",
@@ -4172,7 +4190,7 @@
         "Omit<HTMLAttributes<HTMLDivElement>, 'title'>"
       ],
       "examples": [
-        "<SectionHeader\n  eyebrow=\"Collections\"\n  title=\"Our Aircraft Archive\"\n  description=\"Explore photographic history from RAF Snaith.\"\n  action={<Button variant=\"outline\">View all</Button>}\n/>"
+        "<Section aria-labelledby=\"archive-title\">\n  <Stack gap=\"$8\">\n    <SectionHeader\n      eyebrow=\"Collections\"\n      title=\"Our Aircraft Archive\"\n      headingId=\"archive-title\"\n      description=\"Explore photographic history from RAF Snaith.\"\n      action={<Button variant=\"outline\">View all</Button>}\n    />\n    …\n  </Stack>\n</Section>"
       ]
     },
     "SegmentedControl": {
@@ -6076,7 +6094,7 @@
     "Timeline": {
       "category": "Navigation",
       "source": "packages/react/src/components/DataDisplay.tsx",
-      "description": "A vertical feed of events (deploys, audit logs, activity, history milestones).\n\nRestyle it with CSS variables on the list (or any ancestor): `--field-timeline-marker-size`,\n`-marker-border-width`, `-marker-color` (overrides every status), `-marker-bg`, `-rail-width`,\n`-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight` and\n`-time-width` (the `left` column).",
+      "description": "A vertical feed of events (deploys, audit logs, activity, history milestones).\n\nRestyle it with CSS variables on the list (or any ancestor): `--field-timeline-marker-size`,\n`-marker-border-width`, `-marker-color` (overrides every status), `-marker-bg`, `-rail-width`,\n`-rail-color`, `-gap` (marker to content), `-item-gap`, `-time-color`, `-time-weight`,\n`-time-width` (the `left` column) and `-marker-icon-color` (`markerVariant=\"solid\"`).",
       "props": {
         "items": {
           "type": "TimelineEvent[]",
@@ -6093,6 +6111,12 @@
           "required": false,
           "default": "'inline'",
           "description": "Where the timestamp renders: `inline` (beside the title), `top` (above the title) or `left` (a column left of the rail). Default `inline`."
+        },
+        "markerVariant": {
+          "type": "\"solid\" | \"ring\"",
+          "required": false,
+          "default": "'ring'",
+          "description": "`ring` (default): an outlined marker in the status colour. `solid`: filled with the status colour, with\nthe icon in its contrast colour (`--field-timeline-marker-icon-color` overrides it). Use `markerSize=\"lg\"`\nfor icons."
         },
         "className": {
           "type": "string",

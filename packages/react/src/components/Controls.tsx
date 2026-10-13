@@ -1147,8 +1147,12 @@ Chip.displayName = 'Chip';
 /* --- CHIP GROUP (F20) --- */
 export interface ChipGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  /** Allow horizontal touch scrolling on mobile without wrapping. Default `true`. */
-  scroll?: boolean;
+  /**
+   * Keep the chips on one row that scrolls sideways (`true`) or wrap them onto more rows (`false`).
+   * Accepts a breakpoint object, e.g. `{ base: true, md: false }` scrolls on phones and wraps from 768px.
+   * Default `true`.
+   */
+  scroll?: Responsive<boolean>;
   /** Gap between chips: px number, CSS length or `$` spacing token; accepts a breakpoint object. Default `$2` (8px). */
   gap?: Responsive<SpaceValue>;
   className?: string;
@@ -1175,6 +1179,11 @@ export const ChipGroup: React.FC<ChipGroupProps> = ({
 }) => {
   const acc = createResponsiveAccumulator();
   applyResponsive(acc, 'gap', 'gap', gap, resolveSpace, '$2');
+  // Per breakpoint, the scroller class stays and only the wrapping changes (a wrapped row never overflows).
+  const isResponsiveScroll = typeof scroll === 'object' && scroll !== null;
+  if (isResponsiveScroll) {
+    applyResponsive(acc, 'fw', 'flexWrap', scroll, s => (s ? 'nowrap' : 'wrap'), true);
+  }
   const computedStyle = { ...acc.style, ...style } as React.CSSProperties;
 
   return (
@@ -1182,7 +1191,7 @@ export const ChipGroup: React.FC<ChipGroupProps> = ({
       role="group"
       className={mergeClassNames(
         'field-chip-group',
-        scroll && 'field-chip-group-scroll',
+        (isResponsiveScroll || scroll) && 'field-chip-group-scroll',
         ...acc.classes,
         className
       )}

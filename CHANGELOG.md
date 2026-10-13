@@ -2,6 +2,32 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [0.4.1] - 2026-10-13
+
+Fixes and additions from moving the RAF Snaith Museum site onto 0.4.0 (findings G1–G11).
+
+### Fixed
+- **Card `href` + `fill` pins the footer (G1).** The link rule no longer overrides `fill`'s flex layout, so a row of link cards with different text lengths has aligned footers. The same applies to `as="button"` cards.
+- **SectionHeader follows the theme (G2).** The title is a `Heading` (`display="sm"` by default, new `display` prop; `false` uses the level's size), so it uses `--field-font-display`, the theme's heading / display weights and tracking. The eyebrow is `Text variant="overline"` and the description `Text size="lg" tone="secondary" measure`. Its spacing matches a `Stack gap="$3"` of those parts (12px between them, 16px to the action, no extra space above the action on phones), and centred headers are no longer capped at 48rem (the description keeps its `measure`).
+- **DescriptionList `divided` with several columns (G4)** draws lines between rows only: the first item of each column no longer has a line above it, at every breakpoint (up to 6 columns).
+- **Section `backgroundImage` no longer repositions its children (G11).** The photo and overlay sit in negative layers of the section's own stacking context (`isolation: isolate`) instead of giving every child `position: relative; z-index: 2`, so absolutely positioned content inside the `Container` is placed against the section again.
+
+### Added
+- **SectionHeader `headingId` (G3)** puts an `id` on the heading for `aria-labelledby`.
+- **Prose `collapsible` accepts a breakpoint object (G5)**, e.g. `collapsible={{ base: true, lg: false }}` collapses below 1024px. It is CSS only, so the first paint is already collapsed (no `useMediaQuery`).
+- **ChipGroup `scroll` accepts a breakpoint object (G6)**, e.g. `scroll={{ base: true, md: false }}` scrolls on phones and wraps from 768px.
+- **FloatingButton `badge` (G7)**: a count styled like Chip's that stays visible when `compactOnMobile` hides the label (the compact button becomes a pill: icon + count).
+- **Divided (G8)**: `space` accepts a breakpoint object, and `columns` sets the widths while side by side (e.g. `columns="3fr 2fr"`; ignored while stacked, accepts a breakpoint object).
+- **Timeline `markerVariant="ring" | "solid"` (G9).** `solid` fills each marker with its status colour and draws the icon in the contrast colour (`--field-timeline-marker-icon-color` overrides it).
+- **Card `as="button"` (G10).** `CardProps` accepts button and anchor attributes (`type`, `disabled`, `aria-pressed`, `download` …); a `<button>` card gets `type="button"`, the `interactive` variant, and loses the browser's button font, colour, alignment and width. `aria-pressed="true"` highlights it.
+- `resolvePerRange` / `BREAKPOINT_RANGES` (internal helpers in `utils/responsive.ts`) shared by Gallery, DescriptionList, Prose and Divided.
+
+### Changed
+- **SectionHeader has no bottom margin (G3).** Space it with the parent's `gap` (e.g. a `Stack`), as other components do. To keep the old spacing, add `style={{ marginBottom: 'var(--field-space-8)' }}`.
+- Prose's internal `field-prose-collapse-phone` / `field-prose-collapse-always` classes are replaced by one `field-prose-collapse-<range>` class per breakpoint range it collapses in.
+- Showcase: new examples for link cards with `fill`, selectable button cards, responsive ChipGroup scrolling, Divided spacing and widths, Prose collapsing below a breakpoint and solid Timeline markers; the SectionHeader and FloatingButton examples use `headingId` and `badge`.
+- **Packages** are `0.4.1`; `@sam.barfield/field-react` depends on `@sam.barfield/field-tokens@^0.4.1`.
+
 ## [0.4.0] - 2026-10-12
 
 Fixes and additions from building and running a production website on Field (the RAF Snaith Museum site): every finding in its review (F1–F22) and its forced-reflow report. See **Breaking changes** before upgrading.

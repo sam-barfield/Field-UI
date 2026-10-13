@@ -23,6 +23,28 @@ export function resolveSpace(value: SpaceValue | undefined): string | undefined 
 
 const RESPONSIVE_KEYS = ['base', 'sm', 'md', 'lg', 'xl'] as const;
 
+/**
+ * Breakpoint ranges, each from its breakpoint up to the next one (`base` is below 640px). Range-scoped
+ * classes in field.css (e.g. `.field-gallery-hidden-md`) apply only inside their range.
+ */
+export const BREAKPOINT_RANGES = RESPONSIVE_KEYS;
+export type BreakpointRange = (typeof RESPONSIVE_KEYS)[number];
+
+/**
+ * Resolves a possibly-responsive value to one value per range, mobile first: each range inherits
+ * the nearest smaller one that is set, and ranges below the first set value get `fallback`.
+ */
+export function resolvePerRange<T>(value: Responsive<T>, fallback: T): Record<BreakpointRange, T> {
+  const values = (isResponsiveObject(value) ? value : { base: value }) as Partial<Record<BreakpointRange, T>>;
+  const out = {} as Record<BreakpointRange, T>;
+  let current = fallback;
+  for (const range of RESPONSIVE_KEYS) {
+    if (values[range] !== undefined) current = values[range] as T;
+    out[range] = current;
+  }
+  return out;
+}
+
 function isResponsiveObject<T>(value: Responsive<T> | undefined): boolean {
   return typeof value === 'object' && value !== null && RESPONSIVE_KEYS.some(k => k in (value as object));
 }
@@ -35,7 +57,7 @@ export interface ResponsiveAccumulator {
 
 export const createResponsiveAccumulator = (): ResponsiveAccumulator => ({ style: {}, classes: [] });
 
-const FIELD_R_KEYS = new Set(['ta', 'fd', 'ai', 'jc', 'fw', 'gap', 'p', 'gtc', 'cpv', 'cgap', 'psz', 'plh', 'dvr', 'gaf']);
+const FIELD_R_KEYS = new Set(['ta', 'fd', 'ai', 'jc', 'fw', 'gap', 'p', 'gtc', 'cpv', 'cgap', 'psz', 'plh', 'dvr', 'gaf', 'dvs']);
 
 /**
  * Applies a possibly-responsive prop: a single value becomes an inline style (or CSS variable for layout props); a

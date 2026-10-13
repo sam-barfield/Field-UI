@@ -4,8 +4,11 @@ import React from 'react';
 import { mergeClassNames } from '../utils/polymorphic.js';
 import {
   applyResponsive,
+  BREAKPOINT_RANGES,
+  resolvePerRange,
   resolveSpace,
   type Breakpoint,
+  type BreakpointRange,
   type Responsive,
   type ResponsiveAccumulator,
   type SpaceValue,
@@ -273,11 +276,19 @@ export const Container: React.FC<ContainerProps> = ({
 export interface DividedProps extends LayoutProps {
   /**
    * `column` (default) stacks the parts with horizontal lines between them; `row` puts them side by
-   * side, equal width, with vertical lines. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`.
+   * side (equal width unless `columns` is set), with vertical lines. Accepts a breakpoint object, e.g. `{ base: 'column', md: 'row' }`.
    */
   direction?: Responsive<'row' | 'column'>;
-  /** Space on each side of a line (number = px, `$6` = spacing token). Default `$6` (24px). */
-  space?: SpaceValue;
+  /**
+   * Space on each side of a line (number = px, `$6` = spacing token). Default `$6` (24px). Accepts a
+   * breakpoint object, e.g. `{ base: '$6', md: '$8' }` for 24px stacked and 32px side by side.
+   */
+  space?: Responsive<SpaceValue>;
+  /**
+   * Column widths while the parts are side by side, as a `grid-template-columns` value, e.g.
+   * `'3fr 2fr'` for a 60/40 split. Default equal widths. Ignored while stacked; accepts a breakpoint object.
+   */
+  columns?: Responsive<string>;
   children: React.ReactNode;
 }
 
@@ -299,6 +310,7 @@ export const Divided: React.FC<DividedProps> = ({
   as: Tag = 'div',
   direction = 'column',
   space,
+  columns,
   padding,
   hideBelow,
   hideFrom,
@@ -311,11 +323,21 @@ export const Divided: React.FC<DividedProps> = ({
   // Grid, so side-by-side parts are exactly equal width whatever their padding.
   applyResponsive(acc, 'gaf', 'gridAutoFlow', direction, d => (d === 'row' ? 'column' : 'row'), 'column');
   applyResponsive(acc, 'dvr', '--_dv-row', direction, d => (d === 'row' ? '1' : '0'), 'column');
+  applyResponsive(acc, 'dvs', '--field-divided-space', space, resolveSpace);
+  if (columns !== undefined) {
+    // A template only while side by side: stacked ranges get `none` so the parts stay in one column.
+    const directions = resolvePerRange(direction, 'column');
+    const templates = resolvePerRange(columns, 'none');
+    const perRange = Object.fromEntries(
+      BREAKPOINT_RANGES.map(range => [range, directions[range] === 'row' ? templates[range] : 'none'])
+    ) as Record<BreakpointRange, string>;
+    applyResponsive(acc, 'gtc', 'gridTemplateColumns', perRange);
+  }
   applyLayoutBase(acc, { padding, hideBelow, hideFrom });
   return (
     <Tag
       className={mergeClassNames('field-divided', ...acc.classes, className)}
-      style={{ ...(space !== undefined ? { '--field-divided-space': resolveSpace(space) } : {}), ...acc.style, ...style }}
+      style={{ ...acc.style, ...style }}
       {...props}
     >
       {children}

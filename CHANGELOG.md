@@ -2,7 +2,11 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
-## [Unreleased]
+## [0.5.0] - 2026-10-14
+
+New components and options from building event pages on a production website: Lightbox toolbar actions, safe CMS HTML (`ProseHtml`), more Prose collapse options, `DateTile` and `FileItem` / `FileList`, downloads that bypass the router link, and a docs page for every export.
+
+**Upgrading:** no breaking API changes. `@sam.barfield/field-react` now depends on `htmlparser2`, which declares Node 20.19 or newer (older versions get an npm engine warning). Links with `download` or a new-tab `target` now always render a plain `<a>` instead of your `linkComponent`; pass `as` to keep the old behaviour.
 
 ### Added
 - **Lightbox `actions`** renders controls in the toolbar before Close, inside the focus trap. It is called with the image shown and its index. **`LightboxAction`** is an icon control styled like Close (`icon`, required `aria-label`; a link with `href`). With `download` or `target` it is always a plain `<a>`, so a router link never handles the click. **Gallery `lightboxProps`** passes `actions`, `aria-label` and `className` to its Lightbox.
@@ -24,7 +28,9 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 ### Changed
 - When the Lightbox toolbar has actions, the counter moves to the left.
 - Showcase: new "Lightbox toolbar actions" example on the Media page and "HTML from a CMS" and "Collapse by height" examples on the Prose page; new DateTile and FileItem & FileList pages.
-- Internal: the calendar-day helpers (`startOfDay`, `toISODateString`, new `parseLocalDate`) moved from `DatePicker` to `utils/date.ts`; `toISODateString` is still exported. The Installation, Building a website, Routing and SSR guides cover `ProseHtml` (Node requirement, routing links in CMS content, why it hydrates cleanly).
+- Internal: the calendar-day helpers (`startOfDay`, `toISODateString`, new `parseLocalDate`) moved from `DatePicker` to `utils/date.ts`; `toISODateString` is still exported.
+- Docs: the Installation, Building a website, Routing and SSR guides cover `ProseHtml` (Node requirement, routing links in CMS content, why it hydrates cleanly).
+- **Packages** are `0.5.0`; `@sam.barfield/field-react` depends on `@sam.barfield/field-tokens@^0.5.0` and `htmlparser2@^12.0.0`.
 
 ## [0.4.1] - 2026-10-13
 

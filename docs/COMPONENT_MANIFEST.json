@@ -1,7 +1,7 @@
 {
   "name": "Field Design System Component Manifest",
   "package": "@sam.barfield/field-react",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "generatedBy": "scripts/generate-manifest.mjs - do not edit by hand",
   "components": {
     "Accordion": {
@@ -7130,7 +7130,7 @@
       "package": "@sam.barfield/field-tokens",
       "source": "packages/tokens/src/presets/index",
       "type": "FieldTheme",
-      "description": "Emerald Precision, dark mode: slate surfaces with an emerald accent."
+      "description": "Emerald Precision, dark mode (emerald accent)."
     },
     "fieldTailwindPreset": {
       "kind": "constant",
@@ -7382,7 +7382,7 @@
       "package": "@sam.barfield/field-tokens",
       "source": "packages/tokens/src/primitives/spacing",
       "type": "object",
-      "description": "The spacing scale in px (`0`–`32`), exposed as `--field-space-*` (e.g. `--field-space-0_5`, `--field-space-4`) and as `\"$4\"`-style tokens in layout props."
+      "description": "The spacing scale in px (`0`–`24`), exposed as `--field-space-*` (e.g. `--field-space-0_5`, `--field-space-4`) and as `\"$4\"`-style tokens in layout props."
     },
     "SPEED_PRESETS": {
       "kind": "constant",
@@ -7466,7 +7466,7 @@
       "package": "@sam.barfield/field-tokens",
       "source": "packages/tokens/src/presets/index",
       "type": "FieldTheme",
-      "description": "Titanium Amber, dark mode: graphite surfaces with an amber accent."
+      "description": "Titanium Amber, dark mode (amber accent)."
     },
     "toISODateString": {
       "kind": "function",
@@ -7480,7 +7480,7 @@
       "package": "@sam.barfield/field-tokens",
       "source": "packages/tokens/src/primitives/typography",
       "type": "object",
-      "description": "Font stacks, sizes, weights and line heights, exposed as `--field-font-*` variables."
+      "description": "Font stacks, sizes and weights, exposed as `--field-font-*` variables."
     },
     "violet": {
       "kind": "constant",

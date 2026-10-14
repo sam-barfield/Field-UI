@@ -504,6 +504,7 @@ const isDesktop = useMediaQuery(\`(min-width: \${breakpoints.md}px)\`);`}
           <><DocLink to="components/media">Image, Gallery, Lightbox and AspectRatio</DocLink> for photos, portfolios, maps and video.</>,
           <><DocLink to="components/carousel">Carousel</DocLink> for reviews and highlights.</>,
           <><DocLink to="components/link">Link</DocLink> for text links and <DocLink to="components/prose">Prose</DocLink> for CMS / Markdown content, and <C>ProseHtml</C> for an HTML string from a CMS (safe, and the same on the server and in the browser).</>,
+          <><DocLink to="components/date-tile">DateTile</DocLink> for event and post dates, and <DocLink to="components/file-item">FileItem and FileList</DocLink> for downloads and attachments.</>,
           <><DocLink to="components/site-utilities">SkipLink, BackToTop and Reveal</DocLink>.</>,
         ]}
       />

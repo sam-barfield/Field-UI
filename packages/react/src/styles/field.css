@@ -6381,6 +6381,99 @@ body:has(.field-back-to-top) .field-footer-bottom {
 @media (min-width: 1024px) and (max-width: 1279.98px) { .field-gallery-hidden-lg { display: none !important; } }
 @media (min-width: 1280px) { .field-gallery-hidden-xl { display: none !important; } }
 
+/* --- Date tile --- */
+.field-date-tile {
+  --field-date-tile-width: 3.5rem;
+  --field-date-tile-day-size: 1.6rem;
+  display: inline-flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--field-date-tile-width);
+  overflow: hidden;
+  border: 1px solid var(--field-border-default);
+  border-radius: var(--field-radius-md);
+  background-color: var(--field-surface-raised);
+  text-align: center;
+  line-height: 1;
+}
+.field-date-tile-sm { --field-date-tile-width: 2.75rem; --field-date-tile-day-size: 1.2rem; }
+.field-date-tile-lg { --field-date-tile-width: 4.5rem; --field-date-tile-day-size: 2.1rem; }
+.field-date-tile-month {
+  padding: var(--field-space-1) 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.field-date-tile-lg .field-date-tile-month { font-size: 0.75rem; }
+.field-date-tile-accent .field-date-tile-month { background-color: var(--field-accent-primary); color: var(--field-accent-contrast); }
+.field-date-tile-neutral .field-date-tile-month { background-color: var(--field-surface-active); color: var(--field-text-secondary); }
+.field-date-tile-day {
+  padding: var(--field-space-2) 0;
+  font-family: var(--field-font-display, var(--field-font-sans));
+  font-size: var(--field-date-tile-day-size);
+  font-weight: var(--field-display-weight, 700);
+  font-variant-numeric: tabular-nums;
+  color: var(--field-text-primary);
+}
+/* Two days ("8–9") share the same width. */
+.field-date-tile-range .field-date-tile-day { font-size: calc(var(--field-date-tile-day-size) * 0.62); letter-spacing: -0.02em; }
+
+/* --- File item / list --- */
+.field-file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--field-space-3);
+  width: 100%;
+  padding: var(--field-space-2) var(--field-space-3);
+  border: 1px solid var(--field-border-subtle);
+  border-radius: var(--field-radius-md);
+  background-color: var(--field-surface-raised);
+  color: var(--field-text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+.field-file-item-interactive { cursor: pointer; transition: background-color var(--field-duration-fast) var(--field-ease-out), border-color var(--field-duration-fast) var(--field-ease-out); }
+.field-file-item-interactive:hover { background-color: var(--field-surface-active); border-color: var(--field-border-default); }
+.field-file-item-interactive:focus-visible { outline: 2px solid var(--field-border-focus); outline-offset: 2px; }
+.field-file-item:is(:disabled, [aria-disabled='true']) { opacity: 0.5; cursor: not-allowed; }
+.field-file-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--field-radius-sm);
+  background-color: var(--field-accent-subtle);
+  color: var(--field-accent-text);
+}
+.field-file-item-thumb {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 3.25rem;
+  object-fit: cover;
+  object-position: top;
+  border-radius: var(--field-radius-sm);
+  border: 1px solid var(--field-border-subtle);
+}
+.field-file-item-text { display: flex; flex-direction: column; gap: var(--field-space-0_5); flex: 1; min-width: 0; }
+.field-file-item-name { font-size: 0.9375rem; font-weight: 600; overflow-wrap: anywhere; }
+.field-file-item-meta { font-size: 0.8125rem; color: var(--field-text-secondary); }
+.field-file-item-action { display: inline-flex; flex-shrink: 0; color: var(--field-text-tertiary); }
+.field-file-item-interactive:hover .field-file-item-action { color: var(--field-accent-text); }
+.field-file-list { display: flex; flex-direction: column; gap: var(--field-space-2); }
+.field-file-list-heading {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--field-text-secondary);
+}
+.field-file-list-items { display: flex; flex-direction: column; gap: var(--field-space-2); margin: 0; padding: 0; list-style: none; }
+
 /* --- Lightbox --- */
 .field-lightbox { position: fixed; inset: 0; z-index: 1300; }
 .field-lightbox-dialog {

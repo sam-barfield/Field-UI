@@ -1479,6 +1479,47 @@
         "<DateRangePicker label=\"Billing period\" value={range} onChange={setRange} />"
       ]
     },
+    "DateTile": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/DateTile.tsx",
+      "description": "A calendar leaf for events, posts and bookings: the month on a coloured strip, the day below in\nthe display face. Renders a `<time>` whose screen-reader text is the full date (\"Sunday 8\nNovember 2026\"); the visual parts are hidden from assistive technology. Put the weekday or time\nbeside it as text.",
+      "props": {
+        "date": {
+          "type": "string | Date",
+          "required": true,
+          "description": "The day shown. A `YYYY-MM-DD` string (or an ISO date-time) is read as that local day. Prefer\nstrings when rendering on the server: a `Date` made in the server's time zone can fall on a\ndifferent day in the visitor's."
+        },
+        "endDate": {
+          "type": "string | Date",
+          "required": false,
+          "description": "Last day of a range. In the same month the tile shows both days (`8–9`); across months it keeps\nshowing the start day, so the tile stays the same size (put the full range in the text beside it).\nScreen readers always hear the full range."
+        },
+        "size": {
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "required": false,
+          "default": "'md'",
+          "description": "`sm` 2.75rem, `md` 3.5rem, `lg` 4.5rem wide. Default `md`."
+        },
+        "tone": {
+          "type": "\"accent\" | \"neutral\"",
+          "required": false,
+          "default": "'accent'",
+          "description": "Colour of the month strip. Default `accent`."
+        },
+        "locale": {
+          "type": "string",
+          "required": false,
+          "default": "'en-GB'",
+          "description": "Locale for the month name and the screen-reader date. Default `en-GB`."
+        }
+      },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLElement>, 'children'>"
+      ],
+      "examples": [
+        "<DateTile date=\"2026-11-08\" />\n<DateTile date=\"2026-11-08\" endDate=\"2026-11-09\" size=\"lg\" tone=\"neutral\" />"
+      ]
+    },
     "DescriptionItem": {
       "category": "Data Display",
       "source": "packages/react/src/components/DataDisplay.tsx",
@@ -1994,6 +2035,89 @@
           "description": "Hint shown under the control (hidden while `error` is set)."
         }
       }
+    },
+    "FileItem": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/FileItem.tsx",
+      "description": "An attachment row: a file-type icon or thumbnail, the name, a meta line and an action icon. The\nwhole row is one link (`href`) or button (`onView`). Stack them in a `FileList`.",
+      "props": {
+        "name": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "The file's name. Bold; long names wrap."
+        },
+        "href": {
+          "type": "string",
+          "required": false,
+          "description": "Renders a link. PDFs open in a new tab; other files get `download` (same-origin files only: the\nbrowser opens files from other domains instead). Override with `target` or `download`."
+        },
+        "onView": {
+          "type": "(() => void)",
+          "required": false,
+          "description": "Renders a button instead of a link, e.g. to open a `Lightbox`."
+        },
+        "type": {
+          "type": "FileItemType",
+          "required": false,
+          "description": "Picks the icon and the type label. Default: from the `href` extension, else `file`."
+        },
+        "thumbnail": {
+          "type": "string",
+          "required": false,
+          "description": "A portrait preview (2.5 × 3.25rem, cropped from the top) in place of the icon."
+        },
+        "meta": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "The line under the name. Default by action: \"PDF · Opens in a new tab\", \"Spreadsheet ·\nDownload\", \"View full size\". Pass your own to add a file size, e.g. `PDF · 240 KB`."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Render as a different element or component."
+        },
+        "disabled": {
+          "type": "boolean",
+          "required": false,
+          "description": "Disables interaction and dims the control."
+        }
+      },
+      "inherits": [
+        "Omit<HTMLAttributes<HTMLElement>, 'children'>",
+        "Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'download' | 'target' | 'rel' | 'hrefLang' | 'referrerPolicy'>"
+      ],
+      "examples": [
+        "<FileItem name=\"Booking form\" href=\"/files/booking-form.pdf\" />\n<FileItem name=\"Event poster\" thumbnail={posterThumb} type=\"image\" onView={() => setOpen(true)} />"
+      ]
+    },
+    "FileList": {
+      "category": "Data Display",
+      "source": "packages/react/src/components/FileItem.tsx",
+      "description": "Stacks `FileItem` rows as a list, with an optional heading.",
+      "props": {
+        "heading": {
+          "type": "ReactNode",
+          "required": false,
+          "description": "Optional heading above the rows, e.g. \"Attachments\". It labels the list."
+        },
+        "headingLevel": {
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "Heading level. Default `3`; use one below the surrounding heading (e.g. `4` inside a card titled with an `h3`)."
+        },
+        "children": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "`FileItem`s; each is wrapped in a list item."
+        }
+      },
+      "inherits": [
+        "HTMLAttributes<HTMLDivElement>"
+      ],
+      "examples": [
+        "<FileList heading=\"Attachments\" headingLevel={4}>\n  <FileItem name=\"Booking form\" href=\"/files/booking-form.pdf\" />\n</FileList>"
+      ]
     },
     "Flex": {
       "category": "Layout",

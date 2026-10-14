@@ -7,6 +7,7 @@ import { getPortalTarget, usePortalThemeProps } from '../theme/usePortalTheme.js
 import { useAnchoredPosition, useControllableState, useDismissableLayer } from '../utils/hooks.js';
 import { mergeClassNames } from '../utils/polymorphic.js';
 import { FieldLabel } from './Input.js';
+import { startOfDay, toISODateString } from '../utils/date.js';
 
 export interface DateRange {
   start: Date | null;
@@ -22,7 +23,6 @@ const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 /* --- Date helpers (all comparisons are by calendar day, ignoring time) --- */
 
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const dayValue = (d: Date) => startOfDay(d).getTime();
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const addMonths = (d: Date, n: number) => {
@@ -40,12 +40,7 @@ const isBetween = (target: Date, start: Date | null, end: Date | null): boolean 
   return t > dayValue(start) && t < dayValue(end);
 };
 
-/** Local `YYYY-MM-DD` (what `<input type="date">` submits). `toISOString()` would shift by the UTC offset. */
-export const toISODateString = (d: Date | null): string => {
-  if (!d) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
+export { toISODateString };
 
 const defaultFormat = (date: Date): string =>
   `${MONTH_NAMES[date.getMonth()].substring(0, 3)} ${date.getDate()}, ${date.getFullYear()}`;

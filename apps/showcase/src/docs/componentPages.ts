@@ -678,6 +678,43 @@ export const componentPages: ComponentPageDef[] = [
     related: ['table', 'card', 'stat-card'],
   },
   {
+    id: 'date-tile',
+    name: 'DateTile',
+    category: 'Data Display',
+    summary: 'A calendar leaf for events, posts and bookings: the month on a coloured strip and the day in the display face.',
+    api: ['DateTile'],
+    whenToUse: [
+      'Event lists and cards, blog post dates, booking summaries. Put the weekday, time and venue beside the tile as text.',
+      'date takes a Date or a YYYY-MM-DD string, read as that local day. Pass strings when rendering on the server, so the day cannot shift between the server’s time zone and the visitor’s.',
+      'endDate: a range within one month shows both days ("8–9"); across months the tile keeps the start day so it stays the same size, and the text beside it should give the full range.',
+      'locale (default en-GB) sets the month name and the screen-reader date. tone="neutral" for past or less important dates.',
+    ],
+    whenNotToUse: ['Choosing a date - use DatePicker.', 'Dates in running text - write them out.'],
+    accessibility: [
+      'Renders a <time dateTime> whose screen-reader text is the full date or range ("Sunday 8 November 2026"); the month strip and day number are hidden from assistive technology.',
+    ],
+    related: ['date-picker', 'card', 'timeline'],
+  },
+  {
+    id: 'file-item',
+    name: 'FileItem & FileList',
+    category: 'Data Display',
+    summary: 'Attachment rows (a file-type icon or thumbnail, the name, a meta line and an action icon) for downloads, manuals and event attachments.',
+    api: ['FileItem', 'FileList'],
+    whenToUse: [
+      'Downloads and attachments under an article or event; forms, manuals and price lists on a website.',
+      'href renders a link: PDFs open in a new tab, other files get download. download only saves files from the same domain; the browser opens files from other domains instead. target or download override the default. Links with download or a new-tab target always render a plain <a>, never the router link.',
+      'onView renders a button, e.g. to open a Lightbox for an image. type picks the icon and label and is worked out from the href extension; thumbnail shows a portrait preview instead of the icon.',
+      'meta replaces the default line ("PDF · Opens in a new tab"), e.g. to add a file size. FileList stacks rows as a list with an optional heading; set headingLevel one below the surrounding heading.',
+    ],
+    whenNotToUse: ['Uploading files - use a file input.', 'Many files with sortable columns - use Table.'],
+    accessibility: [
+      'The whole row is one link or button, named by the file name and meta line. Rows that open a new tab say so in the meta line (or in visually hidden text when you pass your own meta).',
+      'FileList renders a <ul> labelled by its heading.',
+    ],
+    related: ['media', 'card', 'link'],
+  },
+  {
     id: 'code-block',
     name: 'CodeBlock & DiffViewer',
     category: 'Data Display',

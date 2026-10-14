@@ -28,5 +28,7 @@ export * from './Navbar.js';
 
 export * from './Website.js';
 export * from './ProseHtml.js';
+export * from './DateTile.js';
+export * from './FileItem.js';
 export * from './Media.js';
 export * from './CookieConsent.js';

@@ -12,13 +12,17 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 - **Prose `fade`** fades out the bottom of collapsed content (paragraph mode: the last paragraph shown, when there is more after it).
 - **Prose `expanded` / `defaultExpanded` / `onExpandedChange`** (controlled or uncontrolled), **`toggleIcon`** (default `true`) and **`scrollOnCollapse`** (default `true`): pressing "Show less" scrolls back to the text only when its top is above the viewport or under a sticky Navbar, instantly with reduced motion.
 
+- **`DateTile`**: a calendar leaf (month strip, day in the display face) for events, posts and bookings. `date` / `endDate` take a `Date` or a `YYYY-MM-DD` string read as a local day; a range in one month shows "8–9", across months the tile keeps the start day. `size` (`sm` / `md` / `lg`), `tone` (`accent` / `neutral`), `locale` (default `en-GB`). Renders a `<time>` with the full date as screen-reader text.
+- **`FileItem`** and **`FileList`**: attachment rows with a file-type icon or `thumbnail`, the name, a meta line and an action icon. `href` makes a link (PDFs open in a new tab, other files download), `onView` a button. `type` is worked out from the extension (`getFileType`); `meta` overrides the default line. `FileList` stacks rows in a `<ul>` with an optional `heading`.
+
 ### Fixed
 - **Downloads and new-tab links bypass the router link.** `Button`, `IconButton`, `Card`, `Link` / `FooterLink` and `Breadcrumb` (via `linkProps`) render a plain `<a>` instead of the `ThemeProvider` `linkComponent` when `download` is set or `target` is set to anything but `_self`, so `<Button href="/wp-content/uploads/form.pdf" download>` downloads the file instead of being routed in-app. An explicit `as` still wins. The rule lives in `resolveTag` / `useResolvedTag` (new `linkAttrs` argument, `needsNativeLink` helper); `LightboxAction` now uses it instead of its own check.
 - Lightbox buttons (Close, previous / next) have a `:focus-visible` ring.
 
 ### Changed
 - When the Lightbox toolbar has actions, the counter moves to the left.
-- Showcase: new "Lightbox toolbar actions" example on the Media page and "HTML from a CMS" and "Collapse by height" examples on the Prose page. The Installation, Building a website, Routing and SSR guides cover `ProseHtml` (Node requirement, routing links in CMS content, why it hydrates cleanly).
+- Showcase: new "Lightbox toolbar actions" example on the Media page and "HTML from a CMS" and "Collapse by height" examples on the Prose page; new DateTile and FileItem & FileList pages.
+- Internal: the calendar-day helpers (`startOfDay`, `toISODateString`, new `parseLocalDate`) moved from `DatePicker` to `utils/date.ts`; `toISODateString` is still exported. The Installation, Building a website, Routing and SSR guides cover `ProseHtml` (Node requirement, routing links in CMS content, why it hydrates cleanly).
 
 ## [0.4.1] - 2026-10-13
 

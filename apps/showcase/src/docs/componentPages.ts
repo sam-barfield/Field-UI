@@ -384,17 +384,19 @@ export const componentPages: ComponentPageDef[] = [
     name: 'Image, Gallery & AspectRatio',
     category: 'Website',
     summary: 'Images with aspect-ratio cropping, captions and load-error fallbacks; photo galleries with a full-screen lightbox; and fixed-ratio frames for maps and videos.',
-    api: ['Image', 'Gallery', 'Lightbox', 'AspectRatio'],
+    api: ['Image', 'Gallery', 'Lightbox', 'LightboxAction', 'AspectRatio'],
     whenToUse: [
       'Image for any content photo; ratio keeps grids of mixed photos tidy. Pass loading="eager" for the hero image.',
       'Gallery for portfolios, menus and venue photos. Use thumbnail for smaller tile images, or srcSet (tiles work out sizes from the columns) plus width and height.',
       'Gallery previewCount (a number or breakpoint object) shows the first photos and a "Show all" button; isLoading shows skeleton tiles. Give photos an id when the same one can appear twice.',
+      'Lightbox actions (or Gallery lightboxProps.actions) adds controls such as Download beside Close; it is called with the photo shown. Use LightboxAction so they match Close. download only saves same-origin files, so add target="_blank" for files on another domain.',
       'Image priority for the above-the-fold hero: loading="eager" and fetchpriority="high", without React 18 warnings.',
       'AspectRatio for embedded maps, YouTube / Vimeo iframes and videos.',
     ],
     accessibility: [
       'alt is required: describe the image, or pass "" for decorative images.',
       'Gallery tiles are buttons labelled with the image description; the Lightbox is a modal dialog with focus trap, Escape to close and arrow-key navigation.',
+      'LightboxAction is icon-only, so aria-label is required; name the photo and say when a link opens a new tab.',
       'Give every iframe a title.',
     ],
     keyboard: [

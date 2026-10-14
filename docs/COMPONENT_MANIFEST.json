@@ -413,7 +413,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Render as an anchor (or the configured router link) pointing at this URL."
+          "description": "Render as an anchor (or the configured router link) pointing at this URL. With `download` or a\n`target` other than `_self` it is always a plain `<a>`, never the router link."
         },
         "target": {
           "type": "string",
@@ -480,7 +480,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Makes the whole card a link (renders an `<a>`, or router link). Do not nest other links or buttons inside."
+          "description": "Makes the whole card a link (renders an `<a>`, or router link; always a plain `<a>` with\n`download` or a `target` other than `_self`). Do not nest other links or buttons inside."
         },
         "target": {
           "type": "string",
@@ -2123,7 +2123,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Render as an anchor (or the configured router link) pointing at this URL."
+          "description": "Render as an anchor (or the configured router link) pointing at this URL. With `download` or a\n`target` other than `_self` it is always a plain `<a>`, never the router link."
         },
         "target": {
           "type": "string",
@@ -2295,6 +2295,11 @@
           "required": false,
           "default": "true",
           "description": "Open a full-screen `Lightbox` when a tile is clicked. Default `true`."
+        },
+        "lightboxProps": {
+          "type": "Pick<LightboxProps, \"className\" | \"aria-label\" | \"actions\">",
+          "required": false,
+          "description": "Passed to the Gallery's `Lightbox`, e.g. toolbar `actions`:\n`lightboxProps={{ actions: image => <LightboxAction … /> }}`."
         },
         "previewCount": {
           "type": "Responsive<number>",
@@ -2514,7 +2519,7 @@
         "href": {
           "type": "string",
           "required": false,
-          "description": "Render as an anchor (or the `ThemeProvider` router link for internal paths)."
+          "description": "Render as an anchor (or the `ThemeProvider` router link for internal paths). With `download` or\na `target` other than `_self` it is always a plain `<a>`."
         },
         "target": {
           "type": "string",
@@ -2692,6 +2697,11 @@
           "type": "((index: number) => void)",
           "required": false
         },
+        "actions": {
+          "type": "((image: LightboxImage, index: number) => ReactNode)",
+          "required": false,
+          "description": "Extra controls for the toolbar, rendered before Close and inside the focus trap. Called with the\nimage shown and its index, so the controls change as the user steps through. Use `LightboxAction`\nso they match Close."
+        },
         "aria-label": {
           "type": "string",
           "required": false,
@@ -2704,6 +2714,50 @@
           "description": "Additional CSS class names."
         }
       }
+    },
+    "LightboxAction": {
+      "category": "Website",
+      "source": "packages/react/src/components/Media.tsx",
+      "description": "An icon control for `Lightbox` `actions`, styled like the viewer's Close button. A button by\ndefault; a link with `href`.\n\n`download` only saves same-origin files: for files on another domain the browser opens them\ninstead, so add `target=\"_blank\"` to keep the viewer open.",
+      "props": {
+        "icon": {
+          "type": "ReactNode",
+          "required": true,
+          "description": "The icon, e.g. `<Download size={20} />`."
+        },
+        "aria-label": {
+          "type": "string",
+          "required": true,
+          "description": "Required: the control has no visible text."
+        },
+        "href": {
+          "type": "string",
+          "required": false,
+          "description": "Render as a link. With `download` or `target` it is always a plain `<a>`, never the router link."
+        },
+        "target": {
+          "type": "string",
+          "required": false,
+          "description": "Link target, e.g. `_blank`."
+        },
+        "rel": {
+          "type": "string",
+          "required": false,
+          "description": "Link relationship, e.g. `noopener noreferrer`."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Render as a different element or component."
+        }
+      },
+      "inherits": [
+        "Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>",
+        "Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'download' | 'hrefLang' | 'referrerPolicy'>"
+      ],
+      "examples": [
+        "<LightboxAction icon={<Download size={20} />} aria-label=\"Download poster\" href={image.src} download target=\"_blank\" />"
+      ]
     },
     "Link": {
       "category": "Website",
@@ -5996,7 +6050,7 @@
         "linkComponent": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
-          "description": "Router link component used for internal `href`s by link-rendering components. It receives\n`href` (never `to`): `next/link` works as is; for React Router or TanStack Router pass an\nadapter that maps `href` to `to` (see the Routing guide)."
+          "description": "Router link component used for internal `href`s by link-rendering components. It receives\n`href` (never `to`): `next/link` works as is; for React Router or TanStack Router pass an\nadapter that maps `href` to `to` (see the Routing guide). External URLs, `#` anchors and links\nwith `download` or a `target` other than `_self` render a plain `<a>` instead."
         },
         "defaultMode": {
           "type": "ThemeMode | \"system\"",
@@ -6576,7 +6630,7 @@
       "description": "True when the user asked the OS to reduce motion."
     },
     "useResolvedTag": {
-      "signature": "(as?: ElementType<any, keyof IntrinsicElements>, href?: string, defaultTag?: ElementType<any, keyof IntrinsicElements>): ElementType<...>",
+      "signature": "(as?: ElementType<any, keyof IntrinsicElements>, href?: string, defaultTag?: ElementType<any, keyof IntrinsicElements>, linkAttrs?: LinkBehaviorProps): ElementType<...>",
       "description": "`resolveTag` with the provider-level `linkComponent` from `ThemeProvider`."
     },
     "useSafeId": {

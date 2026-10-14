@@ -23,7 +23,7 @@ This is the guide for AI coding assistants (Claude, Cursor, Copilot, Gemini, Cha
 3. **Every control needs an accessible name.** `IconButton` requires `aria-label`; form controls take `label` (or `aria-label` when there is no visible label).
 4. **Value-based `onChange`.** `Select`, `Combobox`, `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `NumberInput`, `SegmentedControl`, `DatePicker`, `Tabs` and `Accordion` call `onChange` with the **value**, so `onChange={setState}` works. `TextInput` and `TextArea` are native wrappers: their `onChange` receives the **event**.
 5. **Controlled or uncontrolled.** Inputs accept `value` + `onChange` or `defaultValue`; overlays accept `isOpen` + `onOpenChange` or `defaultOpen`.
-6. **Router links.** Provide `linkComponent` to `<ThemeProvider>` for automatic client routing on internal `href`s across `Button`, `IconButton`, `Card`, `Link`, `FooterLink`, `NavbarBrand`, `NavbarItem`, `NavbarFlyoutItem`, `Breadcrumb`, `Tabs` and the `CookieConsent` policy link. Field passes the component **`href`**, never `to`. `next/link` takes `href`, so pass it directly. React Router and TanStack Router need `to`, so pass a small adapter:
+6. **Router links.** Provide `linkComponent` to `<ThemeProvider>` for automatic client routing on internal `href`s across `Button`, `IconButton`, `Card`, `Link`, `FooterLink`, `NavbarBrand`, `NavbarItem`, `NavbarFlyoutItem`, `Breadcrumb`, `Tabs` and the `CookieConsent` policy link. External URLs, `#` anchors and links with `download` or a `target` other than `_self` always render a plain `<a>` (unless you pass `as`), so downloads and new tabs keep working. Field passes the component **`href`**, never `to`. `next/link` takes `href`, so pass it directly. React Router and TanStack Router need `to`, so pass a small adapter:
    ```tsx
    import { forwardRef, type AnchorHTMLAttributes } from 'react';
    import { Link } from 'react-router-dom';
@@ -85,7 +85,7 @@ import {
 
   // Website
   Section, SectionHeader, Footer, FooterBrand, FooterColumn, FooterLink, FooterBottom,
-  Image, AspectRatio, Gallery, Lightbox, Carousel, CarouselSlide,
+  Image, AspectRatio, Gallery, Lightbox, LightboxAction, Carousel, CarouselSlide,
   Link, Prose, CookieConsent, useCookieConsent, SkipLink, BackToTop, FloatingButton, Reveal,
 
   // Responsive helpers
@@ -353,7 +353,7 @@ showToast({ title: 'Saved', variant: 'success', action: { label: 'Undo', onClick
 - **Responsive props**: layout props on `Flex`, `Stack`, `Grid`, `Box`, `Container` and `align` on `Heading` / `Text` accept `{ base, sm, md, lg, xl }` (mobile first; 640 / 768 / 1024 / 1280px). `hideBelow` / `hideFrom` toggle visibility. Don't hand-write media queries for these.
 - **Display type**: `Heading display="sm" | "md" | "lg" | "xl"` (fluid) and `Text size="xl"` (lead). Headings use `--field-font-display`.
 - **Section** sets page-band spacing, `tone` (`muted`, `raised`, `accent`, `inverse`) and a container; use it for every marketing band instead of custom padding. `backgroundImage` (a URL or `{ src, srcSet, sizes, priority }`, rendered as an `<img>`) + `overlay` for photo bands; `priority` on the hero. `underNavbar` pulls a hero under a transparent sticky Navbar. Children are not repositioned by a `backgroundImage`, so absolutely positioned decoration is placed against the section, inside the container or not. **SectionHeader** gives eyebrow, title (a `Heading`, `display="sm"` by default, in the theme's display font), description and an action that drops under the title on phones (`align="start" | "center"`); `headingId` for `aria-labelledby`; it has no outer margin, so space it with the parent `Stack`'s `gap`.
-- **Image** requires `alt`; `ratio` crops; lazy by default (`priority` for the hero: eager + `fetchpriority="high"`). **Gallery** opens a **Lightbox**; `previewCount={{ base: 6 }}` shows the first photos with "Show all", `isLoading` shows skeletons, photos take `id`, `srcSet`, `width`, `height`. Use **AspectRatio** for iframes / video.
+- **Image** requires `alt`; `ratio` crops; lazy by default (`priority` for the hero: eager + `fetchpriority="high"`). **Gallery** opens a **Lightbox**; `previewCount={{ base: 6 }}` shows the first photos with "Show all", `isLoading` shows skeletons, photos take `id`, `srcSet`, `width`, `height`. Toolbar controls (e.g. Download) go in Lightbox `actions` / Gallery `lightboxProps.actions` as **LightboxAction** (`icon` + required `aria-label`; `download` only works same-origin, so pair it with `target="_blank"`), not in `caption`. Use **AspectRatio** for iframes / video.
 - **CookieConsent**: mount once; gate optional scripts on `useCookieConsent().consent?.analytics`; `openPreferences()` for a footer "Cookie settings" link.
 - **Link** for inline text links (underlined by default, `external` for new tabs); **Button** with `href` for standalone actions.
 - **Badge** sizes `sm | md | lg`; **Alert** has `actions` and `onClose`; **StatCard** has `invertTrendColors`.

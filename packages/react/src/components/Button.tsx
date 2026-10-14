@@ -25,7 +25,10 @@ export interface ButtonBaseProps {
   asChild?: boolean;
   /** Render as another element/component, e.g. `as={Link}`. */
   as?: React.ElementType;
-  /** Render as an anchor (or the configured router link) pointing at this URL. */
+  /**
+   * Render as an anchor (or the configured router link) pointing at this URL. With `download` or a
+   * `target` other than `_self` it is always a plain `<a>`, never the router link.
+   */
   href?: string;
   /** Link target when rendered as an anchor. */
   target?: string;
@@ -106,7 +109,7 @@ export const Button = forwardRef<ButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const tag: React.ElementType = useResolvedTag(as, href, 'button');
+    const tag: React.ElementType = useResolvedTag(as, href, 'button', props);
     const inactive = Boolean(disabled || isLoading);
     const classNames = mergeClassNames(
       'field-btn',
@@ -168,7 +171,10 @@ export interface IconButtonProps
   children?: React.ReactElement;
   asChild?: boolean;
   as?: React.ElementType;
-  /** Render as an anchor (or the `ThemeProvider` router link for internal paths). */
+  /**
+   * Render as an anchor (or the `ThemeProvider` router link for internal paths). With `download` or
+   * a `target` other than `_self` it is always a plain `<a>`.
+   */
   href?: string;
   target?: string;
   rel?: string;
@@ -201,7 +207,7 @@ export const IconButton = forwardRef<ButtonElement, IconButtonProps>(
     },
     ref
   ) => {
-    const tag: React.ElementType = useResolvedTag(as, href, 'button');
+    const tag: React.ElementType = useResolvedTag(as, href, 'button', props);
     const inactive = Boolean(disabled || isLoading);
     const classNames = mergeClassNames(
       'field-btn',

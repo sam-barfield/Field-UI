@@ -672,7 +672,9 @@ const Routing: React.FC = () => (
         <C>Button</C>, <C>IconButton</C>, <C>NavbarBrand</C>, <C>NavbarItem</C>, <C>NavbarFlyoutItem</C>, <C>Card</C>,{' '}
         <C>Link</C>, <C>Tabs</C> items, <C>Breadcrumb</C>, <C>FooterLink</C> and the <C>CookieConsent</C> policy link render with it, avoiding full-page reloads without needing{' '}
         <C>as={'{Link}'}</C> on every element. External URLs (<C>https:</C>, <C>mailto:</C>, <C>tel:</C>) and anchor
-        hashes stay as native <C>{'<a>'}</C> tags.
+        hashes stay as native <C>{'<a>'}</C> tags, and so do links with <C>download</C> or a <C>target</C> other than{' '}
+        <C>_self</C> (e.g. <C>{'<Button href="/files/form.pdf" download>'}</C>), since a router link would intercept the
+        click. An explicit <C>as</C> always wins.
       </P>
       <P>
         The component receives <C>href</C>, not <C>to</C>. Next.js's <C>Link</C> takes <C>href</C>, so pass it

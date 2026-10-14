@@ -22,7 +22,10 @@ export interface CardBaseProps {
   padding?: Responsive<CardPadding>;
   /** Stretch to 100% height of its grid cell or flex container, with CardFooter pinned to the bottom. Works with `href` and `as="button"`. */
   fill?: boolean;
-  /** Makes the whole card a link (renders an `<a>`, or router link). Do not nest other links or buttons inside. */
+  /**
+   * Makes the whole card a link (renders an `<a>`, or router link; always a plain `<a>` with
+   * `download` or a `target` other than `_self`). Do not nest other links or buttons inside.
+   */
   href?: string;
   /** Link target, used with `href`. */
   target?: string;
@@ -61,7 +64,7 @@ export type CardProps = CardBaseProps &
  */
 export const Card = forwardRef<HTMLElement, CardProps>(
   ({ variant, padding = 'md', fill = false, href, as, type, children, className = '', style, ...props }, ref) => {
-    const Tag: React.ElementType = useResolvedTag(as, href, 'div');
+    const Tag: React.ElementType = useResolvedTag(as, href, 'div', props);
     const isButton = Tag === 'button';
     const resolvedVariant = variant ?? (href || isButton ? 'interactive' : 'default');
 

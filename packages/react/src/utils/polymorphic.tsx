@@ -14,22 +14,41 @@ export const isExternalHref = (href?: string): boolean => {
   return /^([a-z][a-z\d+.-]*:|\/\/|#)/i.test(href);
 };
 
+/** The link attributes `resolveTag` checks before handing an `href` to the router link. */
+export interface LinkBehaviorProps {
+  download?: unknown;
+  target?: unknown;
+}
+
+/**
+ * True when the browser itself must handle the click: a `download` link, or a `target` other
+ * than `_self` (e.g. `_blank`). A client-side router link would intercept the click and
+ * navigate in-app instead, breaking the download or new-tab behaviour.
+ */
+export const needsNativeLink = (attrs?: LinkBehaviorProps): boolean =>
+  attrs != null &&
+  ((attrs.download !== undefined && attrs.download !== false) ||
+    (typeof attrs.target === 'string' && attrs.target !== '' && attrs.target !== '_self'));
+
 /**
  * Resolves the rendered element or component for interactive items.
  *
  * Honors `as` first, then `linkComponent` when `href` is present and internal,
- * falling back to `a` or the specified `defaultTag`. Not a hook: use it inside
- * loops with a `linkComponent` read once from `useLinkComponent()`.
+ * falling back to `a` or the specified `defaultTag`. External hrefs, and links with
+ * `download` or a `target` other than `_self` (pass them as `linkAttrs`), always render a
+ * plain `<a>`. Not a hook: use it inside loops with a `linkComponent` read once from
+ * `useLinkComponent()`.
  */
 export function resolveTag(
   linkComponent: React.ElementType | undefined,
   as?: React.ElementType,
   href?: string,
-  defaultTag: React.ElementType = 'a'
+  defaultTag: React.ElementType = 'a',
+  linkAttrs?: LinkBehaviorProps
 ): React.ElementType {
   if (as) return as;
   if (href) {
-    if (isExternalHref(href)) return 'a';
+    if (isExternalHref(href) || needsNativeLink(linkAttrs)) return 'a';
     return linkComponent ?? 'a';
   }
   return defaultTag;
@@ -39,9 +58,10 @@ export function resolveTag(
 export function useResolvedTag(
   as?: React.ElementType,
   href?: string,
-  defaultTag: React.ElementType = 'a'
+  defaultTag: React.ElementType = 'a',
+  linkAttrs?: LinkBehaviorProps
 ): React.ElementType {
-  return resolveTag(useLinkComponent(), as, href, defaultTag);
+  return resolveTag(useLinkComponent(), as, href, defaultTag, linkAttrs);
 }
 
 export interface PolymorphicProps {

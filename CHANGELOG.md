@@ -2,6 +2,19 @@
 
 All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`, `@sam.barfield/field-react`, and `@field/showcase`) are documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Lightbox `actions`** renders controls in the toolbar before Close, inside the focus trap. It is called with the image shown and its index. **`LightboxAction`** is an icon control styled like Close (`icon`, required `aria-label`; a link with `href`). With `download` or `target` it is always a plain `<a>`, so a router link never handles the click. **Gallery `lightboxProps`** passes `actions`, `aria-label` and `className` to its Lightbox.
+
+### Fixed
+- **Downloads and new-tab links bypass the router link.** `Button`, `IconButton`, `Card`, `Link` / `FooterLink` and `Breadcrumb` (via `linkProps`) render a plain `<a>` instead of the `ThemeProvider` `linkComponent` when `download` is set or `target` is set to anything but `_self`, so `<Button href="/wp-content/uploads/form.pdf" download>` downloads the file instead of being routed in-app. An explicit `as` still wins. The rule lives in `resolveTag` / `useResolvedTag` (new `linkAttrs` argument, `needsNativeLink` helper); `LightboxAction` now uses it instead of its own check.
+- Lightbox buttons (Close, previous / next) have a `:focus-visible` ring.
+
+### Changed
+- When the Lightbox toolbar has actions, the counter moves to the left.
+- Showcase: new "Lightbox toolbar actions" example on the Media page.
+
 ## [0.4.1] - 2026-10-13
 
 Fixes and additions from moving the RAF Snaith Museum site onto 0.4.0 (findings G1–G11).

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, ImageOff, Pause, Play, X } from 'lucide-react';
-import { mergeClassNames } from '../utils/polymorphic.js';
+import { getInteractiveElementProps, mergeClassNames, renderPolymorphic, useResolvedTag } from '../utils/polymorphic.js';
 import { useControllableState, useDismissableLayer, useFocusTrap, usePrefersReducedMotion, useScrollLock } from '../utils/hooks.js';
 import {
   applyResponsive,
@@ -161,10 +161,62 @@ export interface LightboxProps {
   /** Initial index when uncontrolled. Default `0`. */
   defaultIndex?: number;
   onIndexChange?: (index: number) => void;
+  /**
+   * Extra controls for the toolbar, rendered before Close and inside the focus trap. Called with the
+   * image shown and its index, so the controls change as the user steps through. Use `LightboxAction`
+   * so they match Close.
+   *
+   * @example
+   * actions={image => <LightboxAction icon={<Download size={20} />} aria-label="Download" href={image.src} download />}
+   */
+  actions?: (image: LightboxImage, index: number) => React.ReactNode;
   /** Accessible name of the dialog. Default `Image viewer`. */
   'aria-label'?: string;
   className?: string;
 }
+
+export interface LightboxActionProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>,
+    Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'download' | 'hrefLang' | 'referrerPolicy'> {
+  /** The icon, e.g. `<Download size={20} />`. */
+  icon: React.ReactNode;
+  /** Required: the control has no visible text. */
+  'aria-label': string;
+  /** Render as a link. With `download` or `target` it is always a plain `<a>`, never the router link. */
+  href?: string;
+  target?: string;
+  rel?: string;
+  /** Render as a different element or component. */
+  as?: React.ElementType;
+}
+
+/**
+ * An icon control for `Lightbox` `actions`, styled like the viewer's Close button. A button by
+ * default; a link with `href`.
+ *
+ * `download` only saves same-origin files: for files on another domain the browser opens them
+ * instead, so add `target="_blank"` to keep the viewer open.
+ *
+ * @example
+ * <LightboxAction icon={<Download size={20} />} aria-label="Download poster" href={image.src} download target="_blank" />
+ */
+export const LightboxAction = forwardRef<HTMLButtonElement | HTMLAnchorElement, LightboxActionProps>(
+  ({ icon, as, href, target, rel, download, disabled, type = 'button', className = '', ...props }, ref) => {
+    const tag: React.ElementType = useResolvedTag(as, href, 'button', { download, target });
+    return renderPolymorphic(
+      tag,
+      {
+        className: mergeClassNames('field-lightbox-btn', 'field-lightbox-action', className),
+        ...getInteractiveElementProps(tag, { href, disabled, type }),
+        ...(href ? { target, rel: rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined), download } : {}),
+        children: icon,
+        ...props,
+      },
+      ref
+    );
+  }
+);
+LightboxAction.displayName = 'LightboxAction';
 
 /**
  * Full-screen image viewer with previous/next, captions, a counter, arrow-key and swipe
@@ -177,6 +229,7 @@ export const Lightbox: React.FC<LightboxProps> = ({
   index: indexProp,
   defaultIndex = 0,
   onIndexChange,
+  actions,
   'aria-label': ariaLabel = 'Image viewer',
   className = '',
 }) => {
@@ -185,7 +238,8 @@ export const Lightbox: React.FC<LightboxProps> = ({
   const pointerStart = useRef<number | null>(null);
   const portalProps = usePortalThemeProps(mergeClassNames('field-lightbox', className));
   const count = images.length;
-  const current = images[Math.min(Math.max(index, 0), Math.max(count - 1, 0))];
+  const currentIndex = Math.min(Math.max(index, 0), Math.max(count - 1, 0));
+  const current = images[currentIndex];
 
   const go = useCallback((delta: number) => setIndex((index + delta + count) % count), [index, count, setIndex]);
 
@@ -229,6 +283,7 @@ export const Lightbox: React.FC<LightboxProps> = ({
               {index + 1} / {count}
             </span>
           )}
+          {actions?.(current, currentIndex)}
           <button type="button" className="field-lightbox-btn" onClick={onClose} aria-label="Close">
             <X size={20} aria-hidden="true" />
           </button>
@@ -279,6 +334,11 @@ export interface GalleryProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   /** Open a full-screen `Lightbox` when a tile is clicked. Default `true`. */
   lightbox?: boolean;
   /**
+   * Passed to the Gallery's `Lightbox`, e.g. toolbar `actions`:
+   * `lightboxProps={{ actions: image => <LightboxAction … /> }}`.
+   */
+  lightboxProps?: Pick<LightboxProps, 'actions' | 'aria-label' | 'className'>;
+  /**
    * Show only the first N photos, with a "Show all" button; accepts a breakpoint object, e.g.
    * `{ base: 6, md: 9 }`. Hidden photos are still in the lightbox.
    */
@@ -304,6 +364,7 @@ export const Gallery: React.FC<GalleryProps> = ({
   gap = 8,
   radius = 'md',
   lightbox = true,
+  lightboxProps,
   previewCount,
   showAllLabel,
   isLoading = false,
@@ -391,6 +452,7 @@ export const Gallery: React.FC<GalleryProps> = ({
 
   const viewer = lightbox && (
     <Lightbox
+      {...lightboxProps}
       images={images}
       isOpen={openIndex !== null}
       index={openIndex ?? 0}

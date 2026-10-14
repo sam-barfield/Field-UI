@@ -174,7 +174,7 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
  */
 export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
   ({ tone = 'accent', underline = 'always', external = false, as, asChild, className = '', children, ...props }, ref) => {
-    const tag = useResolvedTag(as, external ? undefined : props.href, 'a');
+    const tag = useResolvedTag(as, external ? undefined : props.href, 'a', props);
     const content = external && !asChild ? (
       <>
         {children}

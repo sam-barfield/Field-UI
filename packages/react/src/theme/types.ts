@@ -36,7 +36,8 @@ export interface ThemeProviderProps {
   /**
    * Router link component used for internal `href`s by link-rendering components. It receives
    * `href` (never `to`): `next/link` works as is; for React Router or TanStack Router pass an
-   * adapter that maps `href` to `to` (see the Routing guide).
+   * adapter that maps `href` to `to` (see the Routing guide). External URLs, `#` anchors and links
+   * with `download` or a `target` other than `_self` render a plain `<a>` instead.
    */
   linkComponent?: React.ElementType;
   /** Initial mode. `'system'` follows the OS `prefers-color-scheme` setting. Default `'dark'`. */

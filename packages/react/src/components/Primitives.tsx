@@ -235,7 +235,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator, classN
 
             // A link when there is an href or a custom component (e.g. `as: Link` + `linkProps: { to }`).
             if (isInteractive && (item.href || item.as)) {
-              return renderPolymorphic(resolveTag(linkComponent, item.as, item.href), {
+              return renderPolymorphic(resolveTag(linkComponent, item.as, item.href, 'a', item.linkProps), {
                 className: 'field-breadcrumb-link',
                 href: item.href,
                 onClick: item.onClick,

@@ -6353,6 +6353,12 @@ body:has(.field-back-to-top) .field-footer-bottom {
   cursor: pointer;
 }
 .field-lightbox-btn:hover { background-color: var(--field-surface-active); }
+.field-lightbox-btn:focus-visible { outline: 2px solid var(--field-border-focus); outline-offset: 2px; }
+/* Toolbar actions (LightboxAction) sit beside Close; the counter moves to the left. */
+.field-lightbox-action { text-decoration: none; }
+.field-lightbox-action:disabled,
+.field-lightbox-action[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; }
+.field-lightbox-toolbar:has(.field-lightbox-action) .field-lightbox-counter { margin-right: auto; }
 .field-lightbox-prev,
 .field-lightbox-next { position: absolute; top: 50%; transform: translateY(-50%); }
 .field-lightbox-prev { left: var(--field-space-4); }

@@ -3967,11 +3967,63 @@
           "default": "false",
           "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width; a breakpoint object chooses per\nbreakpoint, e.g. `{ base: true, lg: false }` collapses below 1024px. It is CSS only, so the first\npaint is already right. The toggle only appears where the text collapses and there is more to show.\nWhen set, the content and toggle render inside a `div.field-prose-collapsible` wrapper, which\nreceives `className` and `style`."
         },
+        "collapseBy": {
+          "type": "\"height\" | \"paragraphs\"",
+          "required": false,
+          "default": "'paragraphs'",
+          "description": "How the text is cut while collapsed. `paragraphs` (default) hides everything after the first\n`previewParagraphs` paragraphs, in CSS only. `height` clips the content at `collapsedHeight`,\nwhich suits structured content (headings, tables) where counting paragraphs hides all or nothing.\nHeight mode measures the content with JavaScript: long content is clipped from the first paint,\nand the toggle (and fade) appear after the first measurement, or not at all when it fits."
+        },
         "previewParagraphs": {
           "type": "number",
           "required": false,
           "default": "2",
           "description": "Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`."
+        },
+        "collapsedHeight": {
+          "type": "string",
+          "required": false,
+          "default": "'11rem'",
+          "description": "Height mode: how much shows while collapsed, as a CSS length. Default `11rem`."
+        },
+        "collapseThreshold": {
+          "type": "number",
+          "required": false,
+          "default": "1.4",
+          "description": "Height mode: only collapse when the content is taller than `collapsedHeight` × this, so the toggle\nnever hides just a line or two. Default `1.4`."
+        },
+        "fade": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Fade out the bottom of what shows while collapsed (paragraph mode: the last paragraph shown, when\nthere is more after it). Default `false`."
+        },
+        "expanded": {
+          "type": "boolean",
+          "required": false,
+          "description": "Expanded state (controlled)."
+        },
+        "defaultExpanded": {
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Initial expanded state when uncontrolled. Default `false`."
+        },
+        "onExpandedChange": {
+          "type": "((expanded: boolean) => void)",
+          "required": false,
+          "description": "Called with the new state when the toggle is pressed."
+        },
+        "toggleIcon": {
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Show a chevron after the toggle label, flipping when open. Default `true`."
+        },
+        "scrollOnCollapse": {
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "When \"Show less\" is pressed and the top of the text is above the viewport (or under a sticky\nNavbar), scroll back to it, smoothly unless the user prefers reduced motion. Default `true`."
         },
         "expandLabel": {
           "type": "string",
@@ -4019,6 +4071,11 @@
           "required": false,
           "description": "Base text size. Default `base`. Accepts a breakpoint object, e.g. `{ base: 'base', lg: 'lg' }`."
         },
+        "expanded": {
+          "type": "boolean",
+          "required": false,
+          "description": "Expanded state (controlled)."
+        },
         "as": {
           "type": "ElementType<any, keyof IntrinsicElements>",
           "required": false,
@@ -4029,15 +4086,55 @@
           "required": false,
           "description": "Max line length. Default `68ch`; pass `none` to fill the container."
         },
+        "fade": {
+          "type": "boolean",
+          "required": false,
+          "description": "Fade out the bottom of what shows while collapsed (paragraph mode: the last paragraph shown, when\nthere is more after it). Default `false`."
+        },
         "collapsible": {
           "type": "\"always\" | Responsive<boolean>",
           "required": false,
           "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width; a breakpoint object chooses per\nbreakpoint, e.g. `{ base: true, lg: false }` collapses below 1024px. It is CSS only, so the first\npaint is already right. The toggle only appears where the text collapses and there is more to show.\nWhen set, the content and toggle render inside a `div.field-prose-collapsible` wrapper, which\nreceives `className` and `style`."
         },
+        "collapseBy": {
+          "type": "\"height\" | \"paragraphs\"",
+          "required": false,
+          "description": "How the text is cut while collapsed. `paragraphs` (default) hides everything after the first\n`previewParagraphs` paragraphs, in CSS only. `height` clips the content at `collapsedHeight`,\nwhich suits structured content (headings, tables) where counting paragraphs hides all or nothing.\nHeight mode measures the content with JavaScript: long content is clipped from the first paint,\nand the toggle (and fade) appear after the first measurement, or not at all when it fits."
+        },
         "previewParagraphs": {
           "type": "number",
           "required": false,
           "description": "Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`."
+        },
+        "collapsedHeight": {
+          "type": "string",
+          "required": false,
+          "description": "Height mode: how much shows while collapsed, as a CSS length. Default `11rem`."
+        },
+        "collapseThreshold": {
+          "type": "number",
+          "required": false,
+          "description": "Height mode: only collapse when the content is taller than `collapsedHeight` × this, so the toggle\nnever hides just a line or two. Default `1.4`."
+        },
+        "defaultExpanded": {
+          "type": "boolean",
+          "required": false,
+          "description": "Initial expanded state when uncontrolled. Default `false`."
+        },
+        "onExpandedChange": {
+          "type": "((expanded: boolean) => void)",
+          "required": false,
+          "description": "Called with the new state when the toggle is pressed."
+        },
+        "toggleIcon": {
+          "type": "boolean",
+          "required": false,
+          "description": "Show a chevron after the toggle label, flipping when open. Default `true`."
+        },
+        "scrollOnCollapse": {
+          "type": "boolean",
+          "required": false,
+          "description": "When \"Show less\" is pressed and the top of the text is above the viewport (or under a sticky\nNavbar), scroll back to it, smoothly unless the user prefers reduced motion. Default `true`."
         },
         "expandLabel": {
           "type": "string",

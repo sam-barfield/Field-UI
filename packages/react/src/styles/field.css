@@ -5958,6 +5958,23 @@ body:has(.field-back-to-top) .field-footer-bottom {
  */
 .field-prose-collapsible {
   position: relative;
+  /* Fade: the mask only uses alpha, so the colour is irrelevant. */
+  --field-prose-fade-mask: linear-gradient(to bottom, black calc(100% - 3em), transparent);
+}
+/*
+ * Height mode (.field-prose-by-height): the content is clipped at --field-prose-collapsed-height from the first
+ * paint. The toggle (and fade) wait for the first measurement (.field-prose-measuring), and stay hidden when the
+ * content fits (.field-prose-fits), which also removes the clip. The probe gives JS the height in pixels.
+ */
+.field-prose-by-height.field-prose-measuring > .field-prose-toggle,
+.field-prose-by-height.field-prose-fits > .field-prose-toggle { display: none; }
+.field-prose-probe {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: var(--field-prose-collapsed-height, 11rem);
+  visibility: hidden;
+  pointer-events: none;
 }
 @media (max-width: 639.98px) {
   .field-prose-collapse-base.field-prose-collapsed.field-prose-preview-1 > .field-prose > p:nth-of-type(1) ~ * { display: none; }
@@ -5971,6 +5988,21 @@ body:has(.field-back-to-top) .field-footer-bottom {
   .field-prose-collapse-base.field-prose-collapsed.field-prose-preview-9 > .field-prose > p:nth-of-type(9) ~ * { display: none; }
   .field-prose-collapse-base.field-prose-collapsed.field-prose-preview-10 > .field-prose > p:nth-of-type(10) ~ * { display: none; }
   .field-prose-collapsible:not(.field-prose-collapse-base) > .field-prose-toggle { display: none; }
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-by-height:not(.field-prose-fits) > .field-prose { max-height: var(--field-prose-collapsed-height); overflow: hidden; }
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-by-height.field-prose-fade:not(.field-prose-measuring, .field-prose-fits) > .field-prose,
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-1 > .field-prose > p:nth-of-type(1):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-2 > .field-prose > p:nth-of-type(2):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-3 > .field-prose > p:nth-of-type(3):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-4 > .field-prose > p:nth-of-type(4):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-5 > .field-prose > p:nth-of-type(5):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-6 > .field-prose > p:nth-of-type(6):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-7 > .field-prose > p:nth-of-type(7):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-8 > .field-prose > p:nth-of-type(8):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-9 > .field-prose > p:nth-of-type(9):has(~ *),
+  .field-prose-collapse-base.field-prose-collapsed.field-prose-fade.field-prose-preview-10 > .field-prose > p:nth-of-type(10):has(~ *) {
+    -webkit-mask-image: var(--field-prose-fade-mask);
+    mask-image: var(--field-prose-fade-mask);
+  }
 }
 @media (min-width: 640px) and (max-width: 767.98px) {
   .field-prose-collapse-sm.field-prose-collapsed.field-prose-preview-1 > .field-prose > p:nth-of-type(1) ~ * { display: none; }
@@ -5984,6 +6016,21 @@ body:has(.field-back-to-top) .field-footer-bottom {
   .field-prose-collapse-sm.field-prose-collapsed.field-prose-preview-9 > .field-prose > p:nth-of-type(9) ~ * { display: none; }
   .field-prose-collapse-sm.field-prose-collapsed.field-prose-preview-10 > .field-prose > p:nth-of-type(10) ~ * { display: none; }
   .field-prose-collapsible:not(.field-prose-collapse-sm) > .field-prose-toggle { display: none; }
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-by-height:not(.field-prose-fits) > .field-prose { max-height: var(--field-prose-collapsed-height); overflow: hidden; }
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-by-height.field-prose-fade:not(.field-prose-measuring, .field-prose-fits) > .field-prose,
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-1 > .field-prose > p:nth-of-type(1):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-2 > .field-prose > p:nth-of-type(2):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-3 > .field-prose > p:nth-of-type(3):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-4 > .field-prose > p:nth-of-type(4):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-5 > .field-prose > p:nth-of-type(5):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-6 > .field-prose > p:nth-of-type(6):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-7 > .field-prose > p:nth-of-type(7):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-8 > .field-prose > p:nth-of-type(8):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-9 > .field-prose > p:nth-of-type(9):has(~ *),
+  .field-prose-collapse-sm.field-prose-collapsed.field-prose-fade.field-prose-preview-10 > .field-prose > p:nth-of-type(10):has(~ *) {
+    -webkit-mask-image: var(--field-prose-fade-mask);
+    mask-image: var(--field-prose-fade-mask);
+  }
 }
 @media (min-width: 768px) and (max-width: 1023.98px) {
   .field-prose-collapse-md.field-prose-collapsed.field-prose-preview-1 > .field-prose > p:nth-of-type(1) ~ * { display: none; }
@@ -5997,6 +6044,21 @@ body:has(.field-back-to-top) .field-footer-bottom {
   .field-prose-collapse-md.field-prose-collapsed.field-prose-preview-9 > .field-prose > p:nth-of-type(9) ~ * { display: none; }
   .field-prose-collapse-md.field-prose-collapsed.field-prose-preview-10 > .field-prose > p:nth-of-type(10) ~ * { display: none; }
   .field-prose-collapsible:not(.field-prose-collapse-md) > .field-prose-toggle { display: none; }
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-by-height:not(.field-prose-fits) > .field-prose { max-height: var(--field-prose-collapsed-height); overflow: hidden; }
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-by-height.field-prose-fade:not(.field-prose-measuring, .field-prose-fits) > .field-prose,
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-1 > .field-prose > p:nth-of-type(1):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-2 > .field-prose > p:nth-of-type(2):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-3 > .field-prose > p:nth-of-type(3):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-4 > .field-prose > p:nth-of-type(4):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-5 > .field-prose > p:nth-of-type(5):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-6 > .field-prose > p:nth-of-type(6):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-7 > .field-prose > p:nth-of-type(7):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-8 > .field-prose > p:nth-of-type(8):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-9 > .field-prose > p:nth-of-type(9):has(~ *),
+  .field-prose-collapse-md.field-prose-collapsed.field-prose-fade.field-prose-preview-10 > .field-prose > p:nth-of-type(10):has(~ *) {
+    -webkit-mask-image: var(--field-prose-fade-mask);
+    mask-image: var(--field-prose-fade-mask);
+  }
 }
 @media (min-width: 1024px) and (max-width: 1279.98px) {
   .field-prose-collapse-lg.field-prose-collapsed.field-prose-preview-1 > .field-prose > p:nth-of-type(1) ~ * { display: none; }
@@ -6010,6 +6072,21 @@ body:has(.field-back-to-top) .field-footer-bottom {
   .field-prose-collapse-lg.field-prose-collapsed.field-prose-preview-9 > .field-prose > p:nth-of-type(9) ~ * { display: none; }
   .field-prose-collapse-lg.field-prose-collapsed.field-prose-preview-10 > .field-prose > p:nth-of-type(10) ~ * { display: none; }
   .field-prose-collapsible:not(.field-prose-collapse-lg) > .field-prose-toggle { display: none; }
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-by-height:not(.field-prose-fits) > .field-prose { max-height: var(--field-prose-collapsed-height); overflow: hidden; }
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-by-height.field-prose-fade:not(.field-prose-measuring, .field-prose-fits) > .field-prose,
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-1 > .field-prose > p:nth-of-type(1):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-2 > .field-prose > p:nth-of-type(2):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-3 > .field-prose > p:nth-of-type(3):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-4 > .field-prose > p:nth-of-type(4):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-5 > .field-prose > p:nth-of-type(5):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-6 > .field-prose > p:nth-of-type(6):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-7 > .field-prose > p:nth-of-type(7):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-8 > .field-prose > p:nth-of-type(8):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-9 > .field-prose > p:nth-of-type(9):has(~ *),
+  .field-prose-collapse-lg.field-prose-collapsed.field-prose-fade.field-prose-preview-10 > .field-prose > p:nth-of-type(10):has(~ *) {
+    -webkit-mask-image: var(--field-prose-fade-mask);
+    mask-image: var(--field-prose-fade-mask);
+  }
 }
 @media (min-width: 1280px) {
   .field-prose-collapse-xl.field-prose-collapsed.field-prose-preview-1 > .field-prose > p:nth-of-type(1) ~ * { display: none; }
@@ -6023,6 +6100,21 @@ body:has(.field-back-to-top) .field-footer-bottom {
   .field-prose-collapse-xl.field-prose-collapsed.field-prose-preview-9 > .field-prose > p:nth-of-type(9) ~ * { display: none; }
   .field-prose-collapse-xl.field-prose-collapsed.field-prose-preview-10 > .field-prose > p:nth-of-type(10) ~ * { display: none; }
   .field-prose-collapsible:not(.field-prose-collapse-xl) > .field-prose-toggle { display: none; }
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-by-height:not(.field-prose-fits) > .field-prose { max-height: var(--field-prose-collapsed-height); overflow: hidden; }
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-by-height.field-prose-fade:not(.field-prose-measuring, .field-prose-fits) > .field-prose,
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-1 > .field-prose > p:nth-of-type(1):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-2 > .field-prose > p:nth-of-type(2):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-3 > .field-prose > p:nth-of-type(3):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-4 > .field-prose > p:nth-of-type(4):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-5 > .field-prose > p:nth-of-type(5):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-6 > .field-prose > p:nth-of-type(6):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-7 > .field-prose > p:nth-of-type(7):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-8 > .field-prose > p:nth-of-type(8):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-9 > .field-prose > p:nth-of-type(9):has(~ *),
+  .field-prose-collapse-xl.field-prose-collapsed.field-prose-fade.field-prose-preview-10 > .field-prose > p:nth-of-type(10):has(~ *) {
+    -webkit-mask-image: var(--field-prose-fade-mask);
+    mask-image: var(--field-prose-fade-mask);
+  }
 }
 .field-prose-preview-1:not(:has(> .field-prose > p:nth-of-type(1) ~ *)) > .field-prose-toggle { display: none; }
 .field-prose-preview-2:not(:has(> .field-prose > p:nth-of-type(2) ~ *)) > .field-prose-toggle { display: none; }

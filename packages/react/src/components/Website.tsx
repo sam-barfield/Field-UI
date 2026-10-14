@@ -3,7 +3,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { ArrowUp, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { mergeClassNames, renderPolymorphic, useResolvedTag } from '../utils/polymorphic.js';
-import { getElementRef, mergeRefs } from '../utils/hooks.js';
+import { getElementRef, mergeRefs, useControllableState, useIsomorphicLayoutEffect, usePrefersReducedMotion } from '../utils/hooks.js';
 import { ThemeScope, useThemeSafe } from '../theme/ThemeProvider.js';
 import { Container, type ContainerProps } from './Layout.js';
 import { Button, type ButtonElement, type ButtonProps } from './Button.js';
@@ -321,8 +321,41 @@ export interface ProseProps extends React.HTMLAttributes<HTMLElement> {
    * receives `className` and `style`.
    */
   collapsible?: boolean | 'always' | Responsive<boolean>;
+  /**
+   * How the text is cut while collapsed. `paragraphs` (default) hides everything after the first
+   * `previewParagraphs` paragraphs, in CSS only. `height` clips the content at `collapsedHeight`,
+   * which suits structured content (headings, tables) where counting paragraphs hides all or nothing.
+   * Height mode measures the content with JavaScript: long content is clipped from the first paint,
+   * and the toggle (and fade) appear after the first measurement, or not at all when it fits.
+   */
+  collapseBy?: 'paragraphs' | 'height';
   /** Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`. */
   previewParagraphs?: number;
+  /** Height mode: how much shows while collapsed, as a CSS length. Default `11rem`. */
+  collapsedHeight?: string;
+  /**
+   * Height mode: only collapse when the content is taller than `collapsedHeight` × this, so the toggle
+   * never hides just a line or two. Default `1.4`.
+   */
+  collapseThreshold?: number;
+  /**
+   * Fade out the bottom of what shows while collapsed (paragraph mode: the last paragraph shown, when
+   * there is more after it). Default `false`.
+   */
+  fade?: boolean;
+  /** Expanded state (controlled). */
+  expanded?: boolean;
+  /** Initial expanded state when uncontrolled. Default `false`. */
+  defaultExpanded?: boolean;
+  /** Called with the new state when the toggle is pressed. */
+  onExpandedChange?: (expanded: boolean) => void;
+  /** Show a chevron after the toggle label, flipping when open. Default `true`. */
+  toggleIcon?: boolean;
+  /**
+   * When "Show less" is pressed and the top of the text is above the viewport (or under a sticky
+   * Navbar), scroll back to it, smoothly unless the user prefers reduced motion. Default `true`.
+   */
+  scrollOnCollapse?: boolean;
   /** Label for expand button. Default `Read more`. */
   expandLabel?: string;
   /** Label for collapse button. Default `Show less`. */
@@ -343,7 +376,16 @@ export const Prose: React.FC<ProseProps> = ({
   size = 'base',
   maxWidth = '68ch',
   collapsible = false,
+  collapseBy = 'paragraphs',
   previewParagraphs = 2,
+  collapsedHeight = '11rem',
+  collapseThreshold = 1.4,
+  fade = false,
+  expanded: expandedProp,
+  defaultExpanded = false,
+  onExpandedChange,
+  toggleIcon = true,
+  scrollOnCollapse = true,
   expandLabel = 'Read more',
   collapseLabel = 'Show less',
   as: Tag = 'div',
@@ -353,7 +395,17 @@ export const Prose: React.FC<ProseProps> = ({
   children,
   ...props
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useControllableState({
+    value: expandedProp,
+    defaultValue: defaultExpanded,
+    onChange: onExpandedChange,
+  });
+  // Height mode: null until measured, then whether the content fits without collapsing.
+  const [fits, setFits] = useState<boolean | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLElement>(null);
+  const probeRef = useRef<HTMLSpanElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
   const generatedId = useId();
   const contentId = id ?? `${generatedId}-prose`;
   const acc = createResponsiveAccumulator();
@@ -375,6 +427,47 @@ export const Prose: React.FC<ProseProps> = ({
       ? BREAKPOINT_RANGES.filter(range => collapsePerRange[range])
       : [];
   const isCollapsible = collapseRanges.length > 0;
+  const byHeight = isCollapsible && collapseBy === 'height';
+
+  // Height mode: compare the content's full height with collapsedHeight (read from a hidden probe, so
+  // any CSS length works) and re-check when either changes size.
+  useIsomorphicLayoutEffect(() => {
+    if (!byHeight) return;
+    const content = contentRef.current;
+    const probe = probeRef.current;
+    if (!content || !probe) return;
+    const measure = () => {
+      const limit = probe.getBoundingClientRect().height;
+      setFits(limit > 0 && content.scrollHeight <= limit * Math.max(1, collapseThreshold));
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    observer.observe(probe);
+    return () => observer.disconnect();
+  }, [byHeight, collapseThreshold]);
+
+  // Set when the toggle collapses the text; the layout effect below scrolls once the DOM has folded.
+  const scrollPending = useRef(false);
+  const toggle = () => {
+    const next = !expanded;
+    scrollPending.current = !next && scrollOnCollapse;
+    setExpanded(next);
+  };
+
+  // After the text folds, bring its top back into view if it is above the viewport (or under a sticky
+  // Navbar: the root's scroll-padding-top). A card that is still in view does not move.
+  useIsomorphicLayoutEffect(() => {
+    if (!scrollPending.current || expanded) return;
+    scrollPending.current = false;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    if (wrapper.getBoundingClientRect().top < offset) {
+      wrapper.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+    }
+  }, [expanded]);
 
   // When collapsible, the toggle sits beside the content inside a wrapper (which takes
   // `className` and `style`), so the content element can take `dangerouslySetInnerHTML`
@@ -382,6 +475,7 @@ export const Prose: React.FC<ProseProps> = ({
   // (field.css: .field-prose-preview-N), so it can be limited to phones without JS.
   const content = (
     <Tag
+      ref={isCollapsible ? contentRef : undefined}
       id={isCollapsible ? contentId : id}
       className={mergeClassNames(
         'field-prose',
@@ -404,32 +498,31 @@ export const Prose: React.FC<ProseProps> = ({
 
   return (
     <div
+      ref={wrapperRef}
       className={mergeClassNames(
         'field-prose-collapsible',
-        `field-prose-preview-${preview}`,
+        byHeight ? 'field-prose-by-height' : `field-prose-preview-${preview}`,
         ...collapseRanges.map(range => `field-prose-collapse-${range}`),
         !expanded && 'field-prose-collapsed',
+        fade && 'field-prose-fade',
+        byHeight && fits === null && 'field-prose-measuring',
+        byHeight && fits === true && 'field-prose-fits',
         className
       )}
-      style={style}
+      style={byHeight ? ({ '--field-prose-collapsed-height': collapsedHeight, ...style } as React.CSSProperties) : style}
     >
       {content}
+      {byHeight && <span ref={probeRef} className="field-prose-probe" aria-hidden="true" />}
       <button
         type="button"
         className="field-prose-toggle"
         aria-expanded={expanded}
         aria-controls={contentId}
-        onClick={() => setExpanded(prev => !prev)}
+        onClick={toggle}
       >
-        {expanded ? (
-          <>
-            {collapseLabel} <ChevronUp size={16} aria-hidden="true" />
-          </>
-        ) : (
-          <>
-            {expandLabel} <ChevronDown size={16} aria-hidden="true" />
-          </>
-        )}
+        {expanded ? collapseLabel : expandLabel}
+        {toggleIcon &&
+          (expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />)}
       </button>
     </div>
   );

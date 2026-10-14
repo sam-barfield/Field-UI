@@ -131,6 +131,11 @@ const Installation: React.FC = () => (
         are installed automatically; install <C>lucide-react</C> yourself if you want to use its icons in your own code
         (all examples here do).
       </P>
+      <P>
+        <C>htmlparser2</C> is installed too, for <DocLink to="components/prose">ProseHtml</DocLink>. It is only bundled
+        if you import <C>ProseHtml</C> or <C>htmlToReact</C>, and it needs Node 20.19 or newer (older versions show an
+        npm engine warning).
+      </P>
     </Section>
 
     <Section id="styles" title="3. Import the stylesheet">
@@ -498,7 +503,7 @@ const isDesktop = useMediaQuery(\`(min-width: \${breakpoints.md}px)\`);`}
           <><DocLink to="components/card">Card</DocLink> with <C>href</C> for whole-card links (service tiles, blog posts). Keep other links and buttons out of a link card.</>,
           <><DocLink to="components/media">Image, Gallery, Lightbox and AspectRatio</DocLink> for photos, portfolios, maps and video.</>,
           <><DocLink to="components/carousel">Carousel</DocLink> for reviews and highlights.</>,
-          <><DocLink to="components/link">Link</DocLink> for text links and <DocLink to="components/prose">Prose</DocLink> for CMS / Markdown content.</>,
+          <><DocLink to="components/link">Link</DocLink> for text links and <DocLink to="components/prose">Prose</DocLink> for CMS / Markdown content, and <C>ProseHtml</C> for an HTML string from a CMS (safe, and the same on the server and in the browser).</>,
           <><DocLink to="components/site-utilities">SkipLink, BackToTop and Reveal</DocLink>.</>,
         ]}
       />
@@ -714,6 +719,11 @@ export function App() {
         ]}
       />
       <P>Supported by <C>Button</C>, <C>IconButton</C>, <C>Card</C>, <C>Link</C>, <C>NavbarBrand</C>, <C>NavbarItem</C>, <C>NavbarFlyoutItem</C>, <C>SidebarItem</C>, <C>SidebarSubItem</C>, <C>DropdownItem</C>, <C>ContextMenu</C> items, <C>Tabs</C> items, <C>Breadcrumb</C> items and <C>FooterLink</C>.</P>
+      <P>
+        Links inside CMS content rendered with <C>ProseHtml</C> are plain <C>{'<a>'}</C> tags. To route them, pass your
+        link component as <C>{'components={{ a: RouterLink }}'}</C>. Define that object once, outside the component, so
+        the HTML isn't parsed again on every render.
+      </P>
     </Section>
 
     <Section id="next" title="Next.js">
@@ -975,6 +985,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <C>suppressHydrationWarning</C> on <C>{'<html>'}</C> is needed because the provider writes the theme's{' '}
         <C>data-theme</C> attribute and variables there on the client.
       </Callout>
+    </Section>
+    <Section id="cms-html" title="HTML from a CMS">
+      <P>
+        Render CMS HTML with <DocLink to="components/prose">ProseHtml</DocLink> rather than{' '}
+        <C>dangerouslySetInnerHTML</C> or a <C>DOMParser</C>-based sanitiser. <C>DOMParser</C> does not exist on the
+        server, so a browser-only sanitiser renders different markup on the server and causes a hydration mismatch.{' '}
+        <C>ProseHtml</C> parses with <C>htmlparser2</C>, which runs the same in both places, so it works in Server
+        Components and server-rendered pages. It needs Node 20.19 or newer.
+      </P>
     </Section>
     <Section id="flash" title="Avoiding a flash of the wrong theme">
       <P>

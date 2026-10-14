@@ -29,7 +29,7 @@ Key commands, structure and rules for Claude Code and other assistants working *
 - **Actions**: `Button`, `IconButton`, `ButtonGroup`, `SegmentedControl`, `Chip`, `ChipGroup`, `DropdownMenu`, `CopyButton`
 - **Forms**: `TextInput`, `TextArea`, `Select`, `Combobox`, `NumberInput`, `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `DatePicker`, `DateRangePicker`
 - **Layout & Primitives** (`components/Layout.tsx`): `Box`, `Flex`, `Stack`, `Grid`, `Container`, `Divided`, plus `Divider`, `Card`, `VisuallyHidden` (layout props accept breakpoint objects: `Responsive<T>`, `breakpoints`, `useMediaQuery`)
-- **Website**: `Section`, `SectionHeader`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox` (`LightboxAction`), `Carousel` (`CarouselSlide`), `Link`, `Prose`, `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `FloatingButton`, `Reveal`
+- **Website**: `Section`, `SectionHeader`, `Footer` (`FooterBrand`, `FooterColumn`, `FooterLink`, `FooterBottom`), `Image`, `AspectRatio`, `Gallery`, `Lightbox` (`LightboxAction`), `Carousel` (`CarouselSlide`), `Link`, `Prose` (`ProseHtml`), `CookieConsent` (`useCookieConsent`), `SkipLink`, `BackToTop`, `FloatingButton`, `Reveal`
 - **Data Display**: `DescriptionList` (`DescriptionItem`), `Icon`, `IconText`, `StatCard`, `Table`, `Terminal`, `CodeBlock`, `DiffViewer`, `Sparkline`, `Meter`, `StatusDot`, `TreeView`, `EmptyState`, `Badge`, `Avatar`, `AvatarGroup`
 - **Overlays**: `Modal`, `Drawer`, `Popover`, `Tooltip`, `ContextMenu`, `CommandPalette`
 - **Feedback**: `Alert`, `ToastProvider` / `useToast`, `Progress`, `Spinner`, `Skeleton`, `Accordion`, `AsyncContent`

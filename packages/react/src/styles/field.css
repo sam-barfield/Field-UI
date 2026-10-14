@@ -5909,6 +5909,8 @@ body:has(.field-back-to-top) .field-footer-bottom {
   text-underline-offset: 0.18em;
 }
 .field-prose a:hover { color: var(--field-accent-hover); }
+/* Phone numbers stay on one line. */
+.field-prose a[href^="tel:"] { white-space: nowrap; }
 .field-prose :is(ul, ol) { padding-left: 1.4em; }
 .field-prose li { margin: 0.35em 0; }
 .field-prose li::marker { color: var(--field-text-tertiary); }

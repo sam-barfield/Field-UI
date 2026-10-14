@@ -4004,6 +4004,84 @@
         "<Prose as=\"article\" dangerouslySetInnerHTML={{ __html: post.html }} />"
       ]
     },
+    "ProseHtml": {
+      "category": "Website",
+      "source": "packages/react/src/components/ProseHtml.tsx",
+      "description": "`Prose` for HTML from a CMS: renders it as React elements through an allowlist, without\n`dangerouslySetInnerHTML`. Works on the server and in the browser (no hydration mismatch).\nTakes every `Prose` prop, including `collapsible`.\n\nLinks: only `http(s):`, `mailto:`, `tel:`, relative and `#` hrefs; external links open in a new\ntab. Empty paragraphs are dropped, `<tr>` directly in `<table>` get a `<tbody>`, and `<th>` get\n`scope` (`row` beside `<td>` cells, else `col`).\n\nThe HTML is parsed again whenever `html` or an option changes, so define `components`,\n`allowedTags` and `isExternalLink` once (outside the component or with `useMemo`), not inline.\nThe parser, `htmlparser2`, is only bundled when `ProseHtml` or `htmlToReact` is imported.",
+      "props": {
+        "html": {
+          "type": "string",
+          "required": true,
+          "description": "HTML to render, e.g. a CMS post body. Cleaned through an allowlist and rebuilt as React elements."
+        },
+        "size": {
+          "type": "Responsive<\"base\" | \"sm\" | \"lg\">",
+          "required": false,
+          "description": "Base text size. Default `base`. Accepts a breakpoint object, e.g. `{ base: 'base', lg: 'lg' }`."
+        },
+        "as": {
+          "type": "ElementType<any, keyof IntrinsicElements>",
+          "required": false,
+          "description": "Element to render. Default `div`; use `article` for posts."
+        },
+        "maxWidth": {
+          "type": "string",
+          "required": false,
+          "description": "Max line length. Default `68ch`; pass `none` to fill the container."
+        },
+        "collapsible": {
+          "type": "\"always\" | Responsive<boolean>",
+          "required": false,
+          "description": "Collapse long text to its first `previewParagraphs` paragraphs with a \"Read more\" toggle. `true`\ncollapses on phones only (below 640px); `'always'` at every width; a breakpoint object chooses per\nbreakpoint, e.g. `{ base: true, lg: false }` collapses below 1024px. It is CSS only, so the first\npaint is already right. The toggle only appears where the text collapses and there is more to show.\nWhen set, the content and toggle render inside a `div.field-prose-collapsible` wrapper, which\nreceives `className` and `style`."
+        },
+        "previewParagraphs": {
+          "type": "number",
+          "required": false,
+          "description": "Paragraphs shown while collapsed (1–10); everything after the last one is hidden. Default `2`."
+        },
+        "expandLabel": {
+          "type": "string",
+          "required": false,
+          "description": "Label for expand button. Default `Read more`."
+        },
+        "collapseLabel": {
+          "type": "string",
+          "required": false,
+          "description": "Label for collapse button. Default `Show less`."
+        },
+        "headingLevel": {
+          "type": "1 | 2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "description": "The level the content's top heading becomes; the others shift by the same amount (capped at\n`h6`). E.g. content under a card's `h3` should start at `4`. Default: levels are kept."
+        },
+        "components": {
+          "type": "Partial<Record<string, ElementType<any, keyof IntrinsicElements>>>",
+          "required": false,
+          "description": "Replace how a tag renders, like react-markdown's `components`: e.g. `{ a: RouterLink }` or\n`{ img: props => <Image {...props} radius=\"md\" /> }`. Each gets the cleaned attributes as\nReact props plus `children`. Define the object once (outside the component or with `useMemo`):\na new object on every render makes `ProseHtml` parse the HTML again each time."
+        },
+        "allowedTags": {
+          "type": "readonly string[]",
+          "required": false,
+          "description": "Narrow the tags rendered (others are unwrapped to their content). It can only remove tags:\nnames outside `PROSE_HTML_TAGS` are ignored, because each tag's safe attributes are fixed."
+        },
+        "isExternalLink": {
+          "type": "((href: string) => boolean)",
+          "required": false,
+          "description": "Which links open in a new tab (with `rel=\"noopener noreferrer\"`). Default: absolute `http(s)`\nlinks. Pass your own to keep links to your own domain in the same tab. Like `components`,\ndefine it once so the HTML isn't parsed again on every render."
+        },
+        "newTabLabel": {
+          "type": "string",
+          "required": false,
+          "description": "Screen-reader text added to links that open in a new tab. Default ` (opens in a new tab)`; `''` for none."
+        }
+      },
+      "inherits": [
+        "Omit<ProseProps, 'children' | 'dangerouslySetInnerHTML'>"
+      ],
+      "examples": [
+        "const components = { a: RouterLink, img: props => <Image {...props} radius=\"md\" /> };\n\n<ProseHtml\n  html={post.content}\n  headingLevel={4}\n  components={components}\n/>"
+      ]
+    },
     "RadioGroup": {
       "category": "Forms",
       "source": "packages/react/src/components/Controls.tsx",

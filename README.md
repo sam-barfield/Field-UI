@@ -28,7 +28,7 @@ export function App() {
    @sam.barfield:registry=https://gitlab.xencloud.io/api/v4/packages/npm/
    //gitlab.xencloud.io/api/v4/packages/npm/:_authToken=${GITLAB_NPM_TOKEN}
    ```
-2. `npm install @sam.barfield/field-react` (React 18 or 19).
+2. `npm install @sam.barfield/field-react` (React 18 or 19). `ProseHtml` (CMS HTML) uses `htmlparser2`, which needs Node 20.19 or newer.
 3. Import `@sam.barfield/field-react/styles.css` once. It includes the default theme variables, so pages are styled before hydration.
 4. Wrap the app in `ThemeProvider` (and `ToastProvider` if you use toasts).
 

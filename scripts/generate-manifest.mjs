@@ -52,6 +52,7 @@ const CATEGORY_BY_FILE = {
   Layout: 'Layout',
   Icon: 'Data Display',
   Website: 'Website',
+  ProseHtml: 'Website',
   Media: 'Website',
   CookieConsent: 'Website',
   UnfoldingHeading: 'Typography',

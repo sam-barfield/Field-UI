@@ -6,6 +6,8 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ### Added
 - **Lightbox `actions`** renders controls in the toolbar before Close, inside the focus trap. It is called with the image shown and its index. **`LightboxAction`** is an icon control styled like Close (`icon`, required `aria-label`; a link with `href`). With `download` or `target` it is always a plain `<a>`, so a router link never handles the click. **Gallery `lightboxProps`** passes `actions`, `aria-label` and `className` to its Lightbox.
+- **`ProseHtml`** renders an HTML string (e.g. a CMS post) as React elements through an allowlist, so sites no longer need `dangerouslySetInnerHTML` or their own sanitiser. It parses with `htmlparser2` (new dependency; tree-shaken away if `ProseHtml` is not imported), so the server and browser output match. Unknown tags are unwrapped, `script` / `style` / `iframe` / `form` and similar are dropped whole, and only safe attributes and `http(s):` / `mailto:` / `tel:` / relative / `#` URLs are kept. `headingLevel` shifts the headings, `components` replaces how a tag renders, `allowedTags` narrows the list, `isExternalLink` and `newTabLabel` control new-tab links. Empty paragraphs are dropped, `<tbody>` is inserted and `<th>` get `scope`. Takes every `Prose` prop. **`htmlToReact(html, options)`** returns the elements on their own. Define `components`, `allowedTags` and `isExternalLink` once (outside the component or with `useMemo`): a new object on every render re-parses the HTML. `htmlparser2` declares Node 20.19 or newer; older versions get an npm engine warning.
+- Prose: phone links (`tel:`) don't wrap.
 
 ### Fixed
 - **Downloads and new-tab links bypass the router link.** `Button`, `IconButton`, `Card`, `Link` / `FooterLink` and `Breadcrumb` (via `linkProps`) render a plain `<a>` instead of the `ThemeProvider` `linkComponent` when `download` is set or `target` is set to anything but `_self`, so `<Button href="/wp-content/uploads/form.pdf" download>` downloads the file instead of being routed in-app. An explicit `as` still wins. The rule lives in `resolveTag` / `useResolvedTag` (new `linkAttrs` argument, `needsNativeLink` helper); `LightboxAction` now uses it instead of its own check.
@@ -13,11 +15,11 @@ All notable changes to the **Field Design System** (`@sam.barfield/field-tokens`
 
 ### Changed
 - When the Lightbox toolbar has actions, the counter moves to the left.
-- Showcase: new "Lightbox toolbar actions" example on the Media page.
+- Showcase: new "Lightbox toolbar actions" example on the Media page and "HTML from a CMS" example on the Prose page. The Installation, Building a website, Routing and SSR guides cover `ProseHtml` (Node requirement, routing links in CMS content, why it hydrates cleanly).
 
 ## [0.4.1] - 2026-10-13
 
-Fixes and additions from moving the RAF Snaith Museum site onto 0.4.0 (findings G1–G11).
+Fixes and additions from moving a production website onto 0.4.0 (findings G1–G11).
 
 ### Fixed
 - **Card `href` + `fill` pins the footer (G1).** The link rule no longer overrides `fill`'s flex layout, so a row of link cards with different text lengths has aligned footers. The same applies to `as="button"` cards.
@@ -43,7 +45,7 @@ Fixes and additions from moving the RAF Snaith Museum site onto 0.4.0 (findings 
 
 ## [0.4.0] - 2026-10-12
 
-Fixes and additions from building and running a production website on Field (the RAF Snaith Museum site): every finding in its review (F1–F22) and its forced-reflow report. See **Breaking changes** before upgrading.
+Fixes and additions from building and running a production website on Field: every finding in its review (F1–F22) and its forced-reflow report. See **Breaking changes** before upgrading.
 
 ### Breaking changes
 - **Styles are in cascade layers.** `styles.css` / `styles/field.css` / `styles/components.css` now wrap everything in `@layer field.tokens, field.base, field.components`. Any unlayered CSS in your app beats Field regardless of specificity. That is the point (overrides no longer need to out-specify Field), but it also means **unlayered resets and base styles now override Field's components**: a `button { background: none }`, `a { color: inherit }` or `* { margin: 0; padding: 0 }` reset will strip Field's buttons, links and spacing. To migrate, put resets in a layer that comes *before* Field. Layer order is fixed by first appearance, so declare it in a file imported before Field's stylesheet:

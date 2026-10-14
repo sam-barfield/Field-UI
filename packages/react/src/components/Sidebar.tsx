@@ -14,6 +14,7 @@ export interface SidebarContextValue {
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);
 
+/** State of the surrounding `SidebarProvider`: `isCollapsed`, `toggleCollapsed`, `setCollapsed` and `density`. Use it for a custom collapse button or to adapt your own content; outside a provider it returns an expanded, no-op default. */
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
   if (!context) {

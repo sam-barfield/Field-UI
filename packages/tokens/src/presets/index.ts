@@ -6,6 +6,7 @@ import { businessThemePairs } from './business.js';
 
 export * from './business.js';
 
+/** Titanium Amber, dark mode (amber accent). */
 export const titaniumAmberTheme: FieldTheme = {
   id: 'field-titanium-amber',
   label: 'Titanium Amber (Tactical)',
@@ -77,6 +78,7 @@ export const titaniumAmberTheme: FieldTheme = {
   },
 };
 
+/** Emerald Precision, dark mode (emerald accent). */
 export const emeraldPrecisionTheme: FieldTheme = {
   id: 'field-emerald-precision',
   label: 'Emerald Precision (Cybernetic)',
@@ -143,6 +145,7 @@ export const emeraldPrecisionTheme: FieldTheme = {
   },
 };
 
+/** Hyper Violet: a dark theme with a violet accent (no light pair). */
 export const hyperVioletTheme: FieldTheme = {
   id: 'field-hyper-violet',
   label: 'Hyper Violet (Deep Space)',
@@ -211,6 +214,7 @@ export const hyperVioletTheme: FieldTheme = {
   },
 };
 
+/** Titanium Amber, light mode. */
 export const titaniumAmberLightTheme: FieldTheme = {
   id: 'field-titanium-amber-light',
   label: 'Titanium Amber Light',
@@ -285,6 +289,7 @@ export const titaniumAmberLightTheme: FieldTheme = {
   },
 };
 
+/** Emerald Precision, light mode. */
 export const emeraldPrecisionLightTheme: FieldTheme = {
   id: 'field-emerald-precision-light',
   label: 'Emerald Precision Light',
@@ -353,6 +358,7 @@ export const emeraldPrecisionLightTheme: FieldTheme = {
   },
 };
 
+/** The default pair: `darkTheme` and `lightTheme` (Obsidian / Cobalt). */
 export const cobaltThemePair: FieldThemePair = {
   id: 'cobalt',
   label: 'Obsidian / Cobalt',
@@ -360,6 +366,7 @@ export const cobaltThemePair: FieldThemePair = {
   light: lightTheme,
 };
 
+/** Titanium Amber, dark and light. */
 export const titaniumAmberPair: FieldThemePair = {
   id: 'titanium-amber',
   label: 'Titanium Amber',
@@ -367,6 +374,7 @@ export const titaniumAmberPair: FieldThemePair = {
   light: titaniumAmberLightTheme,
 };
 
+/** Emerald Precision, dark and light. */
 export const emeraldPrecisionPair: FieldThemePair = {
   id: 'emerald-precision',
   label: 'Emerald Precision',
@@ -374,6 +382,7 @@ export const emeraldPrecisionPair: FieldThemePair = {
   light: emeraldPrecisionLightTheme,
 };
 
+/** The pair `ThemeProvider` uses when none is given (`cobaltThemePair`). */
 export const defaultThemePair = cobaltThemePair;
 
 /** Every built-in pair: the app/console pairs followed by the website pairs (`businessThemePairs`). */
@@ -384,6 +393,7 @@ export const themePairs: FieldThemePair[] = [
   ...businessThemePairs,
 ];
 
+/** Every built-in single theme, dark and light, e.g. for a theme picker that is not split by mode. */
 export const themePresets: FieldTheme[] = [
   darkTheme,
   lightTheme,

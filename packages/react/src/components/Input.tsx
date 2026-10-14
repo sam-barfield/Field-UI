@@ -6,8 +6,11 @@ import { mergeClassNames } from '../utils/polymorphic.js';
 /* --- Shared form field chrome (label, helper and error text) --- */
 
 export interface FieldMessageProps {
+  /** The control's id. The message gets `<id>-error` or `<id>-helper` (see `getFieldDescriptionId`). */
   id: string;
+  /** Error message; shown instead of `helperText` and announced (`role="alert"`). */
   error?: React.ReactNode;
+  /** Hint shown while there is no error. */
   helperText?: React.ReactNode;
 }
 
@@ -18,7 +21,14 @@ export function getFieldDescriptionId(id: string, error?: React.ReactNode, helpe
   return undefined;
 }
 
-/** Renders the error message (preferred) or helper text below a form control. */
+/**
+ * Renders the error message (preferred) or helper text below a form control, styled like Field's inputs.
+ * Use it with `FieldLabel` to build custom controls; point the control's `aria-describedby` at
+ * `getFieldDescriptionId(id, error, helperText)`.
+ *
+ * @example
+ * <FieldMessage id={id} error={error} helperText="Used for buttons and links." />
+ */
 export const FieldMessage: React.FC<FieldMessageProps> = ({ id, error, helperText }) => {
   if (error) {
     return (
@@ -38,10 +48,17 @@ export const FieldMessage: React.FC<FieldMessageProps> = ({ id, error, helperTex
 };
 
 export interface FieldLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  /** Adds a `*` after the label (hidden from screen readers; mark the control `required` too). */
   required?: boolean;
 }
 
-/** Form label with an optional required marker. */
+/**
+ * Form label styled like Field's inputs, with an optional required marker. Use it with `FieldMessage`
+ * to build custom controls.
+ *
+ * @example
+ * <FieldLabel htmlFor={id} required>Brand colour</FieldLabel>
+ */
 export const FieldLabel: React.FC<FieldLabelProps> = ({ required, className, children, ...props }) => (
   <label className={mergeClassNames('field-label', className)} {...props}>
     {children}

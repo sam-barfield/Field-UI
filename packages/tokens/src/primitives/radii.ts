@@ -1,3 +1,4 @@
+/** Corner radii (`none` to `full`), exposed as `--field-radius-*`. */
 export const radii = {
   none: '0px',
   xs: '3px',

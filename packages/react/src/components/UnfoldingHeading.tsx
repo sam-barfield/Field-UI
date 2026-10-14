@@ -9,6 +9,7 @@ export type UnfoldingSize = 'sm' | 'md' | 'lg' | 'xl' | 'hero';
 export type UnfoldingSpeed = 'fast' | 'normal' | 'slow' | 'cinematic';
 export type UnfoldingIntensity = 'subtle' | 'medium' | 'vibrant';
 
+/** Milliseconds per triangle for `UnfoldingHeading`'s named `speed` values. */
 export const SPEED_PRESETS: Record<UnfoldingSpeed, number> = {
   fast: 14,
   normal: 28,
@@ -24,6 +25,7 @@ export interface IntensityPresetConfig {
   radius: number;
 }
 
+/** Stroke, fill and glow settings for `UnfoldingHeading`'s named `intensity` values. */
 export const INTENSITY_PRESETS: Record<UnfoldingIntensity, IntensityPresetConfig> = {
   subtle: {
     strokeOpacity: 0.42,

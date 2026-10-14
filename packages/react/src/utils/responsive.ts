@@ -55,6 +55,7 @@ export interface ResponsiveAccumulator {
   classes: string[];
 }
 
+/** Starts an empty `{ style, classes }` collector for `applyResponsive`. For building your own components with breakpoint-object props. */
 export const createResponsiveAccumulator = (): ResponsiveAccumulator => ({ style: {}, classes: [] });
 
 const FIELD_R_KEYS = new Set(['ta', 'fd', 'ai', 'jc', 'fw', 'gap', 'p', 'gtc', 'cpv', 'cgap', 'psz', 'plh', 'dvr', 'gaf', 'dvs']);

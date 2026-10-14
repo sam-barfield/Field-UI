@@ -1,5 +1,6 @@
 import { FieldSemanticTokens, FieldTheme } from '../types.js';
 
+/** The semantic tokens of the high-contrast dark theme. */
 export const highContrastDarkSemantics: FieldSemanticTokens = {
   name: 'Field High-Contrast Dark',
   mode: 'dark',
@@ -61,6 +62,7 @@ export const highContrastDarkSemantics: FieldSemanticTokens = {
   },
 };
 
+/** A dark theme with stronger text, border and focus contrast, for users who need it. */
 export const highContrastDarkTheme: FieldTheme = {
   id: 'field-high-contrast-dark',
   label: 'High-Contrast Dark',

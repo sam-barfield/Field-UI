@@ -146,7 +146,7 @@ export const componentPages: ComponentPageDef[] = [
     name: 'TextInput & TextArea',
     category: 'Forms',
     summary: 'Single- and multi-line text fields with label, helper text, error state and adornments.',
-    api: ['TextInput', 'TextArea'],
+    api: ['TextInput', 'TextArea', 'FieldLabel', 'FieldMessage'],
     whenToUse: [
       'Free-form text such as names, emails, search queries and descriptions.',
       'size (sm, md, lg, xl) matches the Button heights, so a field and its button line up; Select and NumberInput take the same sizes. The native size attribute is htmlSize.',
@@ -472,12 +472,13 @@ export const componentPages: ComponentPageDef[] = [
   },
   {
     id: 'site-utilities',
-    name: 'SkipLink, BackToTop, FloatingButton & Reveal',
+    name: 'SkipLink, VisuallyHidden, BackToTop, FloatingButton & Reveal',
     category: 'Website',
-    summary: 'Small site helpers: a skip-to-content link for keyboard users, a back-to-top button, a floating action button and scroll-triggered entrance animations.',
-    api: ['SkipLink', 'BackToTop', 'FloatingButton', 'Reveal'],
+    summary: 'Small site helpers: a skip-to-content link for keyboard users, screen-reader-only text, a back-to-top button, a floating action button and scroll-triggered entrance animations.',
+    api: ['SkipLink', 'VisuallyHidden', 'BackToTop', 'FloatingButton', 'Reveal'],
     whenToUse: [
       'SkipLink first in every page layout, pointing at your <main id="main">.',
+      'VisuallyHidden for text only screen readers need, e.g. "(current page)" or the name of an icon-only link. below="sm" hides it on phones only, so a label can collapse to its icon on small screens. In CSS, the .field-sr-only class does the same.',
       'BackToTop on long pages such as menus and articles. FooterBottom leaves room for it automatically, so right-aligned legal links stay clickable.',
       'FloatingButton for one persistent action (a basket, "Book now"); BackToTop moves up above it. compactOnMobile keeps just the icon on phones; badge (e.g. a basket count) stays visible when compact.',
       'Reveal for subtle entrances on marketing pages; avoid it on app screens. Reveal asChild animates a card directly, so equal-height grids keep working.',
@@ -874,6 +875,7 @@ export const componentPages: ComponentPageDef[] = [
     summary: 'A display heading whose letters are drawn as a wireframe and then materialise into solid type.',
     api: ['UnfoldingHeading'],
     whenToUse: [
+      'UnfoldingHeader is an alias of UnfoldingHeading, with the same props.',
       'Hero headlines and section intros on marketing pages - sparingly.',
       'The heading wraps within its container. Sizes lg and xl scale down on phones (to 28px and 32px) so long single words still fit; hero scales with the viewport.',
     ],

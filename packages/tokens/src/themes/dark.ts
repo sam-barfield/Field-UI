@@ -1,5 +1,6 @@
 import { FieldSemanticTokens, FieldTheme } from '../types.js';
 
+/** The semantic tokens (surfaces, text, borders, accent, status) of the default dark theme. */
 export const darkSemantics: FieldSemanticTokens = {
   name: 'Field Obsidian Dark',
   mode: 'dark',
@@ -64,6 +65,7 @@ export const darkSemantics: FieldSemanticTokens = {
   },
 };
 
+/** The default dark theme, Obsidian with a Cobalt accent. Dark half of `cobaltThemePair`. */
 export const darkTheme: FieldTheme = {
   id: 'field-dark',
   label: 'Obsidian Dark (Default)',

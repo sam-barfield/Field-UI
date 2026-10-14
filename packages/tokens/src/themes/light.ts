@@ -1,5 +1,6 @@
 import { FieldSemanticTokens, FieldTheme } from '../types.js';
 
+/** The semantic tokens of the default light theme. */
 export const lightSemantics: FieldSemanticTokens = {
   name: 'Field Architectural Light',
   mode: 'light',
@@ -63,6 +64,7 @@ export const lightSemantics: FieldSemanticTokens = {
   },
 };
 
+/** The default light theme. Light half of `cobaltThemePair`. */
 export const lightTheme: FieldTheme = {
   id: 'field-light',
   label: 'Architectural Light',

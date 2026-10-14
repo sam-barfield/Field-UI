@@ -2,8 +2,8 @@ import React from 'react';
 import { Badge, Button, Card, Grid, Stack, Text } from '@sam.barfield/field-react';
 import { ArrowRight, Blocks, Palette, Route, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { componentPages } from './componentPages';
-import { manifest } from './manifest';
-import { C, Callout, DocLink, DocPage, H3, List, P, Section, Snippet } from './docKit';
+import { manifest, type ManifestUtility } from './manifest';
+import { C, Callout, DocLink, DocPage, H3, List, P, PropsTable, Section, Snippet, renderInlineCode } from './docKit';
 
 export interface GuideDef {
   slug: string;
@@ -414,6 +414,15 @@ import '@sam.barfield/field-tokens/themes/titanium-amber.css'; // any pair by id
         <C>themePairToCssString(pair)</C> or <C>themeToCssString(theme, selector)</C>.
       </P>
     </Section>
+
+    <Section id="api" title="API reference">
+      <P>
+        Hooks (<C>useTheme</C>, <C>useThemeSafe</C>, <C>usePortalThemeProps</C>) and the theme objects and exporters are
+        listed in <DocLink to="docs/utilities">Hooks & utilities</DocLink>.
+      </P>
+      <PropsTable component="ThemeProvider" />
+      <PropsTable component="ThemeScope" />
+    </Section>
   </DocPage>
 );
 
@@ -634,7 +643,7 @@ const Styling: React.FC = () => (
           <><C>.field-navbar-hide-mobile</C>: hides any element inside the Navbar while it is collapsed (<C>NavbarActionsItem hideOnMobile</C> adds it for you).</>,
           <>The container name <C>field-navbar</C>: query the bar's own width, e.g. <C>{'@container field-navbar (max-width: 768px) { … }'}</C>.</>,
           <><C>data-navbar-overlap</C>: put it on a custom hero to tell <C>Navbar transparentOnTop="auto"</C> that a band sits under the bar (<C>Section underNavbar</C> does this for you).</>,
-          <><C>.field-sr-only</C>: visually hidden, still read by screen readers (or <C>VisuallyHidden</C>, which can also hide only below a breakpoint).</>,
+          <><C>.field-sr-only</C>: visually hidden, still read by screen readers (or <DocLink to="components/site-utilities">VisuallyHidden</DocLink>, which can also hide only below a breakpoint).</>,
           <>The cascade layers <C>field.tokens</C>, <C>field.base</C> and <C>field.components</C> (all under <C>field</C>), for ordering your own layers.</>,
           <>The <C>.field-*</C> component class names, for targeting components from your CSS.</>,
         ]}
@@ -936,6 +945,8 @@ const Accessibility: React.FC = () => (
         items={[
           <>Give icon-only buttons an <C>aria-label</C> (required by <C>IconButton</C>'s types).</>,
           <>Give controls without a visible label an <C>aria-label</C>, e.g. a search field or table row checkbox.</>,
+          <>Use <DocLink to="components/site-utilities">VisuallyHidden</DocLink> for text only screen readers need, such as "(current page)" or the name of an icon-only link.</>,
+          <>Building a custom form control? Use <DocLink to="components/text-input">FieldLabel and FieldMessage</DocLink> so its label, helper and error text match Field's inputs.</>,
           <>Don't rely on colour alone: pair <C>StatusDot</C> and coloured <C>Badge</C>s with text.</>,
           <>Keep heading levels in order and give each page exactly one <C>h1</C>; use <C>{'<Heading level={1} as="h2">'}</C> to change the look without breaking the outline. On a 404 page, <C>{'<EmptyState titleAs="h1">'}</C> makes the message the page heading.</>,
           <>Check custom theme colours with <C>checkThemeContrast</C> (both modes) before you ship; see <DocLink to="docs/theming">Theming</DocLink>.</>,
@@ -1034,7 +1045,7 @@ const AiAssistants: React.FC = () => (
     <Section id="files" title="Files to give your assistant">
       <List
         items={[
-          <><C>docs/COMPONENT_MANIFEST.json</C> - every component, prop, type, default and description, generated from the source (<C>npm run docs:manifest</C>).</>,
+          <><C>docs/COMPONENT_MANIFEST.json</C> - every component, prop, type, default and description, and every hook and utility with its signature, generated from the source (<C>npm run docs:manifest</C>).</>,
           <><C>docs/AGENTS.md</C> - conventions, recipes and rules for building UIs with Field.</>,
           <><C>docs/DESIGN_PHILOSOPHY.md</C> - the visual principles behind the system.</>,
         ]}
@@ -1068,6 +1079,101 @@ const AiAssistants: React.FC = () => (
   </DocPage>
 );
 
+/* ------------------------------------------------------------------ */
+
+/** Utility groups by source file (anything not listed falls into "Other"). */
+const UTILITY_GROUPS: { title: string; id: string; intro?: string; match: (source: string) => boolean }[] = [
+  {
+    title: 'Links and polymorphism',
+    id: 'links',
+    intro: 'What Field uses to render items as a button, a link or your router link. Use them to build your own link-aware components.',
+    match: s => /utils\/(polymorphic|classNames)$/.test(s),
+  },
+  {
+    title: 'Focus, refs and keyboard',
+    id: 'dom',
+    intro: 'The building blocks behind Field’s overlays and menus.',
+    match: s => /utils\/hooks$|theme\/usePortalTheme$/.test(s),
+  },
+  {
+    title: 'Responsive props',
+    id: 'responsive',
+    intro: 'Breakpoints, and the helpers that turn breakpoint-object props into CSS. The lower-level helpers are for building components like Field’s own.',
+    match: s => /utils\/responsive$/.test(s),
+  },
+  { title: 'Dates', id: 'dates', match: s => /utils\/date$|components\/DatePicker$/.test(s) },
+  { title: 'Component helpers', id: 'component-helpers', match: s => s.startsWith('packages/react/src/components/') },
+  {
+    title: 'Themes and presets',
+    id: 'themes',
+    intro: 'From @sam.barfield/field-tokens (also re-exported by @sam.barfield/field-react). See Theming for how to use them.',
+    match: s => /tokens\/src\/(themes|presets|create)/.test(s),
+  },
+  { title: 'Exporters and contrast', id: 'exporters', match: s => /tokens\/src\/(compiler|tailwind|contrast)/.test(s) },
+  { title: 'Primitive tokens', id: 'primitives', intro: 'The raw scales the themes are built from.', match: s => /tokens\/src\/primitives/.test(s) },
+];
+
+const ReferenceTable: React.FC<{ rows: [string, { signature?: string; type?: string; description: string }][] }> = ({ rows }) => (
+  <div className="docs-table-wrap">
+    <table className="docs-table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(([name, entry]) => (
+          <tr key={name} id={`ref-${name}`}>
+            <td className="docs-prop-name">
+              <code>{name}</code>
+            </td>
+            <td className="docs-prop-desc">
+              {renderInlineCode(entry.description.split(/\n\s*\n/)[0].replace(/\n/g, ' '))}
+              {(entry.signature || entry.type) && (
+                <div>
+                  <code className="docs-prop-type">{entry.signature ?? entry.type}</code>
+                </div>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+const HooksAndUtilities: React.FC = () => {
+  const utilities = Object.entries(manifest.utilities) as [string, ManifestUtility][];
+  // Each utility goes in the first group that matches.
+  const groupOf = (source: string) => UTILITY_GROUPS.find(group => group.match(source));
+  const grouped = UTILITY_GROUPS.map(group => ({ ...group, rows: utilities.filter(([, u]) => groupOf(u.source) === group) }));
+  const other = utilities.filter(([, u]) => !UTILITY_GROUPS.some(group => group.match(u.source)));
+  return (
+    <DocPage
+      title="Hooks & utilities"
+      lead="Every hook, function and constant Field exports besides its components, generated from the source. Components are on their own pages; the helpers here are for state, theming, building your own components and working with tokens."
+    >
+      <Section id="hooks" title="Hooks">
+        <ReferenceTable rows={Object.entries(manifest.hooks)} />
+      </Section>
+      {grouped.map(group =>
+        group.rows.length ? (
+          <Section key={group.id} id={group.id} title={group.title}>
+            {group.intro && <P>{group.intro}</P>}
+            <ReferenceTable rows={group.rows} />
+          </Section>
+        ) : null
+      )}
+      {other.length > 0 && (
+        <Section id="other" title="Other">
+          <ReferenceTable rows={other} />
+        </Section>
+      )}
+    </DocPage>
+  );
+};
+
 export const guides: GuideDef[] = [
   { slug: 'introduction', title: 'Introduction', group: 'Getting started', render: Introduction },
   { slug: 'installation', title: 'Installation', group: 'Getting started', render: Installation },
@@ -1078,5 +1184,6 @@ export const guides: GuideDef[] = [
   { slug: 'forms', title: 'Forms', group: 'Guides', render: Forms },
   { slug: 'accessibility', title: 'Accessibility', group: 'Guides', render: Accessibility },
   { slug: 'frameworks', title: 'SSR & frameworks', group: 'Guides', render: Frameworks },
+  { slug: 'utilities', title: 'Hooks & utilities', group: 'Guides', render: HooksAndUtilities },
   { slug: 'ai-assistants', title: 'AI coding assistants', group: 'Guides', render: AiAssistants },
 ];

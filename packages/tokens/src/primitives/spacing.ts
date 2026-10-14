@@ -1,3 +1,4 @@
+/** The spacing scale in px (`0`–`24`), exposed as `--field-space-*` (e.g. `--field-space-0_5`, `--field-space-4`) and as `"$4"`-style tokens in layout props. */
 export const spacing = {
   0: '0px',
   0.5: '2px',

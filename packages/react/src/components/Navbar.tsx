@@ -80,6 +80,7 @@ const dummyRootRef = { current: null };
 
 const NavbarContext = createContext<NavbarContextValue | undefined>(undefined);
 
+/** State of the surrounding `Navbar`: whether its menu is open (`isMenuOpen`, `setIsMenuOpen`, `toggleMenu`), whether it is collapsed or scrolled, and its appearance settings. For custom items inside the bar; outside a Navbar it returns closed defaults. */
 export const useNavbar = (): NavbarContextValue => {
   const context = useContext(NavbarContext);
   if (!context) {
@@ -112,6 +113,7 @@ const NavbarMenuContext = createContext<NavbarMenuContextValue>({
   isInMenu: false,
 });
 
+/** `isInMenu` is true for content rendered inside the mobile `NavbarMenu`, so a custom item can change its layout there. */
 export const useNavbarMenu = (): NavbarMenuContextValue => useContext(NavbarMenuContext);
 
 /* --- NAVBAR CONTENT CONTEXT --- */

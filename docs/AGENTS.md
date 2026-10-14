@@ -2,7 +2,7 @@
 
 This is the guide for AI coding assistants (Claude, Cursor, Copilot, Gemini, ChatGPT) generating or reviewing code that **uses** the Field Design System.
 
-> **Source of truth for props:** [`docs/COMPONENT_MANIFEST.json`](./COMPONENT_MANIFEST.json) is generated from the TypeScript source (`npm run docs:manifest`). It lists every component, prop, type, default and description. Never use a prop that is not in the manifest.
+> **Source of truth for props:** [`docs/COMPONENT_MANIFEST.json`](./COMPONENT_MANIFEST.json) is generated from the TypeScript source (`npm run docs:manifest`). It lists every component, prop, type, default and description, plus every hook and utility (functions and constants such as `mergeRefs`, `breakpoints`, `createThemePair`) with its signature. Never use a prop that is not in the manifest.
 
 ---
 

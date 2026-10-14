@@ -2002,39 +2002,45 @@
     "FieldLabel": {
       "category": "Forms",
       "source": "packages/react/src/components/Input.tsx",
-      "description": "Form label with an optional required marker.",
+      "description": "Form label styled like Field's inputs, with an optional required marker. Use it with `FieldMessage`\nto build custom controls.",
       "props": {
         "required": {
           "type": "boolean",
           "required": false,
-          "description": "Marks the field as required (adds a * to the label and native validation)."
+          "description": "Adds a `*` after the label (hidden from screen readers; mark the control `required` too)."
         }
       },
       "inherits": [
         "LabelHTMLAttributes<HTMLLabelElement>"
+      ],
+      "examples": [
+        "<FieldLabel htmlFor={id} required>Brand colour</FieldLabel>"
       ]
     },
     "FieldMessage": {
       "category": "Forms",
       "source": "packages/react/src/components/Input.tsx",
-      "description": "Renders the error message (preferred) or helper text below a form control.",
+      "description": "Renders the error message (preferred) or helper text below a form control, styled like Field's inputs.\nUse it with `FieldLabel` to build custom controls; point the control's `aria-describedby` at\n`getFieldDescriptionId(id, error, helperText)`.",
       "props": {
         "id": {
           "type": "string",
           "required": true,
-          "description": "Element id. Generated automatically when omitted (labels stay linked)."
+          "description": "The control's id. The message gets `<id>-error` or `<id>-helper` (see `getFieldDescriptionId`)."
         },
         "error": {
           "type": "ReactNode",
           "required": false,
-          "description": "Error message shown under the control; also sets `aria-invalid`."
+          "description": "Error message; shown instead of `helperText` and announced (`role=\"alert\"`)."
         },
         "helperText": {
           "type": "ReactNode",
           "required": false,
-          "description": "Hint shown under the control (hidden while `error` is set)."
+          "description": "Hint shown while there is no error."
         }
-      }
+      },
+      "examples": [
+        "<FieldMessage id={id} error={error} helperText=\"Used for buttons and links.\" />"
+      ]
     },
     "FileItem": {
       "category": "Data Display",
@@ -2101,7 +2107,7 @@
           "description": "Optional heading above the rows, e.g. \"Attachments\". It labels the list."
         },
         "headingLevel": {
-          "type": "2 | 3 | 4 | 5 | 6",
+          "type": "4 | 2 | 3 | 5 | 6",
           "required": false,
           "default": "3",
           "description": "Heading level. Default `3`; use one below the surrounding heading (e.g. `4` inside a card titled with an `h3`)."
@@ -2517,7 +2523,7 @@
       "description": "Section heading. `level` sets the size; pass `as` to decouple the visual\nsize from the semantic tag, e.g. `<Heading level={1} as=\"h2\">`. Use `display`\nfor hero-sized headlines. Headings use the theme's `--field-font-display`.",
       "props": {
         "level": {
-          "type": "1 | 2 | 3 | 4",
+          "type": "4 | 1 | 2 | 3",
           "required": false,
           "default": "2",
           "description": "Visual size and, by default, the rendered `h1`-`h4` tag. Default 2."
@@ -4271,7 +4277,7 @@
           "description": "Label for collapse button. Default `Show less`."
         },
         "headingLevel": {
-          "type": "1 | 2 | 3 | 4 | 5 | 6",
+          "type": "4 | 1 | 2 | 3 | 5 | 6",
           "required": false,
           "description": "The level the content's top heading becomes; the others shift by the same amount (capped at\n`h6`). E.g. content under a card's `h3` should start at `4`. Default: levels are kept."
         },
@@ -4506,7 +4512,7 @@
           "description": "Primary section title, rendered with `Heading`, so it uses the theme's display font, weights and tracking."
         },
         "headingLevel": {
-          "type": "1 | 2 | 3 | 4 | 5 | 6",
+          "type": "4 | 1 | 2 | 3 | 5 | 6",
           "required": false,
           "default": "2",
           "description": "Heading element level. Default `2`."
@@ -6914,11 +6920,11 @@
     },
     "useNavbar": {
       "signature": "(): NavbarContextValue",
-      "description": ""
+      "description": "State of the surrounding `Navbar`: whether its menu is open (`isMenuOpen`, `setIsMenuOpen`, `toggleMenu`), whether it is collapsed or scrolled, and its appearance settings. For custom items inside the bar; outside a Navbar it returns closed defaults."
     },
     "useNavbarMenu": {
       "signature": "(): NavbarMenuContextValue",
-      "description": ""
+      "description": "`isInMenu` is true for content rendered inside the mobile `NavbarMenu`, so a custom item can change its layout there."
     },
     "usePortalThemeProps": {
       "signature": "(extraClassName?: string, style?: CSSProperties): { className: string; 'data-field-theme': string; 'data-theme': \"dark\" | \"light\"; style: { accentColor?: AccentColor; ... 855 more ...; glyphOrientationVertical?: GlyphOrientationVertical; }; }",
@@ -6942,7 +6948,7 @@
     },
     "useSidebar": {
       "signature": "(): SidebarContextValue",
-      "description": ""
+      "description": "State of the surrounding `SidebarProvider`: `isCollapsed`, `toggleCollapsed`, `setCollapsed` and `density`. Use it for a custom collapse button or to adapt your own content; outside a provider it returns an expanded, no-op default."
     },
     "useTheme": {
       "signature": "(): ThemeContextValue",
@@ -6955,6 +6961,547 @@
     "useToast": {
       "signature": "(): ToastContextValue",
       "description": "Show and dismiss toasts. Must be used inside `<ToastProvider>`."
+    }
+  },
+  "utilities": {
+    "amber": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), orange-yellow."
+    },
+    "applyResponsive": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "signature": "<T>(acc: ResponsiveAccumulator, key: string, cssProperty: string, value: Responsive<T>, toCss?: (v: T) => unknown, fallback?: T): void",
+      "description": "Applies a possibly-responsive prop: a single value becomes an inline style (or CSS variable for layout props); a\nbreakpoint object becomes `--field-r-<key>-<bp>` variables read by the\n`.field-r-<key>` media-query classes in field.css. Pass a custom property\n(e.g. `--field-carousel-per-view`) as `cssProperty` to drive component CSS."
+    },
+    "BREAKPOINT_RANGES": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "type": "readonly [\"base\", \"sm\", \"md\", \"lg\", \"xl\"]",
+      "description": "Breakpoint ranges, each from its breakpoint up to the next one (`base` is below 640px). Range-scoped\nclasses in field.css (e.g. `.field-gallery-hidden-md`) apply only inside their range."
+    },
+    "breakpoints": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "type": "Record<Breakpoint, number>",
+      "description": "Pixel widths of the breakpoints, for JS use (e.g. with `useMediaQuery`)."
+    },
+    "businessThemePairs": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair[]",
+      "description": "Theme pairs designed for customer-facing websites."
+    },
+    "checkThemeContrast": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/contrast",
+      "signature": "(theme: FieldTheme): ContrastCheck[]",
+      "description": "Check the WCAG AA contrast of every text / surface pairing Field components rely on:\nbody text on surfaces, button text on the accent fill, accent text (links, active nav)\non surfaces, status text, and the focus ring. Unparseable colours are skipped."
+    },
+    "cobalt": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), blue; the default accent."
+    },
+    "cobaltThemePair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldThemePair",
+      "description": "The default pair: `darkTheme` and `lightTheme` (Obsidian / Cobalt)."
+    },
+    "composeEventHandlers": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "<E extends SyntheticEvent>(originalHandler?: ((event: E) => void), ourHandler?: ((event: E) => void), { checkForDefaultPrevented }?: { checkForDefaultPrevented?: boolean; }): (event: E) => void",
+      "description": "Merges two event handlers so that both are executed in sequence.\nThe second handler is skipped if the first called `event.preventDefault()`."
+    },
+    "contrastRatio": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/contrast",
+      "signature": "(foreground: string, background: string, canvas?: string): number",
+      "description": "WCAG 2 contrast ratio between two colours (1 to 21). Translucent colours are composited:\nthe background over `canvas` (default white), then the foreground over the background.\nReturns `NaN` if a colour cannot be parsed (e.g. `color-mix()` or a CSS variable)."
+    },
+    "counselPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair",
+      "description": "Law firms, accountants, consultants: trustworthy navy, a classic serif and restrained corners."
+    },
+    "createResponsiveAccumulator": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "signature": "(): ResponsiveAccumulator",
+      "description": "Starts an empty `{ style, classes }` collector for `applyResponsive`. For building your own components with breakpoint-object props."
+    },
+    "createTheme": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/create",
+      "signature": "(options: CreateThemeOptions): FieldTheme",
+      "description": "Build a theme by overriding only the tokens you care about."
+    },
+    "createThemePair": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/create",
+      "signature": "(options: CreateThemePairOptions): FieldThemePair",
+      "description": "Build a dark + light theme pair so `toggleMode()` switches between them."
+    },
+    "crimson": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), red."
+    },
+    "cyan": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), blue-green."
+    },
+    "darkSemantics": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/dark",
+      "type": "FieldSemanticTokens",
+      "description": "The semantic tokens (surfaces, text, borders, accent, status) of the default dark theme."
+    },
+    "darkTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/dark",
+      "type": "FieldTheme",
+      "description": "The default dark theme, Obsidian with a Cobalt accent. Dark half of `cobaltThemePair`."
+    },
+    "DEFAULT_DATE_RANGE_PRESETS": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/DatePicker",
+      "type": "DateRangePreset[]",
+      "description": "The `DateRangePicker` presets shown by default: last 7, 30 and 90 days, ending today. Spread it to add your own."
+    },
+    "defaultThemePair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldThemePair",
+      "description": "The pair `ThemeProvider` uses when none is given (`cobaltThemePair`)."
+    },
+    "emerald": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), green."
+    },
+    "emeraldPrecisionLightTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme",
+      "description": "Emerald Precision, light mode."
+    },
+    "emeraldPrecisionPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldThemePair",
+      "description": "Emerald Precision, dark and light."
+    },
+    "emeraldPrecisionTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme",
+      "description": "Emerald Precision, dark mode: slate surfaces with an emerald accent."
+    },
+    "fieldTailwindPreset": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/tailwind/preset",
+      "type": "object",
+      "description": "Tailwind CSS Preset for the Field Design System.\nMaps Field CSS custom properties directly into Tailwind configuration."
+    },
+    "getElementRef": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/hooks",
+      "signature": "(element: ReactElement<any, string | JSXElementConstructor<any>>): Ref<unknown>",
+      "description": "Read the ref attached to a React element in a way that works in React 18\n(`element.ref`) and React 19 (`element.props.ref`, where `element.ref` warns)."
+    },
+    "getFieldDescriptionId": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/Input",
+      "signature": "(id: string, error?: ReactNode, helperText?: ReactNode): string",
+      "description": "Id of the helper/error element to reference from `aria-describedby`."
+    },
+    "getFileType": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/FileItem",
+      "signature": "(href?: string): FileItemType",
+      "description": "The file type from a URL's extension (query and hash ignored); `file` when unknown."
+    },
+    "getFocusableElements": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/hooks",
+      "signature": "(container: HTMLElement): HTMLElement[]",
+      "description": "All keyboard-focusable descendants of `container`, in DOM order."
+    },
+    "getInteractiveElementProps": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "(tag: ElementType<any, keyof IntrinsicElements>, { href, disabled, type }: { href?: string; disabled?: boolean; type?: string; }): Record<...>",
+      "description": "Props that only make sense for a particular rendered element.\n\n`type` and `disabled` are valid on `<button>` but not on `<a>`; links get\n`aria-disabled` and lose their `href` instead. Custom components (`as={Link}`)\nreceive `href` and `aria-disabled` so they can decide for themselves."
+    },
+    "getPortalTarget": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/theme/usePortalTheme",
+      "signature": "(container?: HTMLElement | null): HTMLElement | null",
+      "description": "Resolve the element a portal should render into."
+    },
+    "graphite": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Neutral scale (50–950), warm grey."
+    },
+    "handleListKeyNavigation": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/hooks",
+      "signature": "(e: KeyboardEvent<Element> | KeyboardEvent, container: HTMLElement | null, selector: string, orientation?: \"horizontal\" | \"vertical\"): boolean",
+      "description": "Arrow-key navigation between items matching `selector` inside `container`.\nReturns true when the key was handled."
+    },
+    "highContrastDarkSemantics": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/high-contrast",
+      "type": "FieldSemanticTokens",
+      "description": "The semantic tokens of the high-contrast dark theme."
+    },
+    "highContrastDarkTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/high-contrast",
+      "type": "FieldTheme",
+      "description": "A dark theme with stronger text, border and focus contrast, for users who need it."
+    },
+    "htmlToReact": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/ProseHtml",
+      "signature": "(html: string, options?: HtmlToReactOptions): ReactNode[]",
+      "description": "Converts HTML (e.g. from a CMS) into React elements through an allowlist. Unknown tags are\nunwrapped to their content; `script`, `style`, `iframe`, `form` and similar are dropped whole;\nonly safe attributes are kept, and only `http(s):`, `mailto:`, `tel:`, relative and `#` URLs.\nText is escaped by React. Runs the same on the server and in the browser, so it hydrates cleanly.\n`ProseHtml` wraps it in `Prose`."
+    },
+    "hyperVioletTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme",
+      "description": "Hyper Violet: a dark theme with a violet accent (no light pair)."
+    },
+    "INTENSITY_PRESETS": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/UnfoldingHeading",
+      "type": "Record<UnfoldingIntensity, IntensityPresetConfig>",
+      "description": "Stroke, fill and glow settings for `UnfoldingHeading`'s named `intensity` values."
+    },
+    "isExternalHref": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "(href?: string): boolean",
+      "description": "True for hrefs a client-side router can't handle: any URL with a scheme (`https:`, `mailto:`,\n`tel:`, `sms:`, `data:` …), protocol-relative URLs (`//cdn…`) and same-page anchors (`#id`)."
+    },
+    "lightSemantics": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/light",
+      "type": "FieldSemanticTokens",
+      "description": "The semantic tokens of the default light theme."
+    },
+    "lightShadows": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/shadows",
+      "type": "{ none: string; xs: string; sm: string; md: string; lg: string; xl: string; glow: string; inset: string; }",
+      "description": "Elevation shadows tuned for light surfaces. The dark-mode values above look\nmuddy on white, so light themes get softer, cooler shadows."
+    },
+    "lightTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/themes/light",
+      "type": "FieldTheme",
+      "description": "The default light theme. Light half of `cobaltThemePair`."
+    },
+    "mergeClassNames": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/classNames",
+      "signature": "(...classes: unknown[]): string",
+      "description": "Merges class names, filtering out falsy values."
+    },
+    "mergeRefs": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/hooks",
+      "signature": "<T>(...refs: PossibleRef<T>[]): (instance: T | null) => void",
+      "description": "Combine several refs (callback or object) into one callback ref."
+    },
+    "motion": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/motion",
+      "type": "object",
+      "description": "Animation durations and easings, exposed as `--field-duration-*` and `--field-ease-*`."
+    },
+    "needsNativeLink": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "(attrs?: LinkBehaviorProps): boolean",
+      "description": "True when the browser itself must handle the click: a `download` link, or a `target` other\nthan `_self` (e.g. `_blank`). A client-side router link would intercept the click and\nnavigate in-app instead, breaking the download or new-tab behaviour."
+    },
+    "obsidian": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Neutral scale (50–950), blue-black; the default dark surfaces."
+    },
+    "parseColor": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/contrast",
+      "signature": "(input: string): Rgba | null",
+      "description": "Parse `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()` and `rgba()` colours. Returns `null` for anything else."
+    },
+    "primitiveColors": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "object",
+      "description": "Every primitive colour scale, grouped as `neutrals` and `accents`. Build themes from these with `createTheme`."
+    },
+    "PROSE_HTML_TAGS": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/ProseHtml",
+      "type": "string[]",
+      "description": "Every tag rendered by default; pass a subset as `allowedTags` to narrow it."
+    },
+    "radii": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/radii",
+      "type": "{ none: string; xs: string; sm: string; md: string; lg: string; xl: string; full: string; }",
+      "description": "Corner radii (`none` to `full`), exposed as `--field-radius-*`."
+    },
+    "renderPolymorphic": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "(defaultTag: ElementType<any, keyof IntrinsicElements>, props: { [key: string]: any; asChild?: boolean; as?: ElementType<any, keyof IntrinsicElements>; ... 4 more ...; key?: Key; }, ref?: ForwardedRef<...>): Element",
+      "description": "Renders a component polymorphically supporting `asChild`, `as`, or a default tag."
+    },
+    "resolvePerRange": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "signature": "<T>(value: Responsive<T>, fallback: T): Record<\"base\" | \"sm\" | \"md\" | \"lg\" | \"xl\", T>",
+      "description": "Resolves a possibly-responsive value to one value per range, mobile first: each range inherits\nthe nearest smaller one that is set, and ranges below the first set value get `fallback`."
+    },
+    "resolveSpace": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/responsive",
+      "signature": "(value: SpaceValue): string",
+      "description": "Resolves a numeric pixel value or token key (e.g. `$4`) to a CSS value."
+    },
+    "resolveTag": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/polymorphic",
+      "signature": "(linkComponent: ElementType<any, keyof IntrinsicElements>, as?: ElementType<any, keyof IntrinsicElements>, href?: string, defaultTag?: ElementType<...>, linkAttrs?: LinkBehaviorProps): ElementType<...>",
+      "description": "Resolves the rendered element or component for interactive items.\n\nHonors `as` first, then `linkComponent` when `href` is present and internal,\nfalling back to `a` or the specified `defaultTag`. External hrefs, and links with\n`download` or a `target` other than `_self` (pass them as `linkAttrs`), always render a\nplain `<a>`. Not a hook: use it inside loops with a `linkComponent` read once from\n`useLinkComponent()`."
+    },
+    "roasteryPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair",
+      "description": "Cafés, bakeries, restaurants: warm cream and espresso with a terracotta accent and a soft serif."
+    },
+    "sagePair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair",
+      "description": "Salons, studios, therapists, florists: calm sage greens, rounded shapes and a gentle serif."
+    },
+    "shadows": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/shadows",
+      "type": "{ none: string; xs: string; sm: string; md: string; lg: string; xl: string; glow: string; inset: string; }",
+      "description": "Elevation shadows tuned for dark surfaces: deep, dense drop shadows plus a\nfaint top highlight that reads as a bevel on near-black backgrounds."
+    },
+    "slate": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Neutral scale (50–950), blue-grey."
+    },
+    "spacing": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/spacing",
+      "type": "object",
+      "description": "The spacing scale in px (`0`–`32`), exposed as `--field-space-*` (e.g. `--field-space-0_5`, `--field-space-4`) and as `\"$4\"`-style tokens in layout props."
+    },
+    "SPEED_PRESETS": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/components/UnfoldingHeading",
+      "type": "Record<UnfoldingSpeed, number>",
+      "description": "Milliseconds per triangle for `UnfoldingHeading`'s named `speed` values."
+    },
+    "storefrontPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair",
+      "description": "Online shops: clean white, near-black buttons and generous radii that let product photos lead."
+    },
+    "themePairs": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldThemePair[]",
+      "description": "Every built-in pair: the app/console pairs followed by the website pairs (`businessThemePairs`)."
+    },
+    "themePairToCssString": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/compiler",
+      "signature": "(pair: FieldThemePair): string",
+      "description": "Render a complete stylesheet for a dark/light theme pair.\n\nThe dark theme is the default on `:root`; `[data-theme=\"light\"]` switches to\nthe light theme. This is what `@sam.barfield/field-react/styles.css` ships\nwith, so pages render with correct colours before React hydrates (no flash\nof unstyled content, and SSR works without any JavaScript)."
+    },
+    "themePresets": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme[]",
+      "description": "Every built-in single theme, dark and light, e.g. for a theme picker that is not split by mode."
+    },
+    "themeToCssString": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/compiler",
+      "signature": "(theme: FieldTheme, selector?: string): string",
+      "description": "Render a theme's variables into a CSS rule."
+    },
+    "themeToCssVariables": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/compiler",
+      "signature": "(theme: FieldTheme): Record<string, string>",
+      "description": "Generate CSS variable key-value pairs for a FieldTheme.\n\nEvery `--field-*` custom property the component library reads is produced\nhere, so this is the single source of truth for the CSS variable contract."
+    },
+    "themeToDtcgJson": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/compiler",
+      "signature": "(theme: FieldTheme): string",
+      "description": "Export theme as W3C DTCG-compliant Design Tokens JSON."
+    },
+    "themeToTypeScript": {
+      "kind": "function",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/compiler",
+      "signature": "(theme: FieldTheme): string",
+      "description": "Export theme as a TypeScript module that can be dropped into a project."
+    },
+    "titaniumAmberLightTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme",
+      "description": "Titanium Amber, light mode."
+    },
+    "titaniumAmberPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldThemePair",
+      "description": "Titanium Amber, dark and light."
+    },
+    "titaniumAmberTheme": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/index",
+      "type": "FieldTheme",
+      "description": "Titanium Amber, dark mode: graphite surfaces with an amber accent."
+    },
+    "toISODateString": {
+      "kind": "function",
+      "package": "@sam.barfield/field-react",
+      "source": "packages/react/src/utils/date",
+      "signature": "(d: Date | null): string",
+      "description": "Local `YYYY-MM-DD` (what `<input type=\"date\">` submits). `toISOString()` would shift by the UTC offset."
+    },
+    "typography": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/typography",
+      "type": "object",
+      "description": "Font stacks, sizes, weights and line heights, exposed as `--field-font-*` variables."
+    },
+    "violet": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Accent scale (50–950), purple."
+    },
+    "workshopPair": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/presets/business",
+      "type": "FieldThemePair",
+      "description": "Plumbers, electricians, builders: sturdy navy with a high-visibility orange and tight corners."
+    },
+    "zinc": {
+      "kind": "constant",
+      "package": "@sam.barfield/field-tokens",
+      "source": "packages/tokens/src/primitives/colors",
+      "type": "ColorScale",
+      "description": "Neutral scale (50–950), cool grey."
     }
   }
 }

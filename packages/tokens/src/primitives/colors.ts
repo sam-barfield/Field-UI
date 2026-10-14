@@ -1,5 +1,6 @@
 import { ColorScale } from '../types.js';
 
+/** Neutral scale (50–950), blue-black; the default dark surfaces. */
 export const obsidian: ColorScale = {
   50: '#F5F7FA',
   100: '#E4E8F0',
@@ -14,6 +15,7 @@ export const obsidian: ColorScale = {
   950: '#080A0E',
 };
 
+/** Neutral scale (50–950), cool grey. */
 export const zinc: ColorScale = {
   50: '#FAFAFA',
   100: '#F4F4F5',
@@ -28,6 +30,7 @@ export const zinc: ColorScale = {
   950: '#09090B',
 };
 
+/** Neutral scale (50–950), blue-grey. */
 export const slate: ColorScale = {
   50: '#F8FAFC',
   100: '#F1F5F9',
@@ -42,6 +45,7 @@ export const slate: ColorScale = {
   950: '#020617',
 };
 
+/** Neutral scale (50–950), warm grey. */
 export const graphite: ColorScale = {
   50: '#F6F6F6',
   100: '#E7E7E7',
@@ -56,6 +60,7 @@ export const graphite: ColorScale = {
   950: '#0D0D0D',
 };
 
+/** Accent scale (50–950), blue; the default accent. */
 export const cobalt: ColorScale = {
   50: '#EFF6FF',
   100: '#DBEAFE',
@@ -70,6 +75,7 @@ export const cobalt: ColorScale = {
   950: '#0F2154',
 };
 
+/** Accent scale (50–950), green. */
 export const emerald: ColorScale = {
   50: '#ECFDF5',
   100: '#D1FAE5',
@@ -84,6 +90,7 @@ export const emerald: ColorScale = {
   950: '#022C22',
 };
 
+/** Accent scale (50–950), purple. */
 export const violet: ColorScale = {
   50: '#F5F3FF',
   100: '#EDE9FE',
@@ -98,6 +105,7 @@ export const violet: ColorScale = {
   950: '#2E1065',
 };
 
+/** Accent scale (50–950), orange-yellow. */
 export const amber: ColorScale = {
   50: '#FFFBEB',
   100: '#FEF3C7',
@@ -112,6 +120,7 @@ export const amber: ColorScale = {
   950: '#451A03',
 };
 
+/** Accent scale (50–950), red. */
 export const crimson: ColorScale = {
   50: '#FEF2F2',
   100: '#FEE2E2',
@@ -126,6 +135,7 @@ export const crimson: ColorScale = {
   950: '#450A0A',
 };
 
+/** Accent scale (50–950), blue-green. */
 export const cyan: ColorScale = {
   50: '#ECFEFF',
   100: '#CFFAFE',
@@ -140,6 +150,7 @@ export const cyan: ColorScale = {
   950: '#083344',
 };
 
+/** Every primitive colour scale, grouped as `neutrals` and `accents`. Build themes from these with `createTheme`. */
 export const primitiveColors = {
   neutrals: {
     obsidian,

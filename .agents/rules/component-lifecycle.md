@@ -23,6 +23,7 @@
 
 ### 4. Manifest
 - Run `npm run docs:manifest`. It regenerates `docs/COMPONENT_MANIFEST.json` from the source; never edit it by hand. Check the new component appears with descriptions for every prop.
+- The script warns about anything undocumented: a component that is in no docs page's `api` list (or a guide's `<PropsTable>`), and a hook, function or constant without a JSDoc description. Fix every warning: exports without a page are invisible to users. Hooks and utilities need only JSDoc; the "Hooks & utilities" docs page lists them from the manifest.
 
 ### 5. Docs site (`apps/showcase/src/docs`)
 - Add or update the page in `componentPages.ts` (summary, `api`, when to use, accessibility, keyboard, related).

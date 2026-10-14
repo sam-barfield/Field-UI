@@ -1,3 +1,4 @@
+/** Animation durations and easings, exposed as `--field-duration-*` and `--field-ease-*`. */
 export const motion = {
   durations: {
     instant: '50ms',

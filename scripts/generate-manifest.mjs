@@ -287,8 +287,36 @@ function describeComponent(name, symbol) {
   return result;
 }
 
+/** Where an export is declared: `packages/react/src/…` or `packages/tokens/…`; undefined for other packages. */
+function sourceOf(fileName) {
+  const normalized = fileName.split(sep).join('/');
+  const match = /packages\/(react|tokens)\/(src|dist)\/(.+?)(\.d)?\.(tsx?|js)$/.exec(normalized);
+  return match ? `packages/${match[1]}/src/${match[3]}` : undefined;
+}
+
+/** Plain functions and constants: everything exported that is not a component or a hook. */
+function describeUtility(resolved) {
+  const decl = resolved.valueDeclaration ?? resolved.declarations?.[0];
+  if (!decl) return undefined;
+  const source = sourceOf(decl.getSourceFile().fileName);
+  if (!source) return undefined;
+  const type = checker.getTypeOfSymbolAtLocation(resolved, decl);
+  const sig = type.getCallSignatures()[0];
+  const entry = { kind: sig ? 'function' : 'constant', package: source.startsWith('packages/tokens') ? '@sam.barfield/field-tokens' : '@sam.barfield/field-react', source };
+  if (sig) {
+    entry.signature = cleanType(checker.signatureToString(sig));
+  } else {
+    const text = cleanType(checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope));
+    // Long object types (themes, palettes) say nothing useful inline.
+    entry.type = text.length > 120 ? (text.startsWith('{') ? 'object' : text.slice(0, 117) + '…') : text;
+  }
+  entry.description = docText(resolved);
+  return entry;
+}
+
 const components = {};
 const hooks = {};
+const utilities = {};
 for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
   const name = symbol.getName();
   const resolved = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
@@ -306,9 +334,13 @@ for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
     }
     continue;
   }
-  if (!/^[A-Z]/.test(name)) continue;
-  const described = describeComponent(name, symbol);
-  if (described) components[name] = described;
+  const described = /^[A-Z][a-z]/.test(name) ? describeComponent(name, symbol) : undefined;
+  if (described) {
+    components[name] = described;
+    continue;
+  }
+  const utility = describeUtility(resolved);
+  if (utility) utilities[name] = utility;
 }
 
 const pkg = JSON.parse(readFileSync(join(reactPkg, 'package.json'), 'utf8'));
@@ -320,10 +352,33 @@ const manifest = {
   generatedBy: 'scripts/generate-manifest.mjs - do not edit by hand',
   components: sortObject(components),
   hooks: sortObject(hooks),
+  utilities: sortObject(utilities),
 };
 
 const outFile = join(root, 'docs/COMPONENT_MANIFEST.json');
 // Normalise CRLF from Windows checkouts so the manifest is identical on every OS.
 const lf = (_key, value) => (typeof value === 'string' ? value.replace(/\r\n/g, '\n') : value);
 writeFileSync(outFile, JSON.stringify(manifest, lf, 2) + '\n');
-console.log(`Wrote ${Object.keys(components).length} components and ${Object.keys(hooks).length} hooks to docs/COMPONENT_MANIFEST.json`);
+console.log(
+  `Wrote ${Object.keys(components).length} components, ${Object.keys(hooks).length} hooks and ${Object.keys(utilities).length} utilities to docs/COMPONENT_MANIFEST.json`
+);
+
+// Discoverability: every component needs a docs page (or an API table in a guide), and every hook and
+// utility a description (the "Hooks & utilities" page renders them from this manifest).
+const pagesSource = readFileSync(join(root, 'apps/showcase/src/docs/componentPages.ts'), 'utf8');
+const guidesSource = readFileSync(join(root, 'apps/showcase/src/docs/guides.tsx'), 'utf8');
+const documented = new Set([
+  ...[...pagesSource.matchAll(/api: \[([^\]]*)\]/g)].flatMap(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])),
+  ...[...guidesSource.matchAll(/<PropsTable component="([^"]+)"/g)].map(m => m[1]),
+]);
+const warnings = [
+  ...Object.keys(components)
+    .filter(n => !documented.has(n) && !/^Alias of /.test(components[n].description))
+    .map(n => `component ${n} has no docs page: add it to an \`api\` list in componentPages.ts`),
+  ...Object.entries(hooks).filter(([, h]) => !h.description).map(([n]) => `hook ${n} has no JSDoc description`),
+  ...Object.entries(utilities).filter(([, u]) => !u.description).map(([n]) => `utility ${n} has no JSDoc description`),
+];
+if (warnings.length) {
+  console.warn(`\n${warnings.length} undocumented export(s):`);
+  for (const w of warnings) console.warn(`  - ${w}`);
+}

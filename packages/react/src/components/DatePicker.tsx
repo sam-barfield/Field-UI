@@ -430,6 +430,7 @@ const lastNDays = (n: number): DateRange => {
   return { start: addDays(end, -(n - 1)), end };
 };
 
+/** The `DateRangePicker` presets shown by default: last 7, 30 and 90 days, ending today. Spread it to add your own. */
 export const DEFAULT_DATE_RANGE_PRESETS: DateRangePreset[] = [
   { label: 'Last 7 days', range: () => lastNDays(7) },
   { label: 'Last 30 days', range: () => lastNDays(30) },

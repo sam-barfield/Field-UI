@@ -20,6 +20,17 @@ export interface Manifest {
   version: string;
   components: Record<string, ManifestComponent>;
   hooks: Record<string, { signature?: string; description: string }>;
+  utilities: Record<string, ManifestUtility>;
+}
+
+/** An exported function or constant that is not a component or hook. */
+export interface ManifestUtility {
+  kind: 'function' | 'constant';
+  package: string;
+  source: string;
+  signature?: string;
+  type?: string;
+  description: string;
 }
 
 /** Generated from the library source by `npm run docs:manifest`. */

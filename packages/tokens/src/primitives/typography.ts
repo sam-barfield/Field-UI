@@ -1,3 +1,4 @@
+/** Font stacks, sizes and weights, exposed as `--field-font-*` variables. */
 export const typography = {
   fonts: {
     sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
